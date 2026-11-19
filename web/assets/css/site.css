@@ -251,9 +251,19 @@ h3 { font-size: clamp(1.4rem, 2.2vw, 1.9rem); }
   .hero-inner { margin-left: max(5vw, calc((100vw - var(--max)) / 2)); width: min(640px, 50vw); }
   .hero .sub { margin-left: 0; }
   .hero .actions { justify-content: flex-start; }
-  .hero::after { background: linear-gradient(90deg, rgba(7,8,10,0.75) 0%, rgba(7,8,10,0.25) 45%, transparent 70%), linear-gradient(180deg, transparent 80%, var(--bg)); }
+  .hero::after { background: linear-gradient(90deg, rgba(7,8,10,0.94) 0%, rgba(7,8,10,0.78) 32%, rgba(7,8,10,0.25) 55%, transparent 72%), linear-gradient(180deg, rgba(7,8,10,0.35) 0%, transparent 25%, transparent 78%, var(--bg)); }
 }
 .page-hero h1 { font-size: clamp(2.8rem, 7vw, 5.6rem); }
+.page-hero .ph {
+  position: absolute; inset: -4%; z-index: -3;
+  background-size: cover; background-position: center 35%;
+  filter: grayscale(0.45) brightness(0.55) contrast(1.1);
+  animation: kenburns 28s ease-in-out infinite alternate;
+}
+@keyframes kenburns { from { transform: scale(1.04) translate(0, 0); } to { transform: scale(1.12) translate(-1.5%, -1%); } }
+.slide.photo { padding: 0; place-items: end start; text-align: left; background-size: cover; background-position: center; }
+.slide.photo::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,8,10,0.1) 30%, rgba(7,8,10,0.92)); }
+.slide.photo > div { position: relative; padding: 0 70px 70px 40px; }
 .page-hero .lead { max-width: 720px; }
 
 /* Sections */

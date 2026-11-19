@@ -254,6 +254,7 @@
   $$("canvas.hero-bg").forEach(cv => {
     const ctx = cv.getContext("2d");
     const big = cv.dataset.mode !== "soft";
+    const hasPh = !!cv.parentElement.querySelector(".ph");
     let w, h, dpr, t0 = performance.now(), visible = true;
     const fit = () => {
       dpr = Math.min(devicePixelRatio || 1, 2);
@@ -278,15 +279,83 @@
       return 0;
     };
 
+    // Photo mode: a real photograph, graded dark, with the arm pressing the
+    // chest in it. anchor = where the sternum sits in the photo (0..1).
+    let photo = null;
+    if (cv.dataset.photo) {
+      const im = new Image();
+      im.onload = () => { photo = im; };
+      im.src = cv.dataset.photo;
+    }
+    const ax = parseFloat(cv.dataset.ax || "0.62"), ay = parseFloat(cv.dataset.ay || "0.415");
+
+    const drawPhoto = t => {
+      const wide = w > 980;
+      const iw = photo.naturalWidth, ih = photo.naturalHeight;
+      const zoom = 1.06 + 0.04 * Math.sin(t * 0.05);                 // slow cinematic drift
+      const k = Math.max(w / iw, h / ih) * zoom;
+      const dw = iw * k, dh = ih * k;
+      const tx = wide ? 0.7 * w : 0.62 * w, ty = wide ? 0.6 * h : 0.66 * h;
+      let ox = tx - ax * dw, oy = ty - ay * dh;
+      ox = Math.min(0, Math.max(w - dw, ox)); oy = Math.min(0, Math.max(h - dh, oy));
+      const sx = ox + ax * dw, sy = oy + ay * dh;                    // sternum on screen
+
+      const cyc = (t * 110 / 60) % 1;
+      const depth = 0.5 * (1 - Math.cos(2 * Math.PI * cyc));
+      const push = depth * dh * 0.022;                               // how far the chest dips
+
+      ctx.save();
+      ctx.filter = "grayscale(0.5) brightness(0.5) contrast(1.15)";
+      ctx.drawImage(photo, ox, oy, dw, dh);
+      // chest warp: redraw columns around the sternum, shifted down
+      // Each column is stretched between a fixed line above the chest and the
+      // chest edge, then the body below moves down by the same amount, so
+      // the photo bends without a seam.
+      const span = dw * 0.16, x0 = Math.max(0, sx - span * 2.2), x1 = Math.min(w, sx + span * 2.2);
+      const top = sy - dh * 0.09, cw = 2;
+      for (let x = x0; x < x1; x += cw) {
+        const d = push * Math.exp(-Math.pow((x - sx) / span, 2));
+        if (d < 0.25) continue;
+        const srcX = (x - ox) / k;
+        ctx.drawImage(photo, srcX, (top - oy) / k, cw / k, (sy - top) / k, x, top, cw, sy - top + d);
+        ctx.drawImage(photo, srcX, (sy - oy) / k, cw / k, (h - sy) / k, x, sy + d, cw, h - sy);
+      }
+      ctx.restore();
+
+      // the arm standing over the chest, cup on the sternum
+      const s = Math.max(0.42, Math.min(dw / 3000, 1.0));
+      ctx.save();
+      ctx.translate(sx, sy + push);
+      drawArm(ctx, s, depth);
+      ctx.restore();
+
+      // red glow where the cup meets the chest
+      const rg = ctx.createRadialGradient(sx, sy + push, 0, sx, sy + push, 160 * s);
+      rg.addColorStop(0, `rgba(227,18,45,${0.18 + 0.22 * depth})`); rg.addColorStop(1, "rgba(227,18,45,0)");
+      ctx.fillStyle = rg; ctx.fillRect(sx - 200 * s, sy - 200 * s, 400 * s, 400 * s);
+    };
+
     const draw = now => {
       requestAnimationFrame(draw);
       if (!visible) return;
       const t = (now - t0) / 1000;
       ctx.clearRect(0, 0, w, h);
-      // base
-      const g = ctx.createRadialGradient(w * 0.55, h * 0.45, 0, w * 0.55, h * 0.45, Math.max(w, h) * 0.8);
-      g.addColorStop(0, "#1a1d24"); g.addColorStop(1, "#050607");
-      ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+      if (photo) {
+        drawPhoto(t);
+        const ty = h * 0.18;
+        ctx.lineWidth = 2; ctx.strokeStyle = "rgba(227,18,45,0.85)"; ctx.shadowColor = "#e3122d"; ctx.shadowBlur = 10;
+        ctx.beginPath();
+        const head = (t * 180) % (w + 200), from = Math.max(0, head - w * 0.55);
+        for (let x = from; x <= head && x <= w; x += 2) { const y = ty - ecg(x / 220) * 30; x === from ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+        ctx.stroke(); ctx.shadowBlur = 0;
+        return;
+      }
+      // base (skipped when a photo sits behind the canvas)
+      if (!hasPh) {
+        const g = ctx.createRadialGradient(w * 0.55, h * 0.45, 0, w * 0.55, h * 0.45, Math.max(w, h) * 0.8);
+        g.addColorStop(0, "#1a1d24"); g.addColorStop(1, "#050607");
+        ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+      }
       // grid
       ctx.strokeStyle = "rgba(255,255,255,0.035)"; ctx.lineWidth = 1;
       const gs = 48, off = (t * 12) % gs;
@@ -339,8 +408,8 @@
         roundRect(ctx, -26 * s, top + 70 * s, 52 * s, 30 * s, 6 * s); ctx.fill();
         ctx.restore();
         ctx.globalAlpha = 1;
-      } else {
-        // inner pages: the same patient, faint, along the bottom of the header
+      } else if (!cv.parentElement.querySelector(".ph")) {
+        // inner pages without a photo: the drawn patient, faint, along the bottom
         const s = Math.min(w / 2400, h / 620);
         ctx.save();
         ctx.globalAlpha = 0.9;
@@ -375,6 +444,35 @@
     };
     requestAnimationFrame(draw);
   });
+
+  /* The compression arm, drawn with its cup bottom at the origin.
+     depth 0..1 moves the piston; the cup stays on the chest surface. */
+  function drawArm(c, s, depth) {
+    const col = c.createLinearGradient(-60 * s, 0, 60 * s, 0);
+    col.addColorStop(0, "#8d939b"); col.addColorStop(0.5, "#eef1f5"); col.addColorStop(1, "#6d727a");
+    const rise = 26 * s * (1 - depth);           // piston body moves, cup stays on the chest
+    const top = -420 * s - rise;
+    c.save();
+    c.shadowColor = "rgba(0,0,0,0.6)"; c.shadowBlur = 30 * s;
+    c.fillStyle = col;
+    roundRect(c, -250 * s, -470 * s, 500 * s, 70 * s, 18 * s); c.fill();           // top bar
+    roundRect(c, -250 * s, -470 * s, 54 * s, 500 * s, 16 * s); c.fill();            // left leg, down beside the chest
+    roundRect(c, 196 * s, -470 * s, 54 * s, 500 * s, 16 * s); c.fill();             // right leg
+    c.shadowBlur = 0;
+    c.fillStyle = "#e3122d";
+    roundRect(c, -238 * s, -350 * s, 30 * s, 90 * s, 8 * s); c.fill();
+    roundRect(c, 208 * s, -350 * s, 30 * s, 90 * s, 8 * s); c.fill();
+    c.fillStyle = "#16181d";
+    roundRect(c, -48 * s, -440 * s, 96 * s, 150 * s, 14 * s); c.fill();             // drive housing
+    c.fillStyle = `rgba(227,18,45,${0.55 + 0.45 * depth})`;
+    roundRect(c, -28 * s, -410 * s, 56 * s, 30 * s, 6 * s); c.fill();               // display
+    c.fillStyle = col;
+    roundRect(c, -18 * s, top + 130 * s, 36 * s, -top - 150 * s, 8 * s); c.fill();  // piston rod
+    c.fillStyle = "#e3122d";
+    c.beginPath(); c.ellipse(0, -10 * s, 64 * s, 15 * s, 0, 0, Math.PI * 2); c.fill(); // cup
+    c.fillRect(-46 * s, -24 * s, 92 * s, 14 * s);
+    c.restore();
+  }
 
   /* A person lying on their back, seen from the side, head to the left.
      Origin is the sternum at table level; dip pushes the chest down under

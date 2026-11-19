@@ -70,45 +70,68 @@ double elv_core_ccf(const elv_core_t *c)
     return (double)c->m.hands_on_ticks / (double)c->m.cpr_ticks;
 }
 
-/* Trusted rhythm check. Deliberately simple and auditable.            */
-/* Input: hands-off ECG (no compression artifact), 250 Hz.             */
-/* Shockable = not flat (asystole) AND no long isoelectric baseline    */
-/* (organised rhythm) AND frequent baseline crossings (fibrillation).  */
-bool elv_trusted_shockable(const float *mv, uint32_t n)
-{
-    if (n < 100) return false;
-    float lo = mv[0], hi = mv[0];
-    double mean = 0;
-    for (uint32_t i = 0; i < n; i++) {
-        if (mv[i] < lo) lo = mv[i];
-        if (mv[i] > hi) hi = mv[i];
-        mean += mv[i];
-    }
-    mean /= n;
-    float ptp = hi - lo;
-    if (ptp < 0.20f) return false;                     /* asystole / fine VF */
+/* Trusted rhythm check. Deliberately simple and auditable: four numbers
+   measured on hands-off ECG (no compression artifact, 250 Hz), and one
+   fixed rule. The thresholds are tuned on one public database and scored
+   on another (tests/host/rhythm_tune.c). */
 
-    /* median approximation: histogram of 64 bins */
-    uint32_t hist[64] = {0};
+/* Tuned on CUDB only; see docs in tests/host/rhythm_tune.c. */
+const elv_rhythm_thr_t ELV_RHYTHM_THR = {
+    .min_ptp = 0.20f, .max_flat = 0.35f, .min_steep = 0.0f,
+    .min_xing = 3.0f, .max_xing = 12.0f,
+};
+
+void elv_rhythm_features(const float *in, uint32_t n, elv_rhythm_feat_t *f)
+{
+    memset(f, 0, sizeof(*f));
+    if (n < 100 || n > 1024) return;
+    /* remove baseline wander with a least squares line */
+    float x[1024];
+    double sx = 0, sy = 0, sxx = 0, sxy = 0;
+    for (uint32_t i = 0; i < n; i++) { sx += i; sy += in[i]; sxx += (double)i * i; sxy += i * (double)in[i]; }
+    double den = n * sxx - sx * sx;
+    double b = den != 0 ? (n * sxy - sx * sy) / den : 0, a = (sy - b * sx) / n;
+    float lo = 1e9f, hi = -1e9f;
     for (uint32_t i = 0; i < n; i++) {
-        int b = (int)((mv[i] - lo) / ptp * 63.0f);
-        hist[b]++;
+        x[i] = (float)(in[i] - (a + b * i));
+        if (x[i] < lo) lo = x[i];
+        if (x[i] > hi) hi = x[i];
     }
+    float ptp = hi - lo;
+    f->ptp = ptp;
+    if (ptp <= 0.0f) return;
+
+    /* median from a 64 bin histogram */
+    uint32_t hist[64] = {0};
+    for (uint32_t i = 0; i < n; i++) hist[(int)((x[i] - lo) / ptp * 63.0f)]++;
     uint32_t acc = 0; int mb = 0;
     for (mb = 0; mb < 64; mb++) { acc += hist[mb]; if (acc >= n / 2) break; }
     float median = lo + (mb + 0.5f) * ptp / 63.0f;
 
-    uint32_t flat = 0;
-    for (uint32_t i = 0; i < n; i++)
-        if (fabsf(mv[i] - median) < 0.10f * ptp) flat++;
-    double flat_frac = (double)flat / n;
+    uint32_t flat = 0, xings = 0, steep = 0;
+    float maxd = 0;
+    for (uint32_t i = 1; i < n; i++) { float d = fabsf(x[i] - x[i - 1]); if (d > maxd) maxd = d; }
+    for (uint32_t i = 0; i < n; i++) {
+        if (fabsf(x[i] - median) < 0.10f * ptp) flat++;
+        if (i && (x[i - 1] - median) * (x[i] - median) < 0) xings++;
+        if (i && fabsf(x[i] - x[i - 1]) > 0.5f * maxd) steep++;
+    }
+    f->flat = (float)flat / n;
+    f->xing_hz = (float)(xings / 2.0 / ((double)n / ELV_ECG_HZ));
+    f->steep = (float)steep / n;     /* VF: many steep samples; QRS: a few spikes */
+}
 
-    uint32_t xings = 0;
-    for (uint32_t i = 1; i < n; i++)
-        if ((mv[i - 1] - mean) * (mv[i] - mean) < 0) xings++;
-    double xing_hz = xings / 2.0 / ((double)n / ELV_ECG_HZ);
+bool elv_rhythm_decide(const elv_rhythm_feat_t *f, const elv_rhythm_thr_t *t)
+{
+    return f->ptp >= t->min_ptp && f->flat < t->max_flat && f->steep >= t->min_steep &&
+           f->xing_hz >= t->min_xing && f->xing_hz <= t->max_xing;
+}
 
-    return flat_frac < 0.35 && xing_hz >= 3.0 && xing_hz <= 12.0;
+bool elv_trusted_shockable(const float *mv, uint32_t n)
+{
+    elv_rhythm_feat_t f;
+    elv_rhythm_features(mv, n, &f);
+    return elv_rhythm_decide(&f, &ELV_RHYTHM_THR);
 }
 
 

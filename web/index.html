@@ -19,7 +19,7 @@
 
 <main>
   <section class="hero">
-    <canvas class="hero-bg" aria-hidden="true"></canvas>
+    <canvas class="hero-bg" data-photo="/assets/img/hero-patient.jpg" data-ax="0.62" data-ay="0.43" aria-hidden="true"></canvas>
     <div class="hero-inner wrap">
       <div class="badge"><i></i> Built on QNX 8.0 for the QNX Global Hackathon</div>
       <h1 class="hero-title"><span>ELVREK</span> <span class="red">CPR</span></h1>
@@ -98,23 +98,14 @@
           <div><a href="/system" class="btn btn-red" style="margin-top:1rem">Find out more</a></div>
         </div>
         <div class="panel-slides">
-          <div class="slide">
-            <div>
-              <svg viewBox="0 0 260 150" fill="none"><rect x="20" y="40" width="200" height="80" rx="14" stroke="#d7dce3" stroke-width="3"/><circle cx="60" cy="125" r="14" stroke="#d7dce3" stroke-width="3"/><circle cx="185" cy="125" r="14" stroke="#d7dce3" stroke-width="3"/><path d="M220 70h22l12 22v28h-34" stroke="#d7dce3" stroke-width="3"/><path d="M100 65v30M85 80h30" stroke="#e3122d" stroke-width="6"/></svg>
-              <h4>In the ambulance</h4><p>Frame sensors feed the controller so compression depth holds steady over bumps and braking.</p>
-            </div>
+          <div class="slide photo" style="background-image:url(/assets/img/paramedics.jpg)">
+            <div><h4>In the ambulance</h4><p>Frame sensors feed the controller so compression depth holds steady over bumps and braking.</p></div>
           </div>
-          <div class="slide">
-            <div>
-              <svg viewBox="0 0 260 150" fill="none"><rect x="40" y="30" width="180" height="100" rx="10" stroke="#d7dce3" stroke-width="3"/><path d="M60 80h30l10-26 16 50 12-24h52" stroke="#e3122d" stroke-width="4"/></svg>
-              <h4>In the hospital</h4><p>Hands-free compressions while the team works on the airway, the lines and the cause.</p>
-            </div>
+          <div class="slide photo" style="background-image:url(/assets/img/hero-patient.jpg)">
+            <div><h4>In the hospital</h4><p>Hands-free compressions while the team works on the airway, the lines and the cause.</p></div>
           </div>
-          <div class="slide">
-            <div>
-              <svg viewBox="0 0 260 150" fill="none"><circle cx="130" cy="60" r="26" stroke="#d7dce3" stroke-width="3"/><path d="M70 135c8-30 32-44 60-44s52 14 60 44" stroke="#d7dce3" stroke-width="3"/><path d="M118 60h24M130 48v24" stroke="#e3122d" stroke-width="5"/></svg>
-              <h4>In training and research</h4><p>Open source and testable on a manikin, so EMS trainers and labs can see every decision it makes.</p>
-            </div>
+          <div class="slide photo" style="background-image:url(/assets/img/training.jpg)">
+            <div><h4>In training and research</h4><p>Open source and testable on a manikin, so EMS trainers and labs can see every decision it makes.</p></div>
           </div>
           <button class="slider-arrow prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg></button>
           <button class="slider-arrow next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg></button>

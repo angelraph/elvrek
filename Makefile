@@ -47,3 +47,11 @@ build/trace_export: tests/host/trace_export.c $(CORE) $(SIM)
 .PHONY: web-trace
 web-trace: build/trace_export
 	./build/trace_export web/data/run-vf-shock.json
+
+# Tune the trusted rhythm check on CUDB and score it once on VFDB.
+build/rhythm_tune: tests/host/rhythm_tune.c $(CORE)
+	@mkdir -p build
+	$(CC) $(CFLAGS) $(INC) -o $@ $^ -lm
+.PHONY: rhythm-tune
+rhythm-tune: build/rhythm_tune
+	./build/rhythm_tune build/ecg/*.bin
