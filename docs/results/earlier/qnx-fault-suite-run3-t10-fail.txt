@@ -1,0 +1,30 @@
+-rwxrwxrwx 1 angelraph angelraph 13984 Nov 19 22:12 elv-fault
+-rwxrwxrwx 1 angelraph angelraph 18576 Nov 19 22:12 elv-plant
+-rwxrwxrwx 1 angelraph angelraph 14032 Nov 19 22:12 elv-super
+-rwxrwxrwx 1 angelraph angelraph 14184 Nov 19 22:12 elv-telemetry
+-rwxrwxrwx 1 angelraph angelraph 37128 Nov 19 22:12 elvrekd
+build/qnx-x86_64/elv-advisor:   ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=ac542add8e53de596e137f3294bfa100, with debug_info, not stripped
+build/qnx-x86_64/elv-ctl:       ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=12efcfad608329937e28258443980906, with debug_info, not stripped
+build/qnx-x86_64/elv-fault:     ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=9aeb1cd36dfe4eaab173509101d384ad, with debug_info, not stripped
+build/qnx-x86_64/elv-plant:     ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=f0e5eb9f3e62117c5d58114178acd73c, with debug_info, not stripped
+build/qnx-x86_64/elv-super:     ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=27f053a44ba24d15b5c31a3576ec590d, with debug_info, not stripped
+build/qnx-x86_64/elv-telemetry: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=b783959f00dacc90462808d954dca411, with debug_info, not stripped
+build/qnx-x86_64/elvrekd:       ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /usr/lib/ldqnx-64.so.2, BuildID[md5/uuid]=f87501384d62e8c62cac92d0c99bd3e9, with debug_info, not stripped
+QNX target at 172.31.1.10: QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+PASS T1 control loop ticking (984 ticks in 1 s)
+PASS T2 compressions (17 in 10 s, 0 invariant violations)
+PASS T3 advisor attack: attack: 7 of 7 forbidden actions refused
+PASS T4 advisor killed: compressions continued (+11), restarted (2)
+PASS T5 CPU storm (8 threads, priority 59, 10 s): missed ticks 255 with storm vs 1401 without, +18 compressions
+PASS T6 stiff chest: max force 605 N, ceiling engaged 8 times
+recent stroke peaks (mm): 51.4 53.1 52.9 51.5 52.1 53.1 52.1 53.2 52.6 52.4 52.3 52.3 53.5 52.2 53.0 52.0
+PASS T7 transport: depth in 5-6 cm on 100.0% of 84 strokes
+PASS T8 sensor dropout: SAFE_HOLD, cup at recoil
+PASS T9 safety process killed: HW watchdog retracted (depth 0.0 mm), not restarted
+PASS T10 shock: 1 shock, hands-off window 804 ticks, 0 shocks off recoil
+FAIL T10 ROSC: state SAFE_HOLD
+PASS T10 chest-compression fraction 0.9944
+PASS T11 malicious advisor: 249 demands ignored, shock still delivered, 0 violations
+FAIL: 1 case(s)
+
+[exited with code 0]

@@ -29,6 +29,7 @@ typedef struct {
     bool transport_comp;
     uint64_t seconds;
     uint32_t press_delay_ticks;   /* operator reaction to SHOCK prompt */
+    uint32_t pause_every, pause_len;  /* controller stalls like a busy VM */
 } scen_t;
 
 typedef struct {
@@ -41,6 +42,7 @@ typedef struct {
     double max_true_depth, max_force;
     uint32_t parked_shock_violations;
     uint64_t rosc_detect, rosc_parked;
+    uint32_t pending_replays;
 } run_t;
 
 static run_t R;
@@ -104,6 +106,23 @@ static void run(const scen_t *sc)
             op.epi_given = t - R.epi_prompt_since >= 30000;
         } else R.epi_prompt_since = 0;
 
+        /* A stalled controller, as on a busy virtual machine: the hardware
+           keeps the last setpoint, then the controller replays the ticks it
+           missed with the newest sample, exactly as elvrekd does. */
+        if (sc->pause_every && t > 2000 && t % sc->pause_every < sc->pause_len) {
+            R.pending_replays++;
+            continue;
+        }
+        for (uint32_t k = 0; k < R.pending_replays; k++) {
+            static const elv_operator_t idle_op;
+            elv_operator_t ok = idle_op;
+            ok.mode_30_2 = op.mode_30_2; ok.transport_comp = op.transport_comp;
+            elv_sensors_t sk = *s;
+            sk.seq = s->seq * 64 + k;
+            elv_core_step(&R.core, &sk, NULL, &ok, &act);
+            (void)elv_inv_check(&R.inv, &R.core, &sk, &act);
+        }
+        R.pending_replays = 0;
         elv_core_step(&R.core, s, pm, &op, &act);
         /* violations are counted inside the monitor; elvrekd forces a retract */
         (void)elv_inv_check(&R.inv, &R.core, s, &act);
@@ -316,6 +335,21 @@ int main(void)
     BEGIN(s15);
     expect(inrange_pct() >= 80.0, "depth in range >= 80% with a 15% model mismatch");
     report(&s15);
+
+    /* 14. Transport on a controller that stalls 40 ms every 0.7 s, then
+       catches up, as the QEMU target does on a busy host */
+    scen_t s16 = s14; s16.name = "transport_controller_stalls";
+    s16.pause_every = 700; s16.pause_len = 40;
+    BEGIN(s16);
+    expect(inrange_pct() >= 90.0, "depth in 5-6 cm on >= 90% of strokes despite stalls");
+    report(&s16);
+
+    /* 15. Stiff chest with the same stalls: the force limit still holds */
+    scen_t s17 = s8; s17.name = "stiff_chest_controller_stalls";
+    s17.pause_every = 700; s17.pause_len = 40;
+    BEGIN(s17);
+    expect(R.max_force < ELV_FORCE_ABS_N, "force under the 650 N hard limit despite stalls");
+    report(&s17);
 
     printf("\n%s: %d scenario(s) failed\n", failures ? "FAIL" : "PASS", failures);
     return failures ? 1 : 0;

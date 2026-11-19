@@ -75,6 +75,14 @@ int main(int argc, char **argv)
                hw->true_depth_m * 1000, hw->max_true_depth_m * 1000, hw->max_force_n,
                hw->strokes, hw->strokes_in_range, hw->shocks_received,
                hw->shocks_off_recoil, hw->hw_watchdog_trips, hw->driver_force_limits);
+        if (argc > 2 && !strcmp(argv[2], "peaks")) {
+            printf("recent stroke peaks (mm):");
+            for (int i = 0; i < 16; i++) {
+                uint32_t k = hw->peak_n >= (uint32_t)i ? hw->peak_n - (uint32_t)i : 0;
+                printf(" %.1f", hw->peak_mm[k % 64]);
+            }
+            printf("\n");
+        }
         return 0;
     }
 

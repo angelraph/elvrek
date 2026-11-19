@@ -85,6 +85,9 @@ typedef struct {
        can replay exactly the samples it missed after a late wake-up */
     _Atomic uint64_t accel_n;
     float           accel_ring[512];
+    /* true peak depth of the last strokes, in mm, for diagnosis */
+    uint32_t        peak_n;
+    float           peak_mm[64];
 } elv_hw_shm_t;
 #define ELV_HW_MAGIC 0x414E5648u
 

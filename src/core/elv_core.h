@@ -132,7 +132,8 @@ typedef struct {
     /* transport: disturbance observer on the frame IMU */
     double   s_hat, sv_hat;
     double   force_cap_m;          /* depth cap latched this downstroke     */
-    double   prev_pos, prev_force, k_est;
+    double   prev_pos, prev_force, k_est, v_est;
+    uint64_t prev_sample_n;
     /* ACLS clock */
     uint64_t epi_due_tick;          /* 0 = not running                       */
     bool     epi_prompt;            /* crew prompt showing                   */

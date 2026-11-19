@@ -38,9 +38,36 @@ void elv_plant_step(elv_plant_t *p, const elv_actuators_t *a)
     double dt = ELV_TICK_S / SUBSTEPS;
     double vmax = a->piston_vmax_ms > 0 ? a->piston_vmax_ms : ELV_PISTON_VMAX_MS;
 
+    /* Driver: in chest-referenced mode it adds its own estimate of the chest
+       motion to the controller's setpoint, every driver tick, so a late
+       controller cannot make the depth wrong. */
+    double drive_target = a->piston_target_m;
+    if (a->chest_ref) {
+        double comp = p->drv_s;
+        if (comp >  ELV_COMP_MAX_M) comp =  ELV_COMP_MAX_M;
+        if (comp < -ELV_COMP_MAX_M) comp = -ELV_COMP_MAX_M;
+        drive_target += comp;
+        if (drive_target < 0.0) drive_target = 0.0;
+    }
+
+    /* Driver force limit, like a motor current limit: it will not push any
+       deeper above the limit, whatever the controller asks or however late
+       it is. The faster the piston is moving in, the earlier it stops, so
+       the stopping distance still ends under the 650 N hard limit. In a
+       normal stroke the force peaks at the bottom, where the piston is
+       nearly still, so this does not cut normal strokes short. */
+    {
+        double vin = p->v > 0 ? p->v : 0.0;
+        double lim = ELV_FORCE_LIMIT_N - 300.0 * vin;
+        if (p->s.force_n >= lim && drive_target > p->x) {
+            drive_target = p->x;
+            p->driver_limits++;
+        }
+    }
+
     /* actuator: velocity-limited, acceleration-limited position servo */
     for (int i = 0; i < SUBSTEPS; i++) {
-        double vcmd = SERVO_KP * (a->piston_target_m - p->x);
+        double vcmd = SERVO_KP * (drive_target - p->x);
         if (vcmd >  vmax) vcmd =  vmax;
         if (vcmd < -vmax) vcmd = -vmax;
         double dv = vcmd - p->v, dvmax = ACCEL_MAX * dt;
@@ -72,6 +99,16 @@ void elv_plant_step(elv_plant_t *p, const elv_actuators_t *a)
             p->surf += p->surf_v * dt;
         }
     }
+    /* the driver's own observer: the nominal strap model run on its IMU
+       reading (it does not see the true chest position) */
+    {
+        double wn = 2.0 * M_PI * ELV_STRAP_WN_HZ;
+        for (int i = 0; i < SUBSTEPS; i++) {
+            double sa = -wn * wn * p->drv_s - 2.0 * ELV_STRAP_ZETA * wn * p->drv_sv - p->accel;
+            p->drv_sv += sa * dt;
+            p->drv_s += p->drv_sv * dt;
+        }
+    }
 
     /* true chest compression = piston travel minus surface offset */
     double pen = p->x - p->surf;
@@ -83,10 +120,13 @@ void elv_plant_step(elv_plant_t *p, const elv_actuators_t *a)
     if (f > p->max_force) p->max_force = f;
     if (pen > p->max_depth) p->max_depth = pen;
     if (pen > p->pen_peak) p->pen_peak = pen;
-    /* stroke ends when the piston is back near recoil */
-    if (p->x < 0.005 && p->pen_peak > 0.02) {
+    /* A stroke ends at full recoil measured against the chest (the cup back
+       within 3 mm of the chest surface), not against the frame: in
+       transport the chest itself moves, and the cup moves with it. */
+    if (pen < 0.003 && p->pen_peak > 0.02) {
         p->strokes++;
         if (p->pen_peak >= ELV_DEPTH_MIN_M && p->pen_peak <= ELV_DEPTH_MAX_M) p->strokes_in_range++;
+        p->peaks_mm[p->strokes % 64] = (float)(p->pen_peak * 1000.0);
         p->pen_peak = 0;
     }
 
@@ -136,6 +176,7 @@ void elv_plant_step(elv_plant_t *p, const elv_actuators_t *a)
     bool dropped = p->cfg.drop_sensors_at && p->tick >= p->cfg.drop_sensors_at;
     if (!dropped) {
         p->s.seq++;
+        p->s.sample_n = p->s.seq;
         p->s.piston_pos_m = p->x;
         p->s.force_n = f > 0 ? f + lc_noise(p) : 0.0;
         p->s.recoil_switch = p->x < 0.001;
@@ -146,5 +187,5 @@ void elv_plant_step(elv_plant_t *p, const elv_actuators_t *a)
         p->s.charger_ready = ready;
     }
     p->s.estop = p->cfg.estop_at && p->tick >= p->cfg.estop_at;
-    if (!dropped) p->s.frame_accel_ms2 = p->accel;
+    if (!dropped) { p->s.frame_accel_ms2 = p->accel; p->s.chest_offset_m = p->drv_s; }
 }

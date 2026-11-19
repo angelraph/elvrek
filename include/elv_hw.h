@@ -15,6 +15,9 @@
 
 typedef struct {
     uint64_t seq;            /* increments every hardware sample           */
+    uint64_t sample_n;       /* hardware sample count, never rewritten by
+                                the controller, so speed is measured over
+                                real sample time even after a pause        */
     double   piston_pos_m;   /* 0 = full recoil, + = into the chest        */
     double   force_n;        /* load cell on the cup                       */
     bool     recoil_switch;  /* limit switch at full recoil                */
@@ -25,10 +28,15 @@ typedef struct {
     bool     charger_ready;  /* defibrillator capacitor full               */
     bool     estop;          /* hardware emergency stop pressed            */
     double   frame_accel_ms2;/* IMU on the frame, vertical (transport)     */
+    double   chest_offset_m; /* driver's estimate of how far the chest has
+                                moved away from the cup in transport       */
 } elv_sensors_t;
 
 typedef struct {
     double piston_target_m;  /* position setpoint, clamped by the core     */
+    bool   chest_ref;        /* setpoint is measured from the chest, and the
+                                driver adds the chest motion it measures on
+                                each of its own ticks (transport mode)     */
     double piston_vmax_ms;   /* velocity ceiling for this tick             */
     bool   vent_on;          /* bag squeeze (inspiration)                  */
     bool   charge_on;        /* charge the capacitor                       */

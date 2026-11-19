@@ -43,16 +43,20 @@ These rules live in `src/core/elv_core.c` and are checked independently on every
 
 ## Results so far
 
-On the QNX 8.0 target (QEMU with KVM, 2 virtual CPUs, built with qcc, `qnx/run-on-qemu.sh` then `EMU=1 bash qnx/suite-only.sh`), two complete runs of the 11 case fault suite, raw output in `docs/results/`:
+**On QNX 8.0: 11 of 11 fault cases pass.** QEMU with KVM, 2 virtual CPUs, built with qcc. Run `qnx/run-on-qemu.sh` once, then `EMU=1 bash qnx/suite-only.sh`. With the final code, two full runs in a row pass every case. Raw output of every run, the failed ones included, is in `docs/results/`.
 
-* Passed on both runs: control loop at about 1,000 ticks a second, compressions on rate with 0 rule violations, 7 of 7 forbidden advisor actions refused by QNX, advisor killed and restarted while compressions continued, CPU storm below control priority with no extra missed ticks, stiff chest held to 613 N and 577 N (limit 650 N), sensor dropout to safe hold, safety process killed with the hardware watchdog lifting the cup to 0.0 mm and nothing restarting it, and a full shockable rhythm run with one shock, hands-off 1,338 and 1,311 ticks, return of circulation detected and CCF 99.1%.
-* Moved with host load: T7 transport (100% on a quiet run, 53.9% and 34.7% on busy ones) and T11 malicious advisor (passed on run A; on run B all 338 forged demands were ignored, but host pauses cost 34 s and the shock came after the test stopped waiting).
-* These runs use the explicit emulator mode (sensor timeout 50 ms, hardware watchdog 100 ms instead of 5 ms and 20 ms), because a virtual machine on a busy laptop pauses for tens of milliseconds.
-* The target runs found and fixed real problems: a stretched 1 ms timer (now a 0.5 ms system tick), a supervisor bug, and a stiff chest pushed to 823 N while the controller was paused, which led to a force limit inside the driver itself.
+* T1 control loop at 960 ticks a second; T2 16 compressions in 10 s with 0 rule violations.
+* T3 7 of 7 forbidden advisor actions refused by QNX; T4 advisor killed and restarted while compressions continued.
+* T5 8 threads just below the control priority for 10 s: compressions kept their rate and 17 of 17 strokes stayed 5 to 6 cm, with 0 violations.
+* T6 stiff chest held to 604 N (hard limit 650 N); T7 depth in the 5 to 6 cm band on 100% of 90 strokes on a moving frame, peaks 51 to 54 mm.
+* T8 sensor dropout to safe hold; T9 safety process killed, the hardware watchdog lifted the cup to 0.0 mm and nothing restarted it.
+* T10 a full shockable rhythm run: one pre-authorised shock with 806 ticks hands-off, 0 shocks off recoil, return of circulation detected, CCF 99.5%; T11 258 forged advisor demands ignored, shock still delivered, 0 violations.
+
+These runs use the explicit emulator mode (sensor timeout 50 ms, hardware watchdog 100 ms instead of 5 ms and 20 ms), because a virtual machine on a busy laptop pauses for tens of milliseconds. The first target runs did not all pass, and each failure led to a real fix: a 0.5 ms system tick so the 1 ms timer is not stretched, a force limit inside the motor driver after a paused controller let a stiff chest reach 823 N, road motion compensation moved into the driver, catch-up ticks with buffered motion samples, and a supervisor start-up bug. A second run then failed T6 and T7, which uncovered a deeper bug: replayed ticks reused the newest sample, so the movement during a pause looked like it happened in 1 ms, the force guard tripped early and strokes came up short. Speed is now measured over real hardware sample time. Two smaller fixes followed: sensor silence is counted only over time the controller was awake, and the stiff chest fault takes effect at full recoil instead of mid push. The test crew now presses whenever the device asks, like a real crew. One rule changed, and openly: T5 used to compare missed ticks with and without the storm, but on a virtual machine that measures the host (one run missed more ticks with the storm, the next fewer), so T5 now judges what the chest gets during the storm and still prints the missed ticks. The earlier partial runs are kept in `docs/results/earlier/`.
 
 On the host:
 
-Host scenario suite (`make test`, the same core code that runs on QNX): 18 of 18 scenarios pass with no invariant violations. They cover a shockable rhythm with return of circulation, 30:2 mode, refractory VF, a dead, hung or malicious advisor, a true return of circulation the advisor denies, a stiff chest, sensor loss, an emergency stop mid stroke, asystole, PEA, a pre-authorised shock, a slow crew, a crew that never presses, and transport.
+Host scenario suite (`make test`, the same core code that runs on QNX): 20 of 20 scenarios pass with no invariant violations. They cover a shockable rhythm with return of circulation, 30:2 mode, refractory VF, a dead, hung or malicious advisor, a true return of circulation the advisor denies, a stiff chest, sensor loss, an emergency stop mid stroke, asystole, PEA, a pre-authorised shock, a slow crew, a crew that never presses, transport, and a controller that stalls and catches up the way a busy virtual machine makes it (with a stiff chest and in transport).
 
 * Machine time in the shock window (park, confirm, discharge): 803 ticks of 1 ms.
 * Human time is reported separately and is not part of the machine's number.
@@ -67,7 +71,7 @@ Timing is reported in control ticks. Microsecond figures from an emulator would 
 
 Host tests (Linux or WSL with gcc):
 
-    make test          # 18 safety scenarios
+    make test          # 20 safety scenarios
     make host-procs    # the portable target processes
     python3 -I tools/fetch_physionet.py && make ecg-eval
 

@@ -206,29 +206,15 @@ static bool trusted_rosc(const elv_core_t *c, const elv_sensors_t *s)
 }
 
 /* Compression trajectory: raised cosine, 50 % duty, full recoil at phase 0. */
-/* Disturbance observer: run the nominal strap model on the frame IMU to
-   estimate how far the chest surface has moved away from the cup. */
-static void observe_surface(elv_core_t *c, const elv_sensors_t *s)
-{
-    double wn = 2.0 * M_PI * ELV_STRAP_WN_HZ, dt = ELV_TICK_S / 10.0;
-    for (int i = 0; i < 10; i++) {
-        double a = -wn * wn * c->s_hat - 2.0 * ELV_STRAP_ZETA * wn * c->sv_hat
-                   - s->frame_accel_ms2;
-        c->sv_hat += a * dt;
-        c->s_hat  += c->sv_hat * dt;
-    }
-}
-
 static double compress_target(elv_core_t *c, const elv_sensors_t *s)
 {
     double p = (double)c->phase / c->period_ticks;
     double x = c->depth_cmd_m * 0.5 * (1.0 - cos(2.0 * M_PI * p));
-    if (c->transport_comp) {
-        double comp = c->s_hat;
-        if (comp >  ELV_COMP_MAX_M) comp =  ELV_COMP_MAX_M;
-        if (comp < -ELV_COMP_MAX_M) comp = -ELV_COMP_MAX_M;
-        x += comp;
-    }
+    /* In transport mode the setpoint is measured from the chest and the
+       driver adds the chest motion it measures itself, every driver tick.
+       All positions below are therefore taken in the chest's frame. */
+    const double pos = c->transport_comp ? s->piston_pos_m - s->chest_offset_m
+                                         : s->piston_pos_m;
     c->downstroke = p < 0.5;
 
     /* Force ceiling. The actuator needs distance to stop, so the cap latches
@@ -236,26 +222,41 @@ static double compress_target(elv_core_t *c, const elv_sensors_t *s)
        limit itself the setpoint backs off 2 mm. */
     if (!c->downstroke) c->force_cap_m = 0.0;
     /* stopping margin: stiffness x distance the actuator needs to stop */
-    double v = (s->piston_pos_m - c->prev_pos) * ELV_TICK_HZ;
-    double dx = s->piston_pos_m - c->prev_pos;
-    if (dx > 1e-5 && s->force_n > 50.0) {
-        double k = (s->force_n - c->prev_force) / dx;
-        if (k > 0 && k < 1e6) c->k_est += 0.2 * (k - c->k_est);
+    /* Speed and stiffness are measured only when a new hardware sample
+       arrives, over the real time between samples. After a pause the
+       controller replays the ticks it missed with the newest sample; if
+       speed were taken per controller tick, the whole movement during the
+       pause would look like it happened in 1 ms, the guard below would trip
+       early and the stroke would come up short. */
+    if (s->sample_n != c->prev_sample_n) {
+        uint64_t n = s->sample_n - c->prev_sample_n;
+        double dx = pos - c->prev_pos;
+        if (c->prev_sample_n != 0 && n < 1000) {
+            c->v_est = dx / ((double)n * ELV_TICK_S);
+            if (dx > 1e-5 && s->force_n > 50.0) {
+                double k = (s->force_n - c->prev_force) / dx;
+                if (k > 0 && k < 1e6) c->k_est += 0.2 * (k - c->k_est);
+            }
+        } else {
+            c->v_est = 0.0;
+        }
+        c->prev_sample_n = s->sample_n;
+        c->prev_pos = pos;
+        c->prev_force = s->force_n;
     }
     if (c->k_est < 5000.0) c->k_est = 5000.0;
-    c->prev_pos = s->piston_pos_m;
-    c->prev_force = s->force_n;
+    double v = c->v_est;
     double stop_m = v > 0 ? v * v / (2.0 * ELV_PISTON_AMAX_MS2) + v * ELV_TICK_S * 2 : 0.0;
     double margin = c->k_est * stop_m + 15.0;
     if (c->downstroke && s->force_n >= ELV_FORCE_LIMIT_N - margin && c->force_cap_m == 0.0) {
-        c->force_cap_m = s->piston_pos_m;
+        c->force_cap_m = pos > 0.0005 ? pos : 0.0005;
         c->cycle_peak_force = ELV_FORCE_LIMIT_N;
     }
     if (c->force_cap_m > 0.0 && x > c->force_cap_m) x = c->force_cap_m;
-    if (s->force_n >= ELV_FORCE_LIMIT_N && x > s->piston_pos_m - 0.002)
-        x = s->piston_pos_m - 0.002;
+    if (s->force_n >= ELV_FORCE_LIMIT_N && x > pos - 0.002)
+        x = pos - 0.002;
     if (s->force_n > c->cycle_peak_force) c->cycle_peak_force = s->force_n;
-    if (x > ELV_DEPTH_MAX_M + ELV_COMP_MAX_M) x = ELV_DEPTH_MAX_M + ELV_COMP_MAX_M;
+    if (x > ELV_DEPTH_MAX_M) x = ELV_DEPTH_MAX_M;
     if (x < 0.0) x = 0.0;
     return x;
 }
@@ -341,7 +342,6 @@ void elv_core_step(elv_core_t *c, const elv_sensors_t *s,
 
     take_advisor(c, adv);
     c->transport_comp = op->transport_comp;
-    observe_surface(c, s);
     if (op->mode_30_2 != c->mode_30_2 && c->state == ELV_ST_IDLE)
         c->mode_30_2 = op->mode_30_2;
 
@@ -402,6 +402,7 @@ void elv_core_step(elv_core_t *c, const elv_sensors_t *s,
     case ELV_ST_COMPRESS: {
         c->m.hands_on_ticks++;
         out->piston_target_m = compress_target(c, s);
+        out->chest_ref = c->transport_comp;
 
         /* pre-charge while compressing, ahead of the 2-minute boundary */
         if (!c->charging && !c->want_window &&

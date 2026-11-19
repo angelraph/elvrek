@@ -328,6 +328,12 @@ static void control_loop(void)
                 late++;
                 skipped = (uint32_t)(gap / period_cyc - 1);   /* whole periods */
                 missed += skipped;
+                /* The controller itself was asleep for this gap, so it is
+                   no evidence that the hardware went quiet: when a whole
+                   virtual machine freezes, the plant has not had its turn
+                   yet when this loop wakes. Silence is counted only over
+                   time the controller was awake to see it. */
+                if (last_sensor_cyc) last_sensor_cyc += gap - period_cyc;
             }
         }
         last_wake = now;

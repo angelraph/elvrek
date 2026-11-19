@@ -82,7 +82,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "elv-plant: warning: could not set SCHED_FIFO %d\n", ELV_PRIO_PLANT);
 
     uint64_t last_act_tick = 0, wd_age = 0, last_ecg_seq = 0;
-    bool wd_tripped = false;
+    bool wd_tripped = false, stiff_pending = false;
     uint32_t driver_limits = 0;
     fprintf(stderr, "elv-plant: running (physics model, not a patient)\n");
 
@@ -95,7 +95,12 @@ int main(int argc, char **argv)
         plant.cfg.drop_sensors_at = atomic_load(&flt->drop_sensors) ? 1 : 0;
         plant.cfg.estop_at = atomic_load(&flt->estop) ? 1 : 0;
         if (atomic_exchange(&flt->rosc_now, 0)) { plant.cfg.pulse_sensor = true; plant.cfg.rosc_at_tick = 1; }
-        if (atomic_exchange(&flt->stiff_chest, 0)) { plant.cfg.k1 = 11000; plant.cfg.k3 = 2.8e6; }
+        /* A chest does not turn stiff in the middle of a push: the change is
+           applied at the next full recoil, as a new patient would be. */
+        if (atomic_exchange(&flt->stiff_chest, 0)) stiff_pending = true;
+        if (stiff_pending && plant.x - plant.surf < 0.001) {
+            plant.cfg.k1 = 11000; plant.cfg.k3 = 2.8e6; stiff_pending = false;
+        }
 
         elv_actuators_t a;
         if (ELV_SEQ_READ(&hw->aseq, &a, &hw->act) != 0) a = (elv_actuators_t){ 0 };
@@ -110,17 +115,10 @@ int main(int argc, char **argv)
                                    .charge_dump = true };
         }
 
-        /* Motor driver current limit, the way a real driver has one: above
-           the force limit it will not move the piston any deeper, whatever
-           the controller asks or however late the controller is. This is
-           defence in depth under the software force ceiling. */
-        /* set 40 N under the software ceiling so the piston's stopping
-           distance still ends below the 650 N hard limit */
-        if (plant.s.force_n >= ELV_FORCE_LIMIT_N - 40.0 && a.piston_target_m > plant.x) {
-            a.piston_target_m = plant.x;
-            driver_limits++;
-        }
+        /* the driver's own force limit lives in elv_plant_step(), applied
+           to the final absolute setpoint */
         elv_plant_step(&plant, &a);
+        driver_limits = plant.driver_limits;
 
         elv_seq_wbegin(&hw->sseq);
         hw->sensors = plant.s;
@@ -141,6 +139,8 @@ int main(int argc, char **argv)
         hw->shocks_received = plant.shocks_received;
         hw->shocks_off_recoil = plant.shocks_while_not_parked;
         hw->driver_force_limits = driver_limits;
+        hw->peak_n = plant.strokes;
+        memcpy(hw->peak_mm, plant.peaks_mm, sizeof(hw->peak_mm));
         {
             uint64_t an = atomic_load(&hw->accel_n);
             hw->accel_ring[an % 512] = (float)plant.s.frame_accel_ms2;

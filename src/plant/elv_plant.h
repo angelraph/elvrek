@@ -42,6 +42,9 @@ typedef struct {
     double   max_force;
     double   max_depth;            /* deepest true chest compression (m)     */
     double   surf, surf_v;         /* chest surface offset away from cup     */
+    double   drv_s, drv_sv;        /* driver's estimate of it, from the IMU  */
+    uint32_t driver_limits;        /* times the driver's force limit acted   */
+    float    peaks_mm[64];         /* true peak depth of recent strokes      */
     double   accel;                /* current vehicle vertical accel         */
     double   bump_amp; uint64_t bump_tick;
     double   pen_peak;             /* this stroke's deepest compression      */
