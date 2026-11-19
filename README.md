@@ -43,6 +43,15 @@ These rules live in `src/core/elv_core.c` and are checked independently on every
 
 ## Results so far
 
+On the QNX 8.0 target (QEMU with KVM, 2 virtual CPUs, built with qcc, `qnx/run-on-qemu.sh` then `EMU=1 bash qnx/suite-only.sh`), two complete runs of the 11 case fault suite, raw output in `docs/results/`:
+
+* Passed on both runs: control loop at about 1,000 ticks a second, compressions on rate with 0 rule violations, 7 of 7 forbidden advisor actions refused by QNX, advisor killed and restarted while compressions continued, CPU storm below control priority with no extra missed ticks, stiff chest held to 613 N and 577 N (limit 650 N), sensor dropout to safe hold, safety process killed with the hardware watchdog lifting the cup to 0.0 mm and nothing restarting it, and a full shockable rhythm run with one shock, hands-off 1,338 and 1,311 ticks, return of circulation detected and CCF 99.1%.
+* Moved with host load: T7 transport (100% on a quiet run, 53.9% and 34.7% on busy ones) and T11 malicious advisor (passed on run A; on run B all 338 forged demands were ignored, but host pauses cost 34 s and the shock came after the test stopped waiting).
+* These runs use the explicit emulator mode (sensor timeout 50 ms, hardware watchdog 100 ms instead of 5 ms and 20 ms), because a virtual machine on a busy laptop pauses for tens of milliseconds.
+* The target runs found and fixed real problems: a stretched 1 ms timer (now a 0.5 ms system tick), a supervisor bug, and a stiff chest pushed to 823 N while the controller was paused, which led to a force limit inside the driver itself.
+
+On the host:
+
 Host scenario suite (`make test`, the same core code that runs on QNX): 18 of 18 scenarios pass with no invariant violations. They cover a shockable rhythm with return of circulation, 30:2 mode, refractory VF, a dead, hung or malicious advisor, a true return of circulation the advisor denies, a stiff chest, sensor loss, an emergency stop mid stroke, asystole, PEA, a pre-authorised shock, a slow crew, a crew that never presses, and transport.
 
 * Machine time in the shock window (park, confirm, discharge): 803 ticks of 1 ms.

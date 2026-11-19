@@ -305,7 +305,7 @@ static void control_loop(void)
     const uint64_t cps = SYSPAGE_ENTRY(qtime)->cycles_per_sec;
     const uint64_t period_cyc = cps / ELV_TICK_HZ;
     uint64_t last_wake = 0, missed = 0, late = 0, overrun = 0;
-    uint64_t last_sseq = 0, last_adv = 0;
+    uint64_t last_sseq = 0, last_adv = 0, last_sensor_cyc = 0, last_accel_n = 0;
 
     elv_actuators_t act;
     memset(&act, 0, sizeof(act));
@@ -321,20 +321,28 @@ static void control_loop(void)
         if (p.code != PULSE_TICK) continue;
 
         uint64_t now = ClockCycles();
+        uint32_t skipped = 0;
         if (last_wake) {
             uint64_t gap = now - last_wake;
             if (gap > period_cyc + period_cyc / 2) {
                 late++;
-                missed += gap / period_cyc - 1;     /* whole periods skipped */
+                skipped = (uint32_t)(gap / period_cyc - 1);   /* whole periods */
+                missed += skipped;
             }
         }
         last_wake = now;
 
-        /* sensors: if the read races the writer 8 times, reuse last sample;
-           the core's stale-sensor watchdog handles a writer that stopped */
+        /* sensors: if the read races the writer 8 times, reuse last sample */
         elv_sensors_t ns;
         if (ELV_SEQ_READ(&g_hw->sseq, &ns, &g_hw->sensors) == 0) s = ns;
-        (void)last_sseq;
+
+        /* Hardware silence is judged on real time, not on core ticks, so
+           catch-up steps below cannot hide or fake a stale sensor. */
+        if (s.seq != last_sseq) { last_sseq = s.seq; last_sensor_cyc = now; }
+        else if (last_sensor_cyc &&
+                 now - last_sensor_cyc > (uint64_t)g_core.sensor_stale_ticks * period_cyc)
+            elv_core_force_fault(&g_core, ELV_FAULT_SENSOR_STALE);
+        if (!last_sensor_cyc) last_sensor_cyc = now;
 
         /* latest advice, if any arrived since last tick */
         elv_advisor_msg_t am, *pam = NULL;
@@ -356,16 +364,42 @@ static void control_loop(void)
         /* A press while charging is a pre-authorisation, held by the core;
            a press in the window is the classic one. Elsewhere it is ignored. */
 
-        elv_core_step(&g_core, &s, pam, &op, &act);
-        if (!elv_inv_check(&g_inv, &g_core, &s, &act)) {
-            elv_core_force_fault(&g_core, ELV_FAULT_INVARIANT);
-            act.piston_target_m = 0.0;
-            act.piston_vmax_ms = ELV_RETRACT_V_MS;
-            act.shock_line = false;
-            act.charge_on = false;
-            act.charge_dump = true;
-            LOG(SLOG2_ERROR, "invariant violation at tick %llu: forced retract",
-                (unsigned long long)g_core.tick);
+        /* Catch up: if the loop woke late, run the ticks it missed (at most
+           200) so the state machine's clocks, the compression rate and the
+           road motion estimate stay in step with real time. Replayed ticks
+           get fresh sequence numbers because staleness is checked above on
+           real time. Advice and crew input are applied once, on the last. */
+        if (skipped > 200) skipped = 200;
+        /* the motion samples that arrived since the last tick, oldest first */
+        uint64_t an = atomic_load(&g_hw->accel_n);
+        uint64_t fresh = an - last_accel_n;
+        if (fresh > 500) fresh = 500;
+        last_accel_n = an;
+        for (uint32_t k = 0; k <= skipped; k++) {
+            const int last = k == skipped;
+            /* never replay inside the shock window: every tick there must
+               reach the hardware, so the shock line is never only imagined */
+            if (!last && g_core.state == ELV_ST_SHOCK_WINDOW) continue;
+            elv_sensors_t sk = s;
+            sk.seq = s.seq * 64 + k;
+            if (fresh) {   /* spread the buffered samples across the replayed ticks */
+                uint64_t idx = an - fresh + (fresh * (k + 1)) / (skipped + 1) - 1;
+                sk.frame_accel_ms2 = g_hw->accel_ring[idx % 512];
+            }
+            static const elv_operator_t idle_op;
+            elv_operator_t ok = op;
+            if (!last) { ok = idle_op; ok.mode_30_2 = op.mode_30_2; ok.transport_comp = op.transport_comp; }
+            elv_core_step(&g_core, &sk, last ? pam : NULL, &ok, &act);
+            if (!elv_inv_check(&g_inv, &g_core, &sk, &act)) {
+                elv_core_force_fault(&g_core, ELV_FAULT_INVARIANT);
+                act.piston_target_m = 0.0;
+                act.piston_vmax_ms = ELV_RETRACT_V_MS;
+                act.shock_line = false;
+                act.charge_on = false;
+                act.charge_dump = true;
+                LOG(SLOG2_ERROR, "invariant violation at tick %llu: forced retract",
+                    (unsigned long long)g_core.tick);
+            }
         }
 
         elv_seq_wbegin(&g_hw->aseq);

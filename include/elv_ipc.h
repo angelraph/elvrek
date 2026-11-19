@@ -80,6 +80,11 @@ typedef struct {
     double          true_depth_m, max_true_depth_m, max_force_n;
     uint32_t        strokes, strokes_in_range, shocks_received, shocks_off_recoil;
     uint32_t        hw_watchdog_trips;
+    uint32_t        driver_force_limits;   /* times the driver's own limit acted */
+    /* frame motion sensor samples, one per driver tick, so the controller
+       can replay exactly the samples it missed after a late wake-up */
+    _Atomic uint64_t accel_n;
+    float           accel_ring[512];
 } elv_hw_shm_t;
 #define ELV_HW_MAGIC 0x414E5648u
 

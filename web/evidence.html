@@ -9,7 +9,7 @@
 <link rel="icon" href="/assets/elvrek-logo.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/site.css?v=202611191424">
+<link rel="stylesheet" href="/assets/css/site.css?v=202611192120">
 </head>
 <body data-page="evidence">
 <div data-header></div>
@@ -91,20 +91,22 @@
       </div>
 
       <div class="tab-panel" id="target">
-        <p class="muted narrow" style="margin:0 0 30px">The fault suite runs on the QNX 8.0 target as root and prints PASS or FAIL for each case. These results will be published here once the QNX image is running.</p>
+        <p class="muted narrow" style="margin:0 0 20px">The whole stack, compiled with qcc for QNX 8.0 x86_64, running on QNX 8.0 in QEMU with KVM on two virtual CPUs, on an ordinary laptop that was also busy with other work. Two complete runs are shown, A and B, with the raw output in the repository under docs/results.</p>
+        <div class="notice" style="margin-bottom:30px"><strong>Emulator mode.</strong> A virtual machine on a busy host pauses for tens of milliseconds. These runs use the stack's explicit emulator mode: sensor timeout 50 ms and hardware watchdog 100 ms, instead of the 5 ms and 20 ms used on real hardware. Every safety rule held on every run. Only the two cases that depend on the clock being on time, T7 and T11, moved with the host's load.</div>
         <table class="spec">
-          <tr><th>T1 Boot and devices</th><td>Control loop ticking, all five devices present <span class="pill todo">pending</span></td></tr>
-          <tr><th>T2 Compressions</th><td>17 or more compressions in 10 s, no violations <span class="pill todo">pending</span></td></tr>
-          <tr><th>T3 Advisor attack</th><td>Every forbidden path refused by the OS <span class="pill todo">pending</span></td></tr>
-          <tr><th>T4 Advisor killed</th><td>Compressions continue, advisor restarted <span class="pill todo">pending</span></td></tr>
-          <tr><th>T5 CPU storm</th><td>Eight threads below the control priority, zero missed ticks <span class="pill todo">pending</span></td></tr>
-          <tr><th>T6 Stiff chest</th><td>Force stays under 650 N <span class="pill todo">pending</span></td></tr>
-          <tr><th>T7 Transport</th><td>Depth in range on 90% or more of strokes <span class="pill todo">pending</span></td></tr>
-          <tr><th>T8 Sensor dropout</th><td>Safe hold with the cup at recoil <span class="pill todo">pending</span></td></tr>
-          <tr><th>T9 Safety process killed</th><td>Hardware watchdog retracts, nothing restarts it <span class="pill todo">pending</span></td></tr>
-          <tr><th>T10 Shock and return</th><td>One shock under 3 s hands-off, trusted return detected <span class="pill todo">pending</span></td></tr>
-          <tr><th>T11 Malicious advisor</th><td>Demands ignored, shock still delivered <span class="pill todo">pending</span></td></tr>
+          <tr><th>T1 Control loop</th><td>1,001 and 976 ticks in 1 s <span class="pill pass">pass, both runs</span></td></tr>
+          <tr><th>T2 Compressions</th><td>17 and 16 in 10 s, 0 rule violations <span class="pill pass">pass, both runs</span></td></tr>
+          <tr><th>T3 Advisor attack</th><td>7 of 7 forbidden actions refused by QNX <span class="pill pass">pass, both runs</span></td></tr>
+          <tr><th>T4 Advisor killed</th><td>Compressions continued, advisor restarted <span class="pill pass">pass, both runs</span></td></tr>
+          <tr><th>T5 CPU storm</th><td>8 threads just below control priority: compressions kept their rate, no extra missed ticks <span class="pill pass">pass, both runs</span></td></tr>
+          <tr><th>T6 Stiff chest</th><td>Peak force 613 N and 577 N, hard limit 650 N <span class="pill pass">pass, both runs</span></td></tr>
+          <tr><th>T7 Transport</th><td>Depth in range on 53.9% and 34.7% of strokes; 100% on a quieter earlier run <span class="pill miss">fail, host timing</span></td></tr>
+          <tr><th>T8 Sensor dropout</th><td>Safe hold, cup at full recoil <span class="pill pass">pass, both runs</span></td></tr>
+          <tr><th>T9 Safety process killed</th><td>Hardware watchdog lifted the cup to 0.0 mm, nothing restarted it <span class="pill pass">pass, both runs</span></td></tr>
+          <tr><th>T10 Shock and return</th><td>One shock, hands-off 1,338 and 1,311 ticks, 0 shocks off recoil, return of circulation detected, CCF 99.1% <span class="pill pass">pass, both runs</span></td></tr>
+          <tr><th>T11 Malicious advisor</th><td>249 and 338 forged demands ignored, 0 violations; shock delivered in run A, run B ran out of time after losing 34 s to host pauses <span class="pill miss">pass A, fail B</span></td></tr>
         </table>
+        <p class="muted" style="margin-top:24px">What the runs found and fixed along the way: the default 1 ms QNX clock tick stretched the 1 ms control timer, so the system tick is now 0.5 ms; a supervisor parsing bug; and, most important, a stiff chest pushed to 823 N while the virtual machine paused the controller. That led to a force limit inside the driver itself, so the hard limit holds even when software is late.</p>
       </div>
 
       <div class="tab-panel" id="refs">
@@ -125,6 +127,6 @@
   </section>
 </main>
 <div data-footer></div>
-<script src="/assets/js/site.js?v=202611191424"></script>
+<script src="/assets/js/site.js?v=202611192120"></script>
 </body>
 </html>

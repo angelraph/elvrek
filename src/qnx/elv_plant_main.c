@@ -83,6 +83,7 @@ int main(int argc, char **argv)
 
     uint64_t last_act_tick = 0, wd_age = 0, last_ecg_seq = 0;
     bool wd_tripped = false;
+    uint32_t driver_limits = 0;
     fprintf(stderr, "elv-plant: running (physics model, not a patient)\n");
 
     for (;;) {
@@ -109,6 +110,16 @@ int main(int argc, char **argv)
                                    .charge_dump = true };
         }
 
+        /* Motor driver current limit, the way a real driver has one: above
+           the force limit it will not move the piston any deeper, whatever
+           the controller asks or however late the controller is. This is
+           defence in depth under the software force ceiling. */
+        /* set 40 N under the software ceiling so the piston's stopping
+           distance still ends below the 650 N hard limit */
+        if (plant.s.force_n >= ELV_FORCE_LIMIT_N - 40.0 && a.piston_target_m > plant.x) {
+            a.piston_target_m = plant.x;
+            driver_limits++;
+        }
         elv_plant_step(&plant, &a);
 
         elv_seq_wbegin(&hw->sseq);
@@ -129,5 +140,11 @@ int main(int argc, char **argv)
         hw->strokes_in_range = plant.strokes_in_range;
         hw->shocks_received = plant.shocks_received;
         hw->shocks_off_recoil = plant.shocks_while_not_parked;
+        hw->driver_force_limits = driver_limits;
+        {
+            uint64_t an = atomic_load(&hw->accel_n);
+            hw->accel_ring[an % 512] = (float)plant.s.frame_accel_ms2;
+            atomic_store(&hw->accel_n, an + 1);
+        }
     }
 }

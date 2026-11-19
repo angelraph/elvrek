@@ -70,10 +70,11 @@ int main(int argc, char **argv)
     if (!strcmp(c, "hw-truth")) {
         const elv_hw_shm_t *hw = map(ELV_SHM_HW, sizeof(*hw), PROT_READ);
         printf("true_depth_mm=%.1f max_true_depth_mm=%.1f max_force_n=%.0f strokes=%u "
-               "in_range=%u shocks_received=%u shocks_off_recoil=%u hw_watchdog_trips=%u\n",
+               "in_range=%u shocks_received=%u shocks_off_recoil=%u hw_watchdog_trips=%u "
+               "driver_force_limits=%u\n",
                hw->true_depth_m * 1000, hw->max_true_depth_m * 1000, hw->max_force_n,
                hw->strokes, hw->strokes_in_range, hw->shocks_received,
-               hw->shocks_off_recoil, hw->hw_watchdog_trips);
+               hw->shocks_off_recoil, hw->hw_watchdog_trips, hw->driver_force_limits);
         return 0;
     }
 

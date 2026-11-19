@@ -1,0 +1,35 @@
+QNX target at 172.31.1.10: QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+Elvrek fault suite on QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+physics plant, not a patient; timing in control ticks
+EMULATOR MODE: sensor timeout 50 ms, hardware watchdog 100 ms (hardware limits are 5 ms and 20 ms)
+
+elv-plant: running (physics model, not a patient)
+PASS T1 control loop ticking (976 ticks in 1 s)
+elv-super: advisor silent > 3000 ms, killing, restart 1
+PASS T2 compressions (16 in 10 s, 0 invariant violations)
+PASS T3 advisor attack: attack: 7 of 7 forbidden actions refused
+elv-super: advisor died (15), restart 2
+elv-super: advisor silent > 3000 ms, killing, restart 3
+PASS T4 advisor killed: compressions continued (+10), restarted (3)
+elv-super: advisor silent > 3000 ms, killing, restart 4
+elv-super: advisor silent > 3000 ms, killing, restart 5
+PASS T5 CPU storm (8 threads, priority 59, 10 s): missed ticks 263 with storm vs 1032 without, +18 compressions
+PASS T6 stiff chest: max force 577 N, ceiling engaged 17 times
+elv-plant: running (physics model, not a patient)
+FAIL T7 transport: 34.7% in range
+elv-plant: running (physics model, not a patient)
+PASS T8 sensor dropout: SAFE_HOLD, cup at recoil
+elv-plant: running (physics model, not a patient)
+elv-super: advisor silent > 3000 ms, killing, restart 1
+elv-super: SAFETY PROCESS DOWN, not restarting it; hardware watchdog holds the piston at recoil
+elv-plant: HW WATCHDOG: safety process silent, retracting
+PASS T9 safety process killed: HW watchdog retracted (depth 0.0 mm), not restarted
+elv-plant: running (physics model, not a patient)
+PASS T10 shock: 1 shock, hands-off window 1311 ticks, 0 shocks off recoil
+PASS T10 trusted ROSC (EtCO2): parked, ventilating
+PASS T10 chest-compression fraction 0.9914
+elv-plant: running (physics model, not a patient)
+FAIL T11 malicious advisor: ignored 338 shocks 0 inv 0 state COMPRESS fault NONE missed 34069
+
+FAIL: 2 case(s)
+
