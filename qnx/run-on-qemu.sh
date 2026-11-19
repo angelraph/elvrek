@@ -20,11 +20,19 @@ mkdir -p "$IMG"
 cd "$IMG"
 ACCEL=no
 [ -w /dev/kvm ] || ACCEL=yes           # fall back to software emulation
+# A fixed address on the 172.31.1.0/24 bridge that mkqnximage sets up, so
+# the host does not need a DHCP server (dnsmasq) for the guest.
+IP=${ELV_TARGET_IP:-172.31.1.10}
 mkqnximage --type=qemu --arch=x86_64 --cpu=2 --ram=1G --tcg=$ACCEL \
-           --ssh-ident="$KEY.pub" --noprompt --build
+           --ip="$IP" --ssh-ident="$KEY.pub" --noprompt --build
 mkqnximage --stop > /dev/null 2>&1 || true
-mkqnximage --run=-h
-IP=$(mkqnximage --getip)
+mkqnximage --run=-h --assumed-ip="$IP" > /dev/null 2>&1 &
+echo "Waiting for QNX at $IP..."
+for i in $(seq 1 90); do
+    ssh -i "$KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
+        -o ConnectTimeout=2 -o BatchMode=yes "root@$IP" true 2>/dev/null && break
+    sleep 2
+done
 echo "QNX target is up at $IP"
 
 SSH="ssh -i $KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR root@$IP"

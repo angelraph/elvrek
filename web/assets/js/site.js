@@ -5,6 +5,8 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  /* Frame gate: no canvas on this site needs more than 30 frames a second. */
+  const gate = (ms = 33) => { let last = 0; return now => { if (now - last < ms) return true; last = now; return false; }; };
   const page = document.body.dataset.page || "";
   const REPO = "https://github.com/angelraph/elvrek";
 
@@ -257,7 +259,7 @@
     const hasPh = !!cv.parentElement.querySelector(".ph");
     let w, h, dpr, t0 = performance.now(), visible = true;
     const fit = () => {
-      dpr = Math.min(devicePixelRatio || 1, 2);
+      dpr = 1;   /* a soft, moving background does not need retina pixels */
       w = cv.clientWidth; h = cv.clientHeight;
       cv.width = w * dpr; cv.height = h * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -265,6 +267,7 @@
     fit();
     addEventListener("resize", fit);
     new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(cv);
+    const heroGate = gate();
     const dust = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random(), r: Math.random() * 1.6 + 0.3, s: Math.random() * 0.02 + 0.004 }));
 
     const ecg = p => {
@@ -284,7 +287,20 @@
     let photo = null;
     if (cv.dataset.photo) {
       const im = new Image();
-      im.onload = () => { photo = im; };
+      // Grade the photo once into an offscreen canvas. Filtering every frame
+      // was what made the page stall; now each frame only copies pixels.
+      im.onload = () => {
+        const sc = Math.min(1, 1600 / im.naturalWidth);
+        const off = document.createElement("canvas");
+        off.width = Math.round(im.naturalWidth * sc);
+        off.height = Math.round(im.naturalHeight * sc);
+        const oc = off.getContext("2d");
+        if ("filter" in oc) oc.filter = "grayscale(0.5) brightness(0.5) contrast(1.15)";
+        oc.drawImage(im, 0, 0, off.width, off.height);
+        if (!("filter" in oc)) { oc.fillStyle = "rgba(0,0,0,0.5)"; oc.fillRect(0, 0, off.width, off.height); }
+        off.naturalWidth = off.width; off.naturalHeight = off.height;
+        photo = off;
+      };
       im.src = cv.dataset.photo;
     }
     const ax = parseFloat(cv.dataset.ax || "0.62"), ay = parseFloat(cv.dataset.ay || "0.415");
@@ -305,14 +321,13 @@
       const push = depth * dh * 0.022;                               // how far the chest dips
 
       ctx.save();
-      ctx.filter = "grayscale(0.5) brightness(0.5) contrast(1.15)";
       ctx.drawImage(photo, ox, oy, dw, dh);
       // chest warp: redraw columns around the sternum, shifted down
       // Each column is stretched between a fixed line above the chest and the
       // chest edge, then the body below moves down by the same amount, so
       // the photo bends without a seam.
       const span = dw * 0.16, x0 = Math.max(0, sx - span * 2.2), x1 = Math.min(w, sx + span * 2.2);
-      const top = sy - dh * 0.09, cw = 2;
+      const top = sy - dh * 0.09, cw = 4;
       for (let x = x0; x < x1; x += cw) {
         const d = push * Math.exp(-Math.pow((x - sx) / span, 2));
         if (d < 0.25) continue;
@@ -337,7 +352,7 @@
 
     const draw = now => {
       requestAnimationFrame(draw);
-      if (!visible) return;
+      if (!visible || document.hidden || heroGate(now)) return;
       const t = (now - t0) / 1000;
       ctx.clearRect(0, 0, w, h);
       if (photo) {
@@ -545,6 +560,9 @@
       cv.width = w * dpr; cv.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     fit(); addEventListener("resize", fit);
+    let vOn = false;
+    new IntersectionObserver(es => { vOn = es[0].isIntersecting; }).observe(cv);
+    const viewGate = gate();
 
     const boxF = (x0, y0, z0, x1, y1, z1, color) => {
       const v = [[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]];
@@ -586,6 +604,7 @@
 
     const render = now => {
       requestAnimationFrame(render);
+      if (!vOn || document.hidden || viewGate(now)) return;
       const t = (now - t0) / 1000;
       if (playing && !drag) yaw += 0.006;
       const depth = playing ? 0.5 * (1 - Math.cos(t * 110 / 60 * Math.PI * 2)) : 0;
@@ -653,9 +672,10 @@
       if (kind === "stiff") return Math.min(c, 0.72);
       return c;
     };
+    const g30 = gate();
     const draw = now => {
       requestAnimationFrame(draw);
-      if (!vis) return;
+      if (!vis || document.hidden || g30(now)) return;
       const t = now / 1000 * 0.4;
       ctx.clearRect(0, 0, w, h);
       ctx.strokeStyle = "rgba(255,255,255,0.06)";
@@ -682,9 +702,10 @@
     fit(); addEventListener("resize", fit);
     new IntersectionObserver(es => { vis = es[0].isIntersecting; }).observe(cv);
     loadTrace().then(d => { data = d; });
+    const liveGate = gate();
     const draw = now => {
       requestAnimationFrame(draw);
-      if (!vis || !data) return;
+      if (!vis || !data || document.hidden || liveGate(now)) return;
       const rows = data.rows, n = rows.length, win = 600;
       const head = Math.floor(((now - start) / 1000) * data.hz) % n;
       ctx.clearRect(0, 0, w, h);
