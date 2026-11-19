@@ -33,9 +33,9 @@ up() {   # $1 = plant args, $2 = advisor args
 }
 wait_state() {  # $1 key, $2 value, $3 timeout s
     i=0
-    while [ $i -lt $(( $3 * 10 )) ]; do
+    while [ $i -lt $3 ]; do
         [ "$(st $1)" = "$2" ] && return 0
-        sleep 0.1; i=$((i+1))
+        sleep 1; i=$((i+1))
     done
     return 1
 }
