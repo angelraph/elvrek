@@ -303,23 +303,13 @@
         const cyc = (t * 110 / 60) % 1;
         const depth = 0.5 * (1 - Math.cos(2 * Math.PI * cyc));
         const wide = w > 980;
-        const s = Math.min(w, h) / (wide ? 1000 : 900);
-        const cx = wide ? w * 0.8 : w * 0.5, base = h * (wide ? 0.9 : 0.86);
-        ctx.globalAlpha = wide ? 0.95 : 0.28;
-        // chest body
+        const s = wide ? Math.min(w / 2150, h / 900) : w / 1100;
+        const cx = wide ? w * 0.79 : w * 0.8, base = h * (wide ? 0.84 : 0.95);
+        ctx.globalAlpha = wide ? 1 : 0.5;
+        // the patient, lying on their back, head to the left
         ctx.save();
         ctx.translate(cx, base);
-        const dip = depth * 22 * s;
-        const body = ctx.createLinearGradient(0, -120 * s, 0, 60 * s);
-        body.addColorStop(0, "#3a3f47"); body.addColorStop(1, "#0b0c0f");
-        ctx.fillStyle = body;
-        ctx.beginPath();
-        ctx.moveTo(-w, 60 * s);
-        ctx.bezierCurveTo(-520 * s, -40 * s, -260 * s, -90 * s, -120 * s, -95 * s);
-        ctx.quadraticCurveTo(0, -95 * s + dip * 1.6, 120 * s, -92 * s);
-        ctx.bezierCurveTo(300 * s, -80 * s, 520 * s, -20 * s, w, 50 * s);
-        ctx.lineTo(w, 400 * s); ctx.lineTo(-w, 400 * s); ctx.closePath(); ctx.fill();
-        ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.lineWidth = 1.2; ctx.stroke();
+        drawPatient(ctx, s, depth * 22 * s, w, 1);
         // arm frame
         const col = ctx.createLinearGradient(-60 * s, 0, 60 * s, 0);
         col.addColorStop(0, "#8d939b"); col.addColorStop(0.5, "#e6e9ee"); col.addColorStop(1, "#6d727a");
@@ -349,6 +339,16 @@
         roundRect(ctx, -26 * s, top + 70 * s, 52 * s, 30 * s, 6 * s); ctx.fill();
         ctx.restore();
         ctx.globalAlpha = 1;
+      } else {
+        // inner pages: the same patient, faint, along the bottom of the header
+        const s = Math.min(w / 2400, h / 620);
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        ctx.translate(w * 0.8, h * 0.9);
+        const cyc = (t * 110 / 60) % 1;
+        drawPatient(ctx, s, 0.5 * (1 - Math.cos(2 * Math.PI * cyc)) * 10 * s, w, 0.6);
+        ctx.restore();
+        ctx.globalAlpha = 1;
       }
 
       // monitor trace
@@ -375,6 +375,56 @@
     };
     requestAnimationFrame(draw);
   });
+
+  /* A person lying on their back, seen from the side, head to the left.
+     Origin is the sternum at table level; dip pushes the chest down under
+     the cup. Drawn as a soft grey render with a light rim, like a studio shot. */
+  function drawPatient(c, s, dip, w, light) {
+    const P = (x, y) => [x * s, y * s];
+    c.save();
+    const g = c.createLinearGradient(0, -110 * s, 0, 70 * s);
+    g.addColorStop(0, `rgba(122,130,142,${light})`);
+    g.addColorStop(0.35, `rgba(62,67,76,${light})`);
+    g.addColorStop(1, "rgba(10,11,14,1)");
+    c.fillStyle = g;
+    c.beginPath();
+    c.moveTo(-w * 2, 70 * s);
+    c.lineTo(...P(-660, 70));
+    c.bezierCurveTo(...P(-672, 10), ...P(-640, -52), ...P(-575, -74));   // back of the skull
+    c.bezierCurveTo(...P(-548, -84), ...P(-520, -86), ...P(-505, -84));  // forehead
+    c.bezierCurveTo(...P(-496, -86), ...P(-490, -96), ...P(-482, -101)); // bridge of the nose
+    c.bezierCurveTo(...P(-476, -98), ...P(-472, -88), ...P(-470, -84));  // tip of the nose
+    c.bezierCurveTo(...P(-466, -84), ...P(-462, -80), ...P(-460, -76));  // lips
+    c.bezierCurveTo(...P(-456, -74), ...P(-450, -73), ...P(-446, -70));  // chin
+    c.bezierCurveTo(...P(-438, -58), ...P(-424, -46), ...P(-404, -42));  // under the jaw
+    c.bezierCurveTo(...P(-380, -40), ...P(-350, -50), ...P(-318, -62));  // neck to collarbone
+    c.bezierCurveTo(...P(-250, -84), ...P(-150, -96), ...P(-60, -99));   // upper chest
+    c.quadraticCurveTo(0, -100 * s + dip * 1.5, 60 * s, -98 * s);        // sternum under the cup
+    c.bezierCurveTo(...P(150, -96), ...P(230, -88), ...P(300, -78));     // lower ribs
+    c.bezierCurveTo(...P(360, -70), ...P(420, -76), ...P(480, -74));     // belly
+    c.bezierCurveTo(...P(560, -72), ...P(640, -66), w * 2, -64 * s);     // hips and legs
+    c.lineTo(w * 2, 70 * s);
+    c.closePath();
+    c.fill();
+    // rim light along the top of the body
+    c.strokeStyle = `rgba(235,240,246,${0.55 * light})`;
+    c.lineWidth = 1.6;
+    c.shadowColor = "rgba(235,240,246,0.35)";
+    c.shadowBlur = 8;
+    c.stroke();
+    c.shadowBlur = 0;
+    // ear and a closed eye
+    c.fillStyle = "rgba(20,22,27,0.55)";
+    c.beginPath(); c.ellipse(-590 * s, -30 * s, 14 * s, 20 * s, -0.3, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = `rgba(20,22,27,${0.7 * light})`; c.lineWidth = 2 * s;
+    c.beginPath(); c.arc(-522 * s, -74 * s, 9 * s, 0.2, Math.PI - 0.2); c.stroke();
+    // table under the patient
+    c.fillStyle = "#08090b";
+    c.fillRect(-w * 2, 70 * s, w * 4, 400 * s);
+    c.strokeStyle = "rgba(227,18,45,0.35)"; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(-w * 2, 70 * s); c.lineTo(w * 2, 70 * s); c.stroke();
+    c.restore();
+  }
 
   function roundRect(c, x, y, w, h, r) {
     c.beginPath();
