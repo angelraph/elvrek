@@ -68,16 +68,17 @@
       </div>
 
       <div class="tab-panel" id="ecg">
-        <div class="notice" style="margin-bottom:30px"><strong>Honest result.</strong> On real arrest ECG the rhythm checks do not yet meet the American Heart Association performance goals. Until they do, the 0.8 s step should be read as a timed pause with a basic check, not a diagnosis. Improving it is the next piece of work.</div>
-        <p class="muted">57 records from two public PhysioNet databases. The thresholds were fixed on synthetic signals before this data was used. Windows are labelled by the databases' own annotations; VT is reported but not scored, as the AHA treats it as intermediate.</p>
+        <div class="notice" style="margin-bottom:30px"><strong>Honest result.</strong> The trusted check got much better after tuning, but on real arrest ECG it still does not meet the American Heart Association performance goals. Until it does, the 0.8 s step should be read as a timed pause with a careful check, not a diagnosis.</div>
+        <p class="muted">57 records from two public PhysioNet databases. The check measures five things on 0.8 s of clean ECG, including how much of the signal sits in the 3 to 9 Hz fibrillation band. Its thresholds were tuned on CUDB only, with a rule fixed in advance (leave at least 95% of every non-shockable rhythm alone, then find as much VF as possible), and then scored once on VFDB, which the tuning never saw. Longer looks of 1.6 and 2.4 s were tested and did not help enough to justify the extra hands-off time.</p>
         <div class="split" style="align-items:start;margin-top:30px">
           <table class="spec">
-            <caption>Trusted check, piston parked</caption>
-            <tr><th>VF found, CUDB</th><td>53.1% <span class="pill miss">goal above 90%</span></td></tr>
-            <tr><th>VF found, VFDB</th><td>67.6% <span class="pill miss">goal above 90%</span></td></tr>
-            <tr><th>Normal sinus left alone</th><td>91 to 93% <span class="pill miss">goal above 99%</span></td></tr>
-            <tr><th>Other rhythms left alone</th><td>94 to 97% <span class="pill pass">near goal</span></td></tr>
-            <tr><th>Asystole left alone</th><td>74.7% <span class="pill miss">goal above 95%</span></td></tr>
+            <caption>Trusted check, held out (VFDB)</caption>
+            <tr><th>VF found</th><td>75.0% <span class="pill miss">goal above 90%</span></td></tr>
+            <tr><th>Normal sinus left alone</th><td>97.7% <span class="pill miss">goal above 99%</span></td></tr>
+            <tr><th>Other rhythms left alone</th><td>98.0% <span class="pill pass">meets goal</span></td></tr>
+            <tr><th>Asystole left alone</th><td>90.0% <span class="pill miss">goal above 95%</span></td></tr>
+            <tr><th>Before tuning</th><td>VF 67.6%, sinus 90.3%, asystole 85.9%</td></tr>
+            <tr><th>On the tuning set (CUDB)</th><td>VF 57.6%, sinus 95.3%, other 95.8%</td></tr>
           </table>
           <table class="spec">
             <caption>Advisor, during compressions</caption>

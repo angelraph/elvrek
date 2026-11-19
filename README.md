@@ -50,7 +50,7 @@ Host scenario suite (`make test`, the same core code that runs on QNX): 18 of 18
 * Transport: depth stays in the 5 to 6 cm band on 100% of strokes with frame sensor compensation, 71% without it.
 * A stiff chest that cannot reach 5 cm under the force ceiling is reported as a miss; depth is never bought with more force.
 
-Rhythm checks on real arrest ECG (`make ecg-eval`, 57 PhysioNet records, thresholds fixed before this data was used): **they do not yet meet the AHA performance goals.** The trusted check found VF in 53% (CUDB) and 68% (VFDB) of windows, against a goal above 90%. Until it improves, the 0.8 s step should be read as a timed pause with a basic check, not a diagnosis. Improving it is the next piece of work.
+Rhythm checks on real arrest ECG (57 PhysioNet records). The trusted check measures five things on 0.8 s of clean ECG, including the share of power in the 3 to 9 Hz fibrillation band. `make rhythm-tune` tunes its thresholds on CUDB only, with a rule fixed in advance, and scores them once on VFDB. On VFDB, held out: VF found in 75.0% of windows, normal sinus left alone 97.7%, other rhythms 98.0%, asystole 90.0%. Before tuning it was 67.6%, 90.3%, 93.0% and 85.9%. **It still does not meet the AHA goals** (VF above 90%, sinus above 99%, asystole above 95%), so the 0.8 s step should be read as a timed pause with a careful check, not a diagnosis.
 
 Timing is reported in control ticks. Microsecond figures from an emulator would measure the emulator, and the QNX Everywhere licence question about publishing performance results is still open.
 

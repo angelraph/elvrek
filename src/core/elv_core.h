@@ -159,8 +159,8 @@ const char *elv_fault_name(elv_fault_t f);
 bool elv_trusted_shockable(const float *mv, uint32_t n);
 
 /* The same check, split so it can be measured and tuned. */
-typedef struct { float ptp, flat, xing_hz, steep; } elv_rhythm_feat_t;
-typedef struct { float min_ptp, max_flat, min_steep, min_xing, max_xing; } elv_rhythm_thr_t;
+typedef struct { float ptp, flat, xing_hz, steep, fib; } elv_rhythm_feat_t;
+typedef struct { float min_ptp, max_flat, min_steep, min_xing, max_xing, min_fib; } elv_rhythm_thr_t;
 extern const elv_rhythm_thr_t ELV_RHYTHM_THR;
 void elv_rhythm_features(const float *mv, uint32_t n, elv_rhythm_feat_t *f);
 bool elv_rhythm_decide(const elv_rhythm_feat_t *f, const elv_rhythm_thr_t *t);

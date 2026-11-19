@@ -75,10 +75,13 @@ double elv_core_ccf(const elv_core_t *c)
    fixed rule. The thresholds are tuned on one public database and scored
    on another (tests/host/rhythm_tune.c). */
 
-/* Tuned on CUDB only; see docs in tests/host/rhythm_tune.c. */
+/* Tuned on CUDB only with tests/host/rhythm_tune.c (0.8 s windows, at least
+   95% of every non-shockable class left alone), then scored once on VFDB:
+   VF found 75.0%, normal sinus left alone 97.7%, other rhythms 98.0%,
+   asystole 90.0%. Below the AHA goals, and reported as such. */
 const elv_rhythm_thr_t ELV_RHYTHM_THR = {
-    .min_ptp = 0.20f, .max_flat = 0.35f, .min_steep = 0.0f,
-    .min_xing = 3.0f, .max_xing = 12.0f,
+    .min_ptp = 0.10f, .max_flat = 0.40f, .min_steep = 0.0f,
+    .min_xing = 3.0f, .max_xing = 20.0f, .min_fib = 0.50f,
 };
 
 void elv_rhythm_features(const float *in, uint32_t n, elv_rhythm_feat_t *f)
@@ -119,12 +122,27 @@ void elv_rhythm_features(const float *in, uint32_t n, elv_rhythm_feat_t *f)
     f->flat = (float)flat / n;
     f->xing_hz = (float)(xings / 2.0 / ((double)n / ELV_ECG_HZ));
     f->steep = (float)steep / n;     /* VF: many steep samples; QRS: a few spikes */
+
+    /* share of power in the 3 to 9 Hz fibrillation band, 1 to 20 Hz total,
+       on a Hann window (Goertzel per 0.5 Hz bin) */
+    double tot = 0, fib = 0;
+    for (double hz = 1.0; hz <= 20.0; hz += 0.5) {
+        double wv = 2.0 * M_PI * hz / ELV_ECG_HZ, cw = 2.0 * cos(wv), s1 = 0, s2 = 0;
+        for (uint32_t i = 0; i < n; i++) {
+            double hn = 0.5 - 0.5 * cos(2.0 * M_PI * i / (n - 1));
+            double s0 = x[i] * hn + cw * s1 - s2; s2 = s1; s1 = s0;
+        }
+        double p = s1 * s1 + s2 * s2 - cw * s1 * s2;
+        tot += p;
+        if (hz >= 3.0 && hz <= 9.0) fib += p;
+    }
+    f->fib = tot > 0 ? (float)(fib / tot) : 0.0f;
 }
 
 bool elv_rhythm_decide(const elv_rhythm_feat_t *f, const elv_rhythm_thr_t *t)
 {
     return f->ptp >= t->min_ptp && f->flat < t->max_flat && f->steep >= t->min_steep &&
-           f->xing_hz >= t->min_xing && f->xing_hz <= t->max_xing;
+           f->xing_hz >= t->min_xing && f->xing_hz <= t->max_xing && f->fib >= t->min_fib;
 }
 
 bool elv_trusted_shockable(const float *mv, uint32_t n)
