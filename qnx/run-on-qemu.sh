@@ -26,7 +26,8 @@ IP=${ELV_TARGET_IP:-172.31.1.10}
 mkqnximage --type=qemu --arch=x86_64 --cpu=2 --ram=1G --tcg=$ACCEL \
            --ip="$IP" --ssh-ident="$KEY.pub" --noprompt --build
 mkqnximage --stop > /dev/null 2>&1 || true
-mkqnximage --run=-h --assumed-ip="$IP" > /dev/null 2>&1 &
+# detached, so the guest keeps running after this script and its terminal end
+setsid nohup mkqnximage --run=-h --assumed-ip="$IP" > /tmp/elvrek-qemu.log 2>&1 < /dev/null &
 echo "Waiting for QNX at $IP..."
 for i in $(seq 1 90); do
     ssh -i "$KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \

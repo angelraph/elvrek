@@ -7,6 +7,9 @@
 
 B=${ELV_BIN:-/data/elvrek/bin}
 FAILS=0
+# EMU=1 runs the stack in its explicit emulator mode (wider sensor and
+# watchdog timeouts for a virtual machine on a busy host). Results say so.
+EF=""; [ -n "$EMU" ] && EF="-e"
 ADV_TYPE=${ADV_TYPE:-}          # e.g. "on -T elv_advisor_t" when secpol is enforcing
 
 st()   { $B/elv-ctl status "$1"; }
@@ -24,9 +27,9 @@ down() {
 }
 up() {   # $1 = plant args, $2 = advisor args
     down
-    $B/elv-plant $1 &
+    $B/elv-plant $EF $1 &
     sleep 1
-    $B/elvrekd &
+    $B/elvrekd $EF &
     sleep 1
     $B/elv-super -- $B/elv-advisor $2 &
     sleep 1
@@ -42,6 +45,7 @@ wait_state() {  # $1 key, $2 value, $3 timeout s
 
 echo "Elvrek fault suite on $(uname -a)"
 echo "physics plant, not a patient; timing in control ticks"
+[ -n "$EMU" ] && echo "EMULATOR MODE: sensor timeout 50 ms, hardware watchdog 100 ms (hardware limits are 5 ms and 20 ms)"
 echo
 
 # T1 boot and devices
@@ -96,8 +100,10 @@ ge "$pct" 90 && ok "T7 transport: depth in 5-6 cm on $pct% of $s strokes" \
              || bad "T7 transport" "$pct% in range"
 
 # T8 sensor dropout -> controlled retract
-$B/elv-fault sensor-drop; sleep 2
-[ "$(st state)" = SAFE_HOLD ] && le "$(truth true_depth_mm)" 2 && \
+up "-r asystole" ""
+$B/elv-ctl start; sleep 5
+$B/elv-fault sensor-drop
+wait_state state SAFE_HOLD 5 && sleep 1 && le "$(truth true_depth_mm)" 2 && \
     ok "T8 sensor dropout: SAFE_HOLD, cup at recoil" || \
     bad "T8 sensor dropout" "state $(st state), depth $(truth true_depth_mm)"
 
@@ -119,7 +125,7 @@ sleep 30
 sh=$(st shocks); w=$(st max_window); so=$(truth shocks_off_recoil)
 [ "$sh" = 1 ] && [ "$w" -lt 3000 ] && [ "$so" = 0 ] && \
     ok "T10 shock: 1 shock, hands-off window $w ticks, 0 shocks off recoil" || \
-    bad "T10 shock" "shocks $sh window $w off_recoil $so"
+    bad "T10 shock" "shocks $sh window $w off_recoil $so fault $(st fault) missed $(st missed)"
 wait_state state ROSC_HOLD 30 && ok "T10 trusted ROSC (EtCO2): parked, ventilating" \
                               || bad "T10 ROSC" "state $(st state)"
 ccf=$(st ccf)
@@ -133,7 +139,7 @@ sleep 2
 ig=$(st adv_ignored); sh=$(st shocks); inv=$(st inv)
 [ "$ig" -ge 100 ] && [ "$sh" -ge 1 ] && [ "$inv" = 0 ] && [ "$(st state)" = COMPRESS ] && \
     ok "T11 malicious advisor: $ig demands ignored, shock still delivered, 0 violations" || \
-    bad "T11 malicious advisor" "ignored $ig shocks $sh inv $inv state $(st state)"
+    bad "T11 malicious advisor" "ignored $ig shocks $sh inv $inv state $(st state) fault $(st fault) missed $(st missed)"
 fi
 
 down

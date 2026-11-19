@@ -27,13 +27,16 @@ extern char **environ;
 
 static long status_value(const char *key)
 {
+    /* buf starts with a space so the first key ("tick=") matches the same
+       " key=" pattern as every other key */
     char buf[1200];
+    buf[0] = ' ';
     int fd = open(ELV_DEV_STATUS, O_RDONLY);
     if (fd == -1) return -1;
-    ssize_t n = read(fd, buf, sizeof(buf) - 1);
+    ssize_t n = read(fd, buf + 1, sizeof(buf) - 2);
     close(fd);
     if (n <= 0) return -1;
-    buf[n] = '\0';
+    buf[n + 1] = '\0';
     char pat[48];
     snprintf(pat, sizeof(pat), " %s=", key);
     char *p = strstr(buf, pat);
@@ -64,9 +67,12 @@ int main(int argc, char **argv)
     int safety_down = 0;
     pid_t pid = -1;
     long grace = 0;
+    int seen = 0, startup_waits = 0;
 
     for (;;) {
         if (status_value("tick") < 0) {
+            /* at start-up the safety process may simply not be up yet */
+            if (!seen && startup_waits++ < 20) { usleep(500000); continue; }
             if (!safety_down)
                 fprintf(stderr, "elv-super: SAFETY PROCESS DOWN, not restarting it; "
                                 "hardware watchdog holds the piston at recoil\n");
@@ -76,6 +82,7 @@ int main(int argc, char **argv)
             sleep(1);
             continue;
         }
+        seen = 1;
         if (pid <= 0) {
             if (posix_spawn(&pid, child[0], NULL, NULL, child, environ) != 0) {
                 perror("elv-super: spawn");

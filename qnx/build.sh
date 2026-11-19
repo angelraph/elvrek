@@ -6,6 +6,6 @@ set -e
 ARCH=${1:-x86_64}
 source "$HOME/qnx800/qnxsdp-env.sh" > /dev/null
 echo "qcc: $(command -v qcc)"
-make -C qnx ARCH="$ARCH" 2>&1 | tee "build/qcc-$ARCH.log" | grep -E "error|warning" || true
+make -B -C qnx ARCH="$ARCH" 2>&1 | tee "build/qcc-$ARCH.log" | grep -E "error|warning" || true
 ls -la "build/qnx-$ARCH"
 file "build/qnx-$ARCH/"* 2>/dev/null | head -10

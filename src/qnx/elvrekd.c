@@ -71,6 +71,7 @@ static elv_seq_t    g_st_seq;
 static elv_status_t g_status;
 
 static int g_verbose;
+static int g_emulator;      /* -e: wider sensor timeout for virtual machines */
 static slog2_buffer_t g_log;
 
 #define LOG(sev, ...) do { if (g_log) slog2f(g_log, 0, (sev), __VA_ARGS__); \
@@ -98,7 +99,7 @@ static int format_status(char *buf, size_t len)
         "force_n=%.0f pos_mm=%.1f etco2=%.1f epi_prompt=%d epi_prompts=%u epi_given=%u "
         "inv=%u missed=%llu late=%llu overrun=%llu adv_age=%llu adv_msgs=%u "
         "adv_rejected=%u adv_ignored=%u adv_skips=%u shock_line=%d vent=%d charge=%d "
-        "ready=%d transport=%d mode_30_2=%d force_limits=%u\n",
+        "ready=%d transport=%d mode_30_2=%d force_limits=%u emulator=%d\n",
         (unsigned long long)s.tick, elv_state_name((elv_state_t)s.state), s.sw_phase,
         elv_fault_name((elv_fault_t)s.fault), s.ccf, s.shocks, s.windows,
         s.max_window, s.last_window, s.last_machine, s.max_machine, s.last_human, s.max_human,
@@ -107,7 +108,8 @@ static int format_status(char *buf, size_t len)
         s.inv_total, (unsigned long long)s.missed_ticks, (unsigned long long)s.late_wakeups,
         (unsigned long long)s.work_overruns, (unsigned long long)s.adv_age_ticks,
         s.adv_msgs, s.adv_rejected, s.adv_ignored, s.adv_skips, s.shock_line, s.vent_on,
-        s.charge_on, s.charger_ready, s.transport_comp, s.mode_30_2, s.force_limit_events);
+        s.charge_on, s.charger_ready, s.transport_comp, s.mode_30_2, s.force_limit_events,
+        g_emulator);
 }
 
 static int io_read(resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb)
@@ -380,8 +382,10 @@ static void control_loop(void)
 int main(int argc, char **argv)
 {
     int opt;
-    while ((opt = getopt(argc, argv, "v")) != -1)
+    while ((opt = getopt(argc, argv, "ve")) != -1) {
         if (opt == 'v') g_verbose = 1;
+        if (opt == 'e') g_emulator = 1;
+    }
 
     slog2_buffer_set_config_t cfg = {
         .num_buffers = 1, .buffer_set_name = "elvrekd",
@@ -403,6 +407,10 @@ int main(int argc, char **argv)
     if (g_hw->magic != ELV_HW_MAGIC) { errno = EINVAL; die("hw magic"); }
 
     elv_core_init(&g_core);
+    if (g_emulator) {
+        g_core.sensor_stale_ticks = ELV_EMU_SENSOR_STALE_TICKS;
+        LOG(SLOG2_WARNING, "elvrekd: EMULATOR MODE, sensor timeout %d ms", ELV_EMU_SENSOR_STALE_TICKS);
+    }
     elv_inv_init(&g_inv);
 
     /* resource manager */
@@ -438,6 +446,15 @@ int main(int argc, char **argv)
     pthread_t rt, rt_adv;
     if (pthread_create(&rt, &ta, resmgr_thread, dpp) != EOK) die("pthread_create resmgr");
     if (pthread_create(&rt_adv, &ta, resmgr_thread, dpp_adv) != EOK) die("pthread_create advice");
+
+    /* QNX timers expire on clock ticks. With the default 1 ms tick a 1 ms
+       timer can slip to the following tick, so the control loop ran about
+       15% slow on the target. A 0.5 ms system tick lets every 1 ms timer
+       land on time. Needs root (the clockperiod ability), so it is done
+       here, before the abilities are locked. */
+    struct _clockperiod cp = { .nsec = 500000, .fract = 0 };
+    if (ClockPeriod(CLOCK_REALTIME, &cp, NULL, 0) == -1)
+        LOG(SLOG2_WARNING, "ClockPeriod 0.5 ms failed: %s", strerror(errno));
 
     /* nothing below needs these abilities again */
     lock_abilities();

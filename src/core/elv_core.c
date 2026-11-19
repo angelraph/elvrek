@@ -53,6 +53,7 @@ void elv_core_init(elv_core_t *c)
     c->state = ELV_ST_IDLE;
     c->period_ticks = (uint32_t)(60.0 * ELV_TICK_HZ / ELV_RATE_DEFAULT_CPM);
     c->depth_cmd_m = ELV_DEPTH_TARGET_M;
+    c->sensor_stale_ticks = ELV_SENSOR_STALE_TICKS;
 }
 
 void elv_core_force_fault(elv_core_t *c, elv_fault_t f)
@@ -352,7 +353,7 @@ void elv_core_step(elv_core_t *c, const elv_sensors_t *s,
     if (c->state != ELV_ST_IDLE && c->state != ELV_ST_STOPPED) {
         if (s->estop)
             elv_core_force_fault(c, ELV_FAULT_ESTOP);
-        else if (c->tick - c->last_sensor_tick > ELV_SENSOR_STALE_TICKS)
+        else if (c->tick - c->last_sensor_tick > c->sensor_stale_ticks)
             elv_core_force_fault(c, ELV_FAULT_SENSOR_STALE);
         else if (s->force_n > ELV_FORCE_ABS_N)
             elv_core_force_fault(c, ELV_FAULT_OVERFORCE);

@@ -96,10 +96,18 @@ int main(int argc, char **argv)
     if (ecg == MAP_FAILED) { perror("mmap ecg"); return 1; }
     close(efd);
 
+    /* Set up the 4 Hz timer while still allowed to; an unprivileged
+       process may be refused a new timer, and then it would wait forever. */
+    elv_rt_t rt;
+    elv_rt_set_prio(ELV_PRIO_ADVISOR);
+    if (!do_attack && elv_rt_init(&rt, 250000000L, ELV_PRIO_ADVISOR) != 0) {
+        perror("elv-advisor: timer");
+        return 1;
+    }
+
     drop_privileges();
     if (do_attack) return attack();
 
-    elv_rt_set_prio(ELV_PRIO_ADVISOR);
     int out = open(ELV_DEV_ADVICE, O_WRONLY);
     if (out == -1) { perror("elv-advisor: " ELV_DEV_ADVICE); return 1; }
 
@@ -109,8 +117,6 @@ int main(int argc, char **argv)
     uint64_t seq = 0, wakes = 0;
     time_t start = time(NULL);
 
-    elv_rt_t rt;
-    elv_rt_init(&rt, 250000000L, ELV_PRIO_ADVISOR);   /* 4 Hz */
     for (;;) {
         elv_rt_wait(&rt);
         uint64_t n = atomic_load(&ecg->n);

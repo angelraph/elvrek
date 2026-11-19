@@ -96,6 +96,8 @@ typedef struct {
     /* private */
     bool     mode_30_2;
     bool     transport_comp;
+    uint32_t sensor_stale_ticks;    /* ELV_SENSOR_STALE_TICKS, or wider in
+                                       the explicit emulator mode            */
     uint32_t period_ticks;
     uint32_t phase;
     uint32_t cycle_comp_count;      /* compressions since last 30:2 gap      */

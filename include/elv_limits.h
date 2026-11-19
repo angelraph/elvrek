@@ -72,6 +72,11 @@
 /* Watchdogs */
 #define ELV_ADVISOR_STALE_TICKS 2000            /* advisor silent > 2 s       */
 #define ELV_SENSOR_STALE_TICKS  5               /* hardware silent > 5 ms     */
+/* Emulator mode (elvrekd -e, elv-plant -e) only: a virtual machine on a busy
+   host can pause for tens of milliseconds. These wider limits are used only
+   when asked for, and every result taken with them is labelled as such. */
+#define ELV_EMU_SENSOR_STALE_TICKS 50
+#define ELV_EMU_HW_WD_TICKS        100
 
 /* Pass/fail metric */
 #define ELV_CCF_MIN             0.80            /* chest-compression fraction */

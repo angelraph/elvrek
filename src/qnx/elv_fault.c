@@ -28,15 +28,24 @@ static void *map(const char *name, size_t len, int prot)
     return p;
 }
 
-static volatile int g_stop;
 static int g_storm_prio;
+static struct timespec g_until;
 
+/* Each spinner watches the clock and stops itself. A main thread that
+   sleeps at normal priority would never get the CPU back from spinners
+   running above it, so it cannot be the one to stop them. */
 static void *spin(void *arg)
 {
     (void)arg;
     elv_rt_set_prio(g_storm_prio);
     volatile unsigned long x = 0;
-    while (!g_stop) x++;
+    struct timespec now;
+    for (;;) {
+        for (int i = 0; i < 100000; i++) x++;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        if (now.tv_sec > g_until.tv_sec ||
+            (now.tv_sec == g_until.tv_sec && now.tv_nsec >= g_until.tv_nsec)) break;
+    }
     return NULL;
 }
 
@@ -51,9 +60,9 @@ int main(int argc, char **argv)
         g_storm_prio = argc > 4 ? atoi(argv[4]) : ELV_PRIO_CTRL - 1;
         pthread_t t[64];
         if (n > 64) n = 64;
+        clock_gettime(CLOCK_MONOTONIC, &g_until);
+        g_until.tv_sec += secs;
         for (int i = 0; i < n; i++) pthread_create(&t[i], NULL, spin, NULL);
-        sleep((unsigned)secs);
-        g_stop = 1;
         for (int i = 0; i < n; i++) pthread_join(t[i], NULL);
         printf("cpu-storm: %d threads at priority %d for %d s\n", n, g_storm_prio, secs);
         return 0;

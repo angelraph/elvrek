@@ -39,7 +39,9 @@
 
 #define ELV_ADVISOR_UID  2002
 #define ELV_PRIO_CTRL    60      /* elvrekd control thread              */
-#define ELV_PRIO_PLANT   55      /* plant / hardware driver               */
+#define ELV_PRIO_PLANT   62      /* the physics plant stands in for hardware,
+                                    which does not slow down when the CPU is
+                                    busy, so it runs above everything else */
 #define ELV_PRIO_RESMGR  20      /* floor; handlers inherit client prio   */
 #define ELV_PRIO_TELEM   12
 #define ELV_PRIO_ADVISOR 10

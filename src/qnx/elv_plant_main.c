@@ -49,8 +49,10 @@ int main(int argc, char **argv)
     elv_patient_cfg_t pc;
     memset(&pc, 0, sizeof(pc));
     int opt;
-    while ((opt = getopt(argc, argv, "r:cts")) != -1) {
+    uint64_t wd_limit = ELV_HW_WD_TICKS;
+    while ((opt = getopt(argc, argv, "r:ctse")) != -1) {
         switch (opt) {
+        case 'e': wd_limit = ELV_EMU_HW_WD_TICKS; break;   /* emulator mode */
         case 'r':
             r = !strcmp(optarg, "sinus") ? ELV_RHYTHM_ORGANIZED :
                 !strcmp(optarg, "asystole") ? ELV_RHYTHM_ASYSTOLE : ELV_RHYTHM_SHOCKABLE;
@@ -59,7 +61,7 @@ int main(int argc, char **argv)
         case 't': pc.transport = true; break;
         case 's': pc.k1 = 11000; pc.k3 = 2.8e6; break;
         default:
-            fprintf(stderr, "usage: elv-plant [-r vf|sinus|asystole] [-c] [-t] [-s]\n");
+            fprintf(stderr, "usage: elv-plant [-r vf|sinus|asystole] [-c] [-t] [-s] [-e]\n");
             return 1;
         }
     }
@@ -100,7 +102,7 @@ int main(int argc, char **argv)
         /* hardware watchdog on the safety process heartbeat */
         uint64_t at = atomic_load(&hw->act_tick);
         if (at != last_act_tick) { last_act_tick = at; wd_age = 0; wd_tripped = false; }
-        else if (++wd_age > ELV_HW_WD_TICKS && last_act_tick) {
+        else if (++wd_age > wd_limit && last_act_tick) {
             if (!wd_tripped) { hw->hw_watchdog_trips++; wd_tripped = true;
                 fprintf(stderr, "elv-plant: HW WATCHDOG: safety process silent, retracting\n"); }
             a = (elv_actuators_t){ .piston_target_m = 0.0, .piston_vmax_ms = ELV_RETRACT_V_MS,
