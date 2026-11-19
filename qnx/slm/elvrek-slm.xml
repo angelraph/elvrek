@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+  Elvrek: System Launch and Monitor configuration (boot order).
+  SPDX-License-Identifier: Apache-2.0
+
+  Order: plant (owns the hardware boundary), then elvrekd, then the
+  supervisor (which owns the advisor's restarts), then telemetry.
+
+  SLM restarts a component that dies unless told otherwise (its -r default
+  is "restart"). elvrekd is deliberately marked repair none: if the safety
+  process dies, the hardware watchdog in the driver retracts the piston and
+  a person must intervene. Element names follow the QNX 8.0 slm reference.
+
+  Runmasks: the plant and elvrekd share CPU 0; everything else runs on the
+  remaining CPUs, so a busy advisor or telemetry client cannot sit on the
+  control loop's core. Needs QEMU started with two or more CPUs.
+-->
+<SLM:system>
+  <SLM:component name="elv-plant">
+    <SLM:command>/data/elvrek/bin/elv-plant</SLM:command>
+    <SLM:args>-r vf -c</SLM:args>
+    <SLM:priority>55f</SLM:priority>
+    <SLM:runmask>0x1</SLM:runmask>
+    <SLM:type>elv_plant_t</SLM:type>
+    <SLM:repair>none</SLM:repair>
+    <SLM:waitfor wait="pathname">/dev/shmem/elvrek_hw</SLM:waitfor>
+  </SLM:component>
+
+  <SLM:component name="elvrekd">
+    <SLM:command>/data/elvrek/bin/elvrekd</SLM:command>
+    <SLM:depend>elv-plant</SLM:depend>
+    <SLM:priority>60f</SLM:priority>
+    <SLM:runmask>0x1</SLM:runmask>
+    <SLM:type>elvrekd_t</SLM:type>
+    <SLM:repair>none</SLM:repair>
+    <SLM:waitfor wait="pathname">/dev/elvrek/status</SLM:waitfor>
+  </SLM:component>
+
+  <SLM:component name="elv-super">
+    <SLM:command>/data/elvrek/bin/elv-super</SLM:command>
+    <SLM:args>-- /data/elvrek/bin/elv-advisor</SLM:args>
+    <SLM:depend>elvrekd</SLM:depend>
+    <SLM:runmask>0xE</SLM:runmask>
+    <SLM:type>elv_super_t</SLM:type>
+    <SLM:repair>restart</SLM:repair>
+  </SLM:component>
+
+  <SLM:component name="elv-telemetry">
+    <SLM:command>/data/elvrek/bin/elv-telemetry</SLM:command>
+    <SLM:depend>elvrekd</SLM:depend>
+    <SLM:runmask>0xE</SLM:runmask>
+    <SLM:type>elv_telem_t</SLM:type>
+    <SLM:user>2003</SLM:user>
+    <SLM:repair>restart</SLM:repair>
+  </SLM:component>
+</SLM:system>

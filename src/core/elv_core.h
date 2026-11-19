@@ -1,0 +1,161 @@
+/*
+ * Elvrek: safety authority core (pure, deterministic, OS-independent).
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * elv_core_step() is called once per 1 ms control tick. It is the only code
+ * that decides the piston setpoint, ventilation, charging, and the shock line.
+ * The QNX process `elvrekd` wraps it with a timer pulse, resource managers,
+ * and the security policy; the host tests call it directly.
+ */
+#ifndef ELV_CORE_H
+#define ELV_CORE_H
+
+#include <stdbool.h>
+#include <stdint.h>
+#include "elv_hw.h"
+#include "elv_proto.h"
+#include "elv_limits.h"
+
+typedef enum {
+    ELV_ST_IDLE = 0,
+    ELV_ST_COMPRESS,       /* hands on; may be charging in the background   */
+    ELV_ST_VENT_GAP,       /* 30:2 mode only: two breaths                   */
+    ELV_ST_SHOCK_WINDOW,   /* the ONLY hands-off state for a shock          */
+    ELV_ST_ROSC_HOLD,      /* trusted return of circulation: parked, breathe */
+    ELV_ST_FAULT_RETRACT,  /* controlled lift to full recoil                */
+    ELV_ST_SAFE_HOLD,      /* parked at recoil, alarm, waits for operator   */
+    ELV_ST_STOPPED
+} elv_state_t;
+
+typedef enum {
+    ELV_SW_PARK = 0,       /* finish upstroke, reach recoil                 */
+    ELV_SW_CONFIRM,        /* trusted rhythm check on clean ECG             */
+    ELV_SW_AWAIT_PRESS,    /* operator presses SHOCK                        */
+    ELV_SW_DELIVER         /* shock line closed for ELV_SHOCK_PULSE_TICKS   */
+} elv_sw_phase_t;
+
+typedef enum {
+    ELV_FAULT_NONE = 0,
+    ELV_FAULT_SENSOR_STALE,
+    ELV_FAULT_ESTOP,
+    ELV_FAULT_OVERFORCE,
+    ELV_FAULT_PARK_TIMEOUT,
+    ELV_FAULT_INVARIANT
+} elv_fault_t;
+
+typedef enum {
+    ELV_EV_START = 1, ELV_EV_WINDOW_OPEN, ELV_EV_SHOCK, ELV_EV_WINDOW_NO_SHOCK,
+    ELV_EV_ROSC, ELV_EV_REARREST, ELV_EV_FAULT, ELV_EV_EPI_DUE, ELV_EV_EPI_GIVEN,
+    ELV_EV_ADVISOR_SKIP, ELV_EV_STOP
+} elv_event_t;
+
+typedef struct { uint64_t tick; uint16_t type; int32_t value; } elv_log_entry_t;
+#define ELV_LOG_LEN 512
+
+typedef struct {
+    uint64_t hands_on_ticks;     /* ticks in COMPRESS                         */
+    uint64_t cpr_ticks;          /* ticks CPR is required (excl. ROSC/idle)    */
+    uint32_t compressions;
+    uint32_t breaths;
+    uint32_t shock_windows;
+    uint32_t shocks;
+    uint32_t windows_no_shock;   /* confirm said non-shockable, energy dumped */
+    uint32_t max_window_ticks;   /* total hands-off for the shock          */
+    uint32_t last_window_ticks;
+    uint32_t max_machine_ticks;  /* park + confirm + discharge: the device */
+    uint32_t last_machine_ticks;
+    uint32_t max_human_ticks;    /* waiting for the operator's press       */
+    uint32_t last_human_ticks;
+    uint32_t press_retries;      /* windows closed to resume compressions  */
+    uint32_t preauth_shocks;     /* shocks pre-authorised during charging  */
+    uint32_t force_limit_events;
+    uint32_t advisor_demands_ignored;
+    uint32_t advisor_skips;      /* boundaries the advisor talked us out of   */
+    uint64_t rosc_detect_tick;   /* 0 = never                                 */
+    uint64_t rosc_parked_tick;   /* piston reached recoil after ROSC          */
+    uint32_t epi_prompts;
+    uint32_t epi_given;
+    uint64_t first_shock_tick;
+} elv_metrics_t;
+
+typedef struct {
+    /* public, read-only for telemetry and the invariant monitor */
+    elv_state_t    state;
+    elv_sw_phase_t sw_phase;
+    elv_fault_t    fault;
+    uint64_t       tick;
+    bool           downstroke;      /* piston is travelling into the chest   */
+    bool           confirm_shockable;
+    bool     preauth;            /* SHOCK pressed while charging           */
+    bool           press_seen;
+    bool           rosc_trusted;
+    double         depth_cmd_m;     /* adaptive depth for current cycle      */
+    double         etco2_baseline;
+    elv_metrics_t  m;
+
+    /* private */
+    bool     mode_30_2;
+    bool     transport_comp;
+    uint32_t period_ticks;
+    uint32_t phase;
+    uint32_t cycle_comp_count;      /* compressions since last 30:2 gap      */
+    double   cycle_peak_force;
+    uint64_t next_boundary_tick;    /* next 2-minute rhythm-check boundary   */
+    bool     charging;
+    bool     want_window;           /* go to window at next recoil           */
+    bool     skipped_last_boundary;
+    uint64_t state_enter_tick;
+    uint64_t window_enter_tick;
+    uint64_t sub_enter_tick;
+    uint64_t await_enter_tick;      /* 0 = never waited for a press          */
+    uint64_t press_tick;            /* when the press was accepted (0 = none) */
+    uint32_t retries_this_charge;
+    uint32_t retry_at_compressions;
+    uint64_t last_sensor_seq;
+    uint64_t last_sensor_tick;
+    uint64_t last_adv_seq;
+    uint64_t last_adv_tick;
+    elv_advisor_msg_t adv;
+    bool     adv_valid;
+    uint64_t next_breath_tick;
+    bool     breath_pending;
+    uint64_t breath_end_tick;
+    uint32_t gap_breaths;
+    uint64_t rosc_lost_since;
+    uint64_t rosc_hold_vent_tick;
+    float    confirm_buf[ELV_CONFIRM_TICKS / ELV_ECG_TICKS_PER_SAMPLE];
+    uint32_t confirm_n;
+    uint64_t last_ecg_seq;
+    bool     trusted_rosc_latched;
+    /* transport: disturbance observer on the frame IMU */
+    double   s_hat, sv_hat;
+    double   force_cap_m;          /* depth cap latched this downstroke     */
+    double   prev_pos, prev_force, k_est;
+    /* ACLS clock */
+    uint64_t epi_due_tick;          /* 0 = not running                       */
+    bool     epi_prompt;            /* crew prompt showing                   */
+    /* event record */
+    elv_log_entry_t log[ELV_LOG_LEN];
+    uint32_t log_n;
+} elv_core_t;
+
+void elv_core_init(elv_core_t *c);
+
+/* adv may be NULL when no new advisor message arrived this tick. */
+void elv_core_step(elv_core_t *c,
+                   const elv_sensors_t *s,
+                   const elv_advisor_msg_t *adv,
+                   const elv_operator_t *op,
+                   elv_actuators_t *out);
+
+/* Force a fault from outside the core (e.g. the invariant monitor). */
+void elv_core_force_fault(elv_core_t *c, elv_fault_t f);
+
+double elv_core_ccf(const elv_core_t *c);
+const char *elv_state_name(elv_state_t s);
+const char *elv_fault_name(elv_fault_t f);
+
+/* Trusted, deterministic rhythm check used only on hands-off ECG. */
+bool elv_trusted_shockable(const float *mv, uint32_t n);
+
+#endif

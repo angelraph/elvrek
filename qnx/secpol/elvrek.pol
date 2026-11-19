@@ -1,0 +1,39 @@
+# Elvrek security policy, starting draft. Written in the QNX 8.0 security
+# policy language (System Security Guide, "Security policy language").
+# The plan is to merge this with the output of secpolgenerate on the target,
+# then compile it with secpolcompile and enforce it. Not yet compiled.
+
+type elv_plant_t;
+type elvrekd_t;
+type elv_advice_t;      # the channel behind /dev/elvrek/advice only
+type elv_super_t;
+type elv_advisor_t;
+type elv_telem_t;
+type elv_ctl_t;
+
+# Paths the safety process may register. The advice path is attached on its
+# own channel and that channel is given its own type.
+allow_attach elvrekd_t /dev/elvrek/status;
+allow_attach elvrekd_t /dev/elvrek/operator;
+allow_attach elvrekd_t /dev/elvrek/piston;
+allow_attach elvrekd_t /dev/elvrek/shock;
+allow_attach elvrekd_t /dev/elvrek/advice elv_advice_t;
+
+# Who may connect to whom.
+allow elv_advisor_t elv_advice_t:channel connect;            # advice only
+allow { elv_super_t elv_telem_t elv_ctl_t } elvrekd_t:channel connect;
+
+# Abilities, kept to what each process needs.
+allow elvrekd_t self:ability {
+    priority:1-60
+    pathspace
+};
+allow elv_plant_t self:ability {
+    priority:1-55
+};
+allow elv_super_t self:ability {
+    spawn
+    setuid:2002
+    setgid:2002
+};
+# elv_advisor_t gets no abilities at all.

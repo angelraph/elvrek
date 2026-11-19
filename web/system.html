@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The system | Elvrek</title>
+<meta name="description" content="How Elvrek runs compressions, breaths and the shock window on one 1 ms clock, with hard limits on force and depth.">
+<meta name="theme-color" content="#07080a">
+<link rel="icon" href="/assets/elvrek-logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body data-page="system">
+<div data-header></div>
+<main>
+  <section class="page-hero">
+    <canvas class="hero-bg" data-mode="soft" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <span class="eyebrow">The system</span>
+      <h1>One clock for <span class="red">every second</span></h1>
+      <p class="lead">Elvrek is the controller inside a chest compression robot. It runs the piston, times each breath, charges the defibrillator and decides the one moment the arm steps back for a shock.</p>
+    </div>
+  </section>
+
+  <nav class="subnav" aria-label="On this page">
+    <div class="wrap">
+      <a href="#overview">Overview</a>
+      <a href="#cycle">Compression cycle</a>
+      <a href="#shock">Shock window</a>
+      <a href="#transport">Transport</a>
+      <a href="#rules">Safety rules</a>
+      <a href="#specs">Specifications</a>
+      <a href="#hardware">Hardware</a>
+    </div>
+  </nav>
+
+  <section class="section" id="overview">
+    <div class="wrap split">
+      <div class="reveal-left">
+        <h2>What it <span class="red">is</span></h2>
+        <p class="lead">A research controller for mechanical CPR, written in C and running on the QNX 8.0 real-time operating system.</p>
+        <ul class="squares">
+          <li>One safety process owns the piston, the ventilation timing, the charger and the shock line.</li>
+          <li>A rhythm classifier runs beside it but may only propose. It cannot move anything.</li>
+          <li>Every rule is checked on every 1 ms tick by an independent monitor. A broken rule lifts the piston and holds.</li>
+          <li>Today the piston and chest are a physics model behind the same interface a real actuator will use.</li>
+        </ul>
+      </div>
+      <div class="media reveal-right"><div class="viewer" data-viewer><canvas aria-label="Rotating model of the arm"></canvas><div class="viewer-tools"></div></div></div>
+    </div>
+  </section>
+
+  <section class="section alt" id="cycle">
+    <div class="wrap split reverse">
+      <div class="reveal-right">
+        <h2>The compression <span class="red">cycle</span></h2>
+        <ul class="squares">
+          <li>110 compressions a minute by default, within the 100 to 120 guideline range.</li>
+          <li>A smooth raised cosine stroke: half the cycle pressing, half releasing, with full recoil at the top.</li>
+          <li>Target depth 5.3 cm, never more than 6 cm. The setpoint is clamped in code and checked again by the monitor.</li>
+          <li>A force ceiling of 600 N. The controller estimates chest stiffness as it presses and caps the stroke early enough for the actuator to stop.</li>
+          <li>If a stiff chest will not reach 5 cm under that ceiling, the run reports the miss. Depth is never bought with more force.</li>
+          <li>Breaths start only on the upstroke, never while the piston is going down. In 30:2 mode the gap is long enough for two breaths and no longer.</li>
+        </ul>
+      </div>
+      <div class="media reveal-left"><canvas data-thumb="cycle" style="aspect-ratio:16/10;width:100%"></canvas></div>
+    </div>
+  </section>
+
+  <section class="section" id="shock">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">The shock window</span>
+        <h2>Charge while compressing. <span class="red">Park only to shock.</span></h2>
+        <p class="muted">The older sequence stops for analysis, then stops again to charge. Elvrek keeps compressing until the energy is ready.</p>
+      </div>
+      <div class="cards stagger">
+        <div class="card"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5"/></svg></div><h3>1. Charge on the move</h3><p>About seven seconds before the two minute rhythm check, the charger starts filling while the piston keeps working.</p></div>
+        <div class="card"><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 6h16M4 18h10"/></svg></div><h3>2. Park and confirm</h3><p>At the next full recoil the arm parks. A trusted check reads 0.8 seconds of clean ECG with no compression artifact in it.</p></div>
+        <div class="card"><div class="icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></div><h3>3. Shock and resume</h3><p>If the rhythm is shockable and the crew has pressed, the shock line closes for 10 ms and compressions restart on the next tick.</p></div>
+      </div>
+      <div class="split" style="margin-top:70px">
+        <div class="reveal-left">
+          <h3>Machine time and human time, kept apart</h3>
+          <p class="muted">The device is scored only on what it controls. In the recorded run the machine needed 0.80 s to park, confirm and discharge. The crew's reaction is shown on its own line.</p>
+          <ul class="squares">
+            <li>Pre-authorised shock: the crew can press while the charger fills. The shock then fires the moment the check confirms, with no human step inside the window.</li>
+            <li>A late or missing press: the window still closes at 3 s, compressions resume, and the charge is offered again up to three times before it is dumped.</li>
+            <li>No shockable rhythm: the energy is dumped inside the machine and compressions resume.</li>
+          </ul>
+        </div>
+        <div class="reveal-right">
+          <table class="spec">
+            <caption>Window budget</caption>
+            <tr><th>Total hands-off limit</th><td>3.0 s, enforced</td></tr>
+            <tr><th>Rhythm confirm</th><td>0.8 s of clean ECG</td></tr>
+            <tr><th>Machine time, recorded run</th><td><span data-s="machine">0.80 s</span></td></tr>
+            <tr><th>Shock line closed</th><td>10 ms, only while parked and charged</td></tr>
+            <tr><th>Rhythm check honesty</th><td>Below AHA goals on real ECG today. <a class="red" href="/evidence#ecg">See results</a></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="transport">
+    <div class="wrap split">
+      <div class="reveal-left">
+        <h2>Holding depth <span class="red">on the road</span></h2>
+        <p class="muted">In a moving vehicle the patient's chest shifts against the straps. A frame sensor feeds a small model of that motion, and the controller moves the piston setpoint to keep the true chest depth where it should be.</p>
+        <ul class="squares">
+          <li>Depth in the 5 to 6 cm band on 100% of strokes with compensation, 71% without it, in the modelled road profile.</li>
+          <li>Still 100% when the strap model is wrong by 15%.</li>
+          <li>Compensation is limited to 1.5 cm and never lifts the force ceiling.</li>
+          <li>This is a physics model of a vehicle, not a road test.</li>
+        </ul>
+      </div>
+      <div class="media reveal-right"><canvas data-thumb="transport" style="aspect-ratio:16/10;width:100%"></canvas></div>
+    </div>
+  </section>
+
+  <section class="section" id="rules">
+    <div class="wrap">
+      <div class="section-head reveal"><span class="eyebrow">Safety rules</span><h2>What it will <span class="red">never</span> do</h2></div>
+      <div class="cards stagger">
+        <div class="card"><h3>Shock outside the window</h3><p>The line closes only when parked, confirmed, charged and pressed. The monitor checks each condition on every tick.</p></div>
+        <div class="card"><h3>Push past 650 N</h3><p>Pushing stops at 600 N. Above 650 N the system treats it as a fault and lifts the piston.</p></div>
+        <div class="card"><h3>Stop on the AI's word</h3><p>Only a pulse input or a sharp rise in end-tidal CO2 can stop compressions. A model's opinion cannot.</p></div>
+        <div class="card"><h3>Ignore real circulation</h3><p>When those trusted signs appear, the piston parks within one compression and breaths continue.</p></div>
+        <div class="card"><h3>Freeze at the bottom</h3><p>Every fault retracts to full recoil at a controlled speed and holds there.</p></div>
+        <div class="card"><h3>Wait on a slow process</h3><p>The control loop never blocks on the advisor, the display or the network. Their requests run at their own lower priority.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="specs">
+    <div class="wrap">
+      <div class="section-head reveal"><span class="eyebrow">Specifications</span><h2>The numbers in the code</h2><p class="muted">All limits live in one header file so they can be reviewed in one place.</p></div>
+      <div class="split" style="align-items:start">
+        <table class="spec reveal">
+          <caption>Compression</caption>
+          <tr><th>Rate</th><td>100 to 120 per minute, default 110</td></tr>
+          <tr><th>Depth</th><td>5.0 to 6.0 cm, target 5.3 cm</td></tr>
+          <tr><th>Duty cycle</th><td>50%</td></tr>
+          <tr><th>Recoil</th><td>Cup within 2 mm of the top on every stroke</td></tr>
+          <tr><th>Force</th><td>Stop pushing at 600 N, fault above 650 N</td></tr>
+          <tr><th>Fault retract speed</th><td>0.25 m/s</td></tr>
+        </table>
+        <table class="spec reveal">
+          <caption>Timing and control</caption>
+          <tr><th>Control tick</th><td>1 ms timer pulse, SCHED_FIFO priority 60</td></tr>
+          <tr><th>Rhythm check cycle</th><td>Every 2 minutes</td></tr>
+          <tr><th>Ventilation</th><td>10 breaths a minute, or 30:2</td></tr>
+          <tr><th>Sensor watchdog</th><td>Fault if hardware is silent for 5 ms</td></tr>
+          <tr><th>Hardware watchdog</th><td>Driver retracts if the controller is silent for 20 ms</td></tr>
+          <tr><th>Advisor timeout</th><td>Ignored after 2 s of silence</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="hardware">
+    <div class="wrap split">
+      <div class="reveal-left">
+        <h2>From model to <span class="red">metal</span></h2>
+        <p class="muted">The safety code only talks to one small hardware interface. The physics model implements it today; a real driver implements it next, without touching the safety code.</p>
+        <ul class="squares">
+          <li>Raspberry Pi 5 running QNX 8.0</li>
+          <li>Industrial linear actuator in the 300 to 600 N class</li>
+          <li>Load cell on the cup, limit switch at full recoil, mechanical stop behind the software limit</li>
+          <li>A relay that lights a lamp in place of a shock</li>
+          <li>Tested on a training manikin only, never a person</li>
+        </ul>
+        <a class="btn btn-ghost" href="/about#roadmap">See the roadmap</a>
+      </div>
+      <div class="band reveal-right" style="text-align:left;padding:50px">
+        <span class="eyebrow">Safety first</span>
+        <h3>Not a medical device</h3>
+        <p class="muted">Elvrek is research software. It has no clearance or certification and must never be used on a person.</p>
+        <a class="btn btn-red" href="/safety">Read the safety notice</a>
+      </div>
+    </div>
+  </section>
+</main>
+<div data-footer></div>
+<script src="/assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evidence | Elvrek</title>
+<meta name="description" content="What Elvrek has been tested against, what passed, and where it still falls short, including results on real arrest ECG.">
+<meta name="theme-color" content="#07080a">
+<link rel="icon" href="/assets/elvrek-logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body data-page="evidence">
+<div data-header></div>
+<main>
+  <section class="page-hero">
+    <canvas class="hero-bg" data-mode="soft" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <span class="eyebrow">Evidence</span>
+      <h1>What we tested, <span class="red">what we found</span></h1>
+      <p class="lead">Passes and misses, side by side. Timing is reported in 1 ms control ticks, because microseconds measured inside an emulator would only measure the emulator.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="stats stagger">
+        <div class="stat"><div class="num" data-count="18">18<small>/18</small></div><p>Host safety scenarios passed</p></div>
+        <div class="stat"><div class="num" data-count="0">0</div><p>Rule violations across all scenarios</p></div>
+        <div class="stat"><div class="num" data-count="99.3">99.3<small>%</small></div><p>Chest compression fraction, shockable rhythm run</p></div>
+        <div class="stat"><div class="num" data-count="57">57</div><p>Real arrest ECG records evaluated</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:40px">
+    <div class="wrap" data-tabs>
+      <div class="tabs" role="tablist">
+        <button role="tab">Safety scenarios</button>
+        <button role="tab">Real ECG</button>
+        <button role="tab">On the QNX target</button>
+        <button role="tab">References</button>
+      </div>
+
+      <div class="tab-panel" id="scenarios">
+        <p class="muted narrow" style="margin:0 0 30px">The same C code that runs on QNX, run faster than real time against the physics model. Each scenario prints PASS or FAIL and the suite exits with an error if any fails.</p>
+        <div class="pager" data-pager>
+          <div class="pager-view">
+            <div class="pager-track">
+              <div class="scen"><div class="thumb"><canvas data-thumb="shock"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>VF, shock, return</h4><p>One shock, 0.80 s machine time, piston parked within one compression of trusted return of circulation.</p></div></div>
+              <div class="scen"><div class="thumb"><canvas data-thumb="shock"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>Pre-authorised shock</h4><p>Crew presses while charging. Human time 0, machine time 0.80 s.</p></div></div>
+              <div class="scen"><div class="thumb"><canvas data-thumb="shock"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>Slow crew, 1.8 s</h4><p>Shock still delivered inside the 3 s limit. Human time shown separately.</p></div></div>
+              <div class="scen"><div class="thumb"><canvas data-thumb="cycle"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>Crew never presses</h4><p>Window closes at 3 s, charge kept and re-offered three times, then dumped. CCF stays above 90%.</p></div></div>
+              <div class="scen"><div class="thumb"><canvas data-thumb="cycle"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>30:2 mode</h4><p>Two breaths in each gap, one shock, CCF 87%.</p></div></div>
+              <div class="scen"><div class="thumb"><canvas data-thumb="shock"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>Refractory VF, 10 minutes</h4><p>Four shocks, epinephrine prompts after the second, CCF above 99%.</p></div></div>
+              <div class="scen"><div class="thumb"><canvas data-thumb="cycle"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>Advisor dead or hung</h4><p>Compressions continue on time and the shock is still delivered.</p></div></div>
+              <div class="scen"><div class="thumb"><canvas data-thumb="cycle"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>Malicious advisor</h4><p>297 forged demands for a shock, a stop and 12 cm depth were all ignored.</p></div></div>
+              <div class="scen"><div class="thumb"><canvas data-thumb="rosc"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>True return, advisor denies</h4><p>A pulse input parks the piston within one compression even while the advisor insists on VF.</p></div></div>
+              <div class="scen"><div class="thumb"><canvas data-thumb="stiff"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>Stiff chest</h4><p>Force capped at 616 N. Depth reached only 3.9 cm, and the run reports that as a miss.</p></div></div>
+              <div class="scen"><div class="thumb"><canvas data-thumb="fault"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>Sensor loss and e-stop</h4><p>Controlled retract to full recoil, then safe hold.</p></div></div>
+              <div class="scen"><div class="thumb"><canvas data-thumb="transport"></canvas><span class="tag pass">Pass</span></div><div class="body"><h4>Transport</h4><p>Depth in range on 100% of strokes with compensation, 71% without, 100% with a 15% model error.</p></div></div>
+            </div>
+          </div>
+          <div class="pager-controls"><button class="prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg></button><span class="count">1 / 1</span><button class="next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg></button></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="ecg">
+        <div class="notice" style="margin-bottom:30px"><strong>Honest result.</strong> On real arrest ECG the rhythm checks do not yet meet the American Heart Association performance goals. Until they do, the 0.8 s step should be read as a timed pause with a basic check, not a diagnosis. Improving it is the next piece of work.</div>
+        <p class="muted">57 records from two public PhysioNet databases. The thresholds were fixed on synthetic signals before this data was used. Windows are labelled by the databases' own annotations; VT is reported but not scored, as the AHA treats it as intermediate.</p>
+        <div class="split" style="align-items:start;margin-top:30px">
+          <table class="spec">
+            <caption>Trusted check, piston parked</caption>
+            <tr><th>VF found, CUDB</th><td>53.1% <span class="pill miss">goal above 90%</span></td></tr>
+            <tr><th>VF found, VFDB</th><td>67.6% <span class="pill miss">goal above 90%</span></td></tr>
+            <tr><th>Normal sinus left alone</th><td>91 to 93% <span class="pill miss">goal above 99%</span></td></tr>
+            <tr><th>Other rhythms left alone</th><td>94 to 97% <span class="pill pass">near goal</span></td></tr>
+            <tr><th>Asystole left alone</th><td>74.7% <span class="pill miss">goal above 95%</span></td></tr>
+          </table>
+          <table class="spec">
+            <caption>Advisor, during compressions</caption>
+            <tr><th>VF found</th><td>25 to 30% <span class="pill miss">weak</span></td></tr>
+            <tr><th>Normal sinus left alone</th><td>95 to 98%</td></tr>
+            <tr><th>Asystole left alone</th><td>98.4%</td></tr>
+            <tr><th>Why it is safe anyway</th><td>The advisor only proposes. Its worst case is delaying one pre-charge.</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="target">
+        <p class="muted narrow" style="margin:0 0 30px">The fault suite runs on the QNX 8.0 target as root and prints PASS or FAIL for each case. These results will be published here once the QNX image is running.</p>
+        <table class="spec">
+          <tr><th>T1 Boot and devices</th><td>Control loop ticking, all five devices present <span class="pill todo">pending</span></td></tr>
+          <tr><th>T2 Compressions</th><td>17 or more compressions in 10 s, no violations <span class="pill todo">pending</span></td></tr>
+          <tr><th>T3 Advisor attack</th><td>Every forbidden path refused by the OS <span class="pill todo">pending</span></td></tr>
+          <tr><th>T4 Advisor killed</th><td>Compressions continue, advisor restarted <span class="pill todo">pending</span></td></tr>
+          <tr><th>T5 CPU storm</th><td>Eight threads below the control priority, zero missed ticks <span class="pill todo">pending</span></td></tr>
+          <tr><th>T6 Stiff chest</th><td>Force stays under 650 N <span class="pill todo">pending</span></td></tr>
+          <tr><th>T7 Transport</th><td>Depth in range on 90% or more of strokes <span class="pill todo">pending</span></td></tr>
+          <tr><th>T8 Sensor dropout</th><td>Safe hold with the cup at recoil <span class="pill todo">pending</span></td></tr>
+          <tr><th>T9 Safety process killed</th><td>Hardware watchdog retracts, nothing restarts it <span class="pill todo">pending</span></td></tr>
+          <tr><th>T10 Shock and return</th><td>One shock under 3 s hands-off, trusted return detected <span class="pill todo">pending</span></td></tr>
+          <tr><th>T11 Malicious advisor</th><td>Demands ignored, shock still delivered <span class="pill todo">pending</span></td></tr>
+        </table>
+      </div>
+
+      <div class="tab-panel" id="refs">
+        <ol class="refs">
+          <li>Cheskes S, et al. Perishock pause: an independent predictor of survival from out-of-hospital shockable cardiac arrest. Circulation. 2011;124:58-66.</li>
+          <li>Panchal AR, et al. Part 3: Adult Basic and Advanced Life Support, 2020 American Heart Association Guidelines for CPR and ECC. Circulation. 2020;142(16 suppl 2):S366-S468.</li>
+          <li>Kerber RE, et al. Automatic external defibrillators for public access defibrillation: recommendations for specifying and reporting arrhythmia analysis algorithm performance. Circulation. 1997;95:1677-1682.</li>
+          <li>Nolle FM, et al. CREI-GARD, a new concept in computerized arrhythmia monitoring systems. Computers in Cardiology. 1986;13:515-518. (CUDB)</li>
+          <li>Greenwald SD. Development and analysis of a ventricular fibrillation detector. MIT, 1986. (VFDB)</li>
+          <li>Goldberger AL, et al. PhysioBank, PhysioToolkit, and PhysioNet. Circulation. 2000;101(23):e215-e220.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight" style="padding-bottom:120px">
+    <div class="wrap"><div class="band reveal"><h2>See a run, <span class="red">tick by tick</span></h2><p class="muted">Play back a recording of the controller handling a shockable rhythm from compressions to return of circulation.</p><div class="actions"><a class="btn btn-red" href="/simulator">Open the recorded run</a></div></div></div>
+  </section>
+</main>
+<div data-footer></div>
+<script src="/assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact | Elvrek</title>
+<meta name="description" content="Ask a question, report a problem or offer to help with Elvrek.">
+<meta name="theme-color" content="#07080a">
+<link rel="icon" href="/assets/elvrek-logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body data-page="contact">
+<div data-header></div>
+<main>
+  <section class="page-hero">
+    <canvas class="hero-bg" data-mode="soft" aria-hidden="true"></canvas>
+    <div class="wrap"><span class="eyebrow">Contact</span><h1>Talk to <span class="red">us</span></h1><p class="lead">Questions, bug reports, clinical feedback and offers of help all go to the same open place, so the answers help the next person too.</p></div>
+  </section>
+
+  <section class="section">
+    <div class="wrap split" style="align-items:start">
+      <div class="reveal-left">
+        <h2>How to <span class="red">reach us</span></h2>
+        <ul class="squares">
+          <li><strong>Questions and ideas:</strong> open a discussion or issue on GitHub. The form here prepares one for you.</li>
+          <li><strong>Bugs and safety concerns:</strong> please describe what you ran and what you saw. Safety concerns are read first.</li>
+          <li><strong>Clinicians and trainers:</strong> we would value your review of the rules and limits.</li>
+        </ul>
+        <div class="notice" style="margin-top:28px"><strong>In an emergency, call your local emergency number.</strong> Elvrek is research software and cannot help in a real emergency.</div>
+      </div>
+      <form class="form reveal-right" id="contact-form">
+        <label>Your name<input name="name" required autocomplete="name"></label>
+        <label>What is it about?
+          <select name="topic"><option>Question</option><option>Bug report</option><option>Safety concern</option><option>Clinical feedback</option><option>Offer to help</option></select>
+        </label>
+        <label>Subject<input name="subject" required></label>
+        <label>Message<textarea name="message" required></textarea></label>
+        <button class="btn btn-red" type="submit">Continue on GitHub</button>
+        <p class="muted" style="font-size:0.88rem;margin:0">This opens a new GitHub issue with your text filled in. Nothing is sent until you submit it there, and your message will be public.</p>
+      </form>
+    </div>
+  </section>
+</main>
+<div data-footer></div>
+<script src="/assets/js/site.js"></script>
+<script>
+  document.getElementById("contact-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const title = `[${f.get("topic")}] ${f.get("subject")}`;
+    const body = `${f.get("message")}\n\nFrom: ${f.get("name")}`;
+    const url = "https://github.com/angelraph/elvrek/issues/new?title=" + encodeURIComponent(title) + "&body=" + encodeURIComponent(body);
+    window.open(url, "_blank", "noopener");
+  });
+</script>
+</body>
+</html>

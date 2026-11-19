@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elvrek | A steady arm when every second counts</title>
+<meta name="description" content="Elvrek is a real-time safety controller for mechanical CPR built on QNX 8.0. One clock for compressions, breaths and the shock, so the pause before a shock stays short.">
+<meta property="og:title" content="Elvrek: a steady arm when every second counts">
+<meta property="og:description" content="A real-time safety controller for mechanical CPR, built on QNX 8.0.">
+<meta property="og:image" content="/assets/elvrek-logo.webp">
+<meta name="theme-color" content="#07080a">
+<link rel="icon" href="/assets/elvrek-logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body data-page="home">
+<div data-header></div>
+
+<main>
+  <section class="hero">
+    <canvas class="hero-bg" aria-hidden="true"></canvas>
+    <div class="hero-inner wrap">
+      <div class="badge"><i></i> Built on QNX 8.0 for the QNX Global Hackathon</div>
+      <h1 class="hero-title"><span>ELVREK</span> <span class="red">CPR</span></h1>
+      <p class="sub">A steady arm that keeps the beat, times every breath and knows exactly when to step back for the shock.</p>
+      <div class="actions">
+        <a href="#" class="btn btn-red" data-modal="#run-modal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z" fill="currentColor"/></svg>Watch a recorded run</a>
+        <a href="/system" class="btn btn-ghost">Explore the system</a>
+      </div>
+    </div>
+    <a class="scroll-cue" href="#intro" aria-label="Scroll down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8l8 8 8-8"/></svg></a>
+  </section>
+
+  <section class="section" id="intro">
+    <div class="narrow center reveal">
+      <span class="eyebrow">Why it matters</span>
+      <h2>The pause before a shock <span class="red">costs lives</span></h2>
+      <p class="lead">In cardiac arrest, every extra five seconds of pause before a shock has been linked to lower odds of survival.<sup class="ref">1</sup> Mechanical CPR keeps compressions going, but the compressions, the breaths and the defibrillator usually run on separate clocks. Elvrek puts them on one.</p>
+    </div>
+    <div class="viewer reveal" data-viewer style="margin-top:50px">
+      <svg class="hint l" viewBox="0 0 60 40" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M50 8C30 4 12 14 10 32M10 32l-6-8M10 32l8-5"/></svg>
+      <svg class="hint r" viewBox="0 0 60 40" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M50 8C30 4 12 14 10 32M10 32l-6-8M10 32l8-5"/></svg>
+      <canvas aria-label="Rotating model of the Elvrek compression arm. Drag to turn it."></canvas>
+      <div class="viewer-tools"></div>
+      <p class="viewer-label">Drag to turn the arm. The piston keeps time at 110 compressions a minute.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="stats stagger">
+        <div class="stat"><div class="num" data-count="1">1<small>ms</small></div><p>Control tick. The safety process wakes a thousand times a second on a QNX timer pulse.</p></div>
+        <div class="stat"><div class="num" data-count="0.80">0.80<small>s</small></div><p>Machine time in the shock window: park, confirm, discharge. The crew's time is counted separately.</p></div>
+        <div class="stat"><div class="num" data-count="600">600<small>N</small></div><p>Force ceiling on the chest. Above it the controller stops pushing and backs off.</p></div>
+        <div class="stat"><div class="num" data-count="18">18<small>/18</small></div><p>Safety scenarios passed by the controller code, with zero rule violations.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">One brain, three jobs</span>
+        <h2>Compress. Breathe. <span class="red">Shock.</span></h2>
+        <p class="muted">One real-time process owns the piston, the timing of each breath and the shock line. Everything else may only make suggestions.</p>
+      </div>
+      <div class="cards stagger">
+        <a class="card" href="/system#cycle">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></div>
+          <h3>Steady compressions</h3>
+          <p>100 to 120 a minute, 5 to 6 cm deep, full recoil every time, with a hard force ceiling and depth that adapts to a stiff chest.</p>
+          <span class="more">See the cycle <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="card" href="/system#shock">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></div>
+          <h3>A short shock window</h3>
+          <p>The charger fills while the piston keeps working. The arm parks only for the shock itself, then compressions resume on the next tick.</p>
+          <span class="more">Inside the window <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="card" href="/technology#fence">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></div>
+          <h3>AI that cannot take over</h3>
+          <p>The rhythm classifier runs as an unprivileged process. QNX refuses it the piston and the shock line, and a crash or a lie changes nothing.</p>
+          <span class="more">How QNX fences it <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap">
+      <div class="panel reveal" data-slider>
+        <div class="panel-text">
+          <span class="eyebrow">Where it works</span>
+          <h2>Built for the hardest minutes</h2>
+          <p class="muted">Cardiac arrest does not wait for a quiet room. Elvrek is designed for the places where hands get tired, vehicles move and the team is stretched thin.</p>
+          <div><a href="/system" class="btn btn-red" style="margin-top:1rem">Find out more</a></div>
+        </div>
+        <div class="panel-slides">
+          <div class="slide">
+            <div>
+              <svg viewBox="0 0 260 150" fill="none"><rect x="20" y="40" width="200" height="80" rx="14" stroke="#d7dce3" stroke-width="3"/><circle cx="60" cy="125" r="14" stroke="#d7dce3" stroke-width="3"/><circle cx="185" cy="125" r="14" stroke="#d7dce3" stroke-width="3"/><path d="M220 70h22l12 22v28h-34" stroke="#d7dce3" stroke-width="3"/><path d="M100 65v30M85 80h30" stroke="#e3122d" stroke-width="6"/></svg>
+              <h4>In the ambulance</h4><p>Frame sensors feed the controller so compression depth holds steady over bumps and braking.</p>
+            </div>
+          </div>
+          <div class="slide">
+            <div>
+              <svg viewBox="0 0 260 150" fill="none"><rect x="40" y="30" width="180" height="100" rx="10" stroke="#d7dce3" stroke-width="3"/><path d="M60 80h30l10-26 16 50 12-24h52" stroke="#e3122d" stroke-width="4"/></svg>
+              <h4>In the hospital</h4><p>Hands-free compressions while the team works on the airway, the lines and the cause.</p>
+            </div>
+          </div>
+          <div class="slide">
+            <div>
+              <svg viewBox="0 0 260 150" fill="none"><circle cx="130" cy="60" r="26" stroke="#d7dce3" stroke-width="3"/><path d="M70 135c8-30 32-44 60-44s52 14 60 44" stroke="#d7dce3" stroke-width="3"/><path d="M118 60h24M130 48v24" stroke="#e3122d" stroke-width="5"/></svg>
+              <h4>In training and research</h4><p>Open source and testable on a manikin, so EMS trainers and labs can see every decision it makes.</p>
+            </div>
+          </div>
+          <button class="slider-arrow prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button class="slider-arrow next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 5l7 7-7 7"/></svg></button>
+          <div class="dashes"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap split">
+      <div class="reveal-left">
+        <span class="eyebrow">Recorded from the real controller</span>
+        <h2>Watch the window <span class="red">open and close</span></h2>
+        <p class="muted">This strip replays a run of the actual controller code against a physics model of the chest: compressions, the shock window shaded in amber, the shock itself, and the moment circulation returns.</p>
+        <a class="btn btn-ghost" href="/simulator">Open the full recording</a>
+      </div>
+      <div class="live reveal-right" data-live>
+        <div class="live-head"><span>Live replay</span><span class="state">LOADING</span></div>
+        <canvas></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight" style="padding-bottom:120px">
+    <div class="wrap">
+      <div class="band reveal">
+        <span class="eyebrow">Open, testable, honest</span>
+        <h2>Every rule is checked on every tick</h2>
+        <p class="muted narrow">Read the code, run the tests, and see exactly where it is strong and where it still falls short.</p>
+        <div class="actions">
+          <a class="btn btn-red" href="/evidence">See the evidence</a>
+          <a class="btn btn-ghost" href="https://github.com/angelraph/elvrek" target="_blank" rel="noopener">Read the source</a>
+        </div>
+      </div>
+      <ol class="refs" style="margin-top:40px">
+        <li>Cheskes S, et al. Perishock pause: an independent predictor of survival from out-of-hospital shockable cardiac arrest. Circulation. 2011;124:58-66.</li>
+      </ol>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="run-modal" role="dialog" aria-label="Recorded run">
+  <div class="modal-box">
+    <button class="modal-close" aria-label="Close">&times;</button>
+    <div class="player" data-player>
+      <div class="player-top">
+        <div class="readout"><small>State</small><b data-r="state">...</b></div>
+        <div class="readout"><small>Chest depth</small><b data-r="depth">...</b></div>
+        <div class="readout"><small>Force</small><b data-r="force">...</b></div>
+        <div class="readout"><small>End-tidal CO2</small><b data-r="etco2">...</b></div>
+        <div class="readout"><small>Shock</small><b data-r="shock">...</b></div>
+      </div>
+      <canvas></canvas>
+      <div class="player-bar">
+        <button class="play" aria-label="Play or pause"></button>
+        <input type="range" min="0" max="100" value="0" aria-label="Position">
+        <select aria-label="Speed"><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select>
+        <span class="time">0.0 s</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div data-footer></div>
+<script src="/assets/js/site.js"></script>
+<script src="/assets/js/player.js"></script>
+</body>
+</html>

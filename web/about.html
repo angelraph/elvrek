@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About | Elvrek</title>
+<meta name="description" content="Why Elvrek exists, what it believes, and the road from a QNX controller to a bench machine on a manikin.">
+<meta name="theme-color" content="#07080a">
+<link rel="icon" href="/assets/elvrek-logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body data-page="about">
+<div data-header></div>
+<main>
+  <section class="page-hero">
+    <canvas class="hero-bg" data-mode="soft" aria-hidden="true"></canvas>
+    <div class="wrap"><span class="eyebrow">About</span><h1>Save lives, <span class="red">smarter</span></h1><p class="lead">Elvrek started with one question: if a machine is already doing the compressions, why does the most dangerous pause in a resuscitation still depend on separate clocks and a tired pair of hands?</p></div>
+  </section>
+
+  <section class="section">
+    <div class="wrap split">
+      <div class="reveal-left">
+        <h2>What we <span class="red">believe</span></h2>
+        <ul class="squares">
+          <li><strong>Seconds matter more than features.</strong> The best thing a controller can do is keep the pause before a shock short and the compressions steady.</li>
+          <li><strong>Smart parts must stay on a short leash.</strong> Learned models can help, but the operating system, not good intentions, should decide what they may touch.</li>
+          <li><strong>Show the misses.</strong> A result that only lists passes is advertising. We publish where we fall short.</li>
+          <li><strong>Open by default.</strong> The safety brain of a life support machine should be readable by anyone who has to trust it.</li>
+        </ul>
+      </div>
+      <div class="media reveal-right" style="padding:40px;background:#000"><img src="/assets/elvrek-logo.webp" alt="Elvrek logo" class="parallax" data-speed="0.06"></div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="wrap">
+      <div class="section-head reveal"><span class="eyebrow">The project</span><h2>Built for the <span class="red">QNX Global Hackathon</span></h2><p class="muted">Elvrek was written for the Robotics and Medical category of the 2026 QNX Global Hackathon, using QNX SDP 8.0 through the free QNX Everywhere programme. It is built by an independent engineer, in the open.</p></div>
+      <div class="cards stagger">
+        <div class="card"><h3>Open source</h3><p>Apache License 2.0. Every limit, rule and test is in the repository.</p></div>
+        <div class="card"><h3>Built on QNX 8.0</h3><p>Timer pulses, resource managers, abilities, security policy and launch monitoring, used natively.</p></div>
+        <div class="card"><h3>Honest by design</h3><p>No certification claims, no borrowed numbers, and results reported in ticks you can reproduce.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="roadmap">
+    <div class="wrap split" style="align-items:start">
+      <div class="reveal-left"><span class="eyebrow">Roadmap</span><h2>From model <span class="red">to manikin</span></h2><p class="muted">The controller is the part that has to be right first. The hardware comes after it, behind the same interface.</p></div>
+      <div class="timeline reveal-right">
+        <div class="tl"><span class="when">Done</span><h4>Safety core and host tests</h4><p>State machine, independent monitor, physics model and 18 scenarios passing.</p></div>
+        <div class="tl"><span class="when">Done</span><h4>Real ECG evaluation</h4><p>57 public arrest recordings, results published including the misses.</p></div>
+        <div class="tl"><span class="when">December 2026</span><h4>QNX 8.0 image and fault suite</h4><p>The full process stack booted in QEMU, with the eleven on-target fault cases.</p></div>
+        <div class="tl"><span class="when">Next</span><h4>A better rhythm check</h4><p>Tuned on one database and tested once on another, aiming for the AHA goals.</p></div>
+        <div class="tl"><span class="when">After that</span><h4>Bench machine on a manikin</h4><p>Raspberry Pi 5, a linear actuator, a load cell and a lamp in place of a shock.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight" style="padding-bottom:120px">
+    <div class="wrap"><div class="band reveal"><h2>Want to <span class="red">help?</span></h2><p class="muted">Clinicians, engineers and trainers are welcome to review, test or challenge the work.</p><div class="actions"><a class="btn btn-red" href="/contact">Get in touch</a></div></div></div>
+  </section>
+</main>
+<div data-footer></div>
+<script src="/assets/js/site.js"></script>
+</body>
+</html>

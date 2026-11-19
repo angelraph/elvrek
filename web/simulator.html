@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recorded run | Elvrek</title>
+<meta name="description" content="Play back a run recorded from the real Elvrek controller: compressions, the shock window, the shock and return of circulation.">
+<meta name="theme-color" content="#07080a">
+<link rel="icon" href="/assets/elvrek-logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body data-page="simulator">
+<div data-header></div>
+<main>
+  <section class="page-hero" style="padding-bottom:60px">
+    <canvas class="hero-bg" data-mode="soft" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <span class="eyebrow">Recorded run</span>
+      <h1>Forty five seconds, <span class="red">one shock</span></h1>
+      <p class="lead">This is a recording of the real controller code handling a shockable rhythm against a physics model of the chest. Press play, drag the bar, or change the speed. Nothing here is generated in your browser.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="player reveal" data-player>
+        <div class="player-top">
+          <div class="readout"><small>State</small><b data-r="state">...</b></div>
+          <div class="readout"><small>Chest depth</small><b data-r="depth">...</b></div>
+          <div class="readout"><small>Force</small><b data-r="force">...</b></div>
+          <div class="readout"><small>End-tidal CO2</small><b data-r="etco2">...</b></div>
+          <div class="readout"><small>Shock</small><b data-r="shock">...</b></div>
+        </div>
+        <canvas></canvas>
+        <div class="player-bar">
+          <button class="play" aria-label="Play or pause"></button>
+          <input type="range" min="0" max="100" value="0" aria-label="Position">
+          <select aria-label="Speed"><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select>
+          <span class="time">0.0 s</span>
+        </div>
+        <div class="legend">
+          <span><i style="background:#e3122d"></i>Chest depth (guides at 5 and 6 cm)</span>
+          <span><i style="background:#f2b62b"></i>Force (guide at 600 N)</span>
+          <span><i style="background:#d7dce3"></i>ECG with compression artifact</span>
+          <span><i style="background:rgba(242,182,43,0.5)"></i>Shock window</span>
+          <span><i style="background:rgba(94,224,138,0.5)"></i>Return of circulation</span>
+          <span><i style="background:rgba(90,160,255,0.7)"></i>Breath</span>
+        </div>
+      </div>
+
+      <div class="stats stagger" style="margin-top:40px">
+        <div class="stat"><div class="num" data-s="machine">0.80 s</div><p>Machine time in the shock window</p></div>
+        <div class="stat"><div class="num" data-s="human">0.30 s</div><p>Scripted crew press time, reported apart</p></div>
+        <div class="stat"><div class="num" data-s="ccf">99.3%</div><p>Chest compression fraction for the whole run</p></div>
+        <div class="stat"><div class="num" data-s="viol">0</div><p>Rule violations seen by the monitor</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap split">
+      <div class="reveal-left">
+        <h2>What to <span class="red">look for</span></h2>
+        <ul class="squares">
+          <li>Before the window, the ECG is buried under the compression artifact. That is why the trusted check waits for the parked moment.</li>
+          <li>The amber band is the shock window. The piston is at full recoil the whole time it is open.</li>
+          <li>The bright amber line is the shock. Compressions restart right after it.</li>
+          <li>About twenty seconds later end-tidal CO2 jumps. The controller treats that as returning circulation, parks the piston and keeps breathing for the patient.</li>
+        </ul>
+      </div>
+      <div class="notice reveal-right"><strong>About this recording.</strong> The chest, the heart rhythm and the response to the shock come from a model. The controller, its limits and its decisions are the real code, the same code that is built for QNX. It is research software, not a medical device.</div>
+    </div>
+  </section>
+</main>
+<div data-footer></div>
+<script src="/assets/js/site.js"></script>
+<script src="/assets/js/player.js"></script>
+</body>
+</html>

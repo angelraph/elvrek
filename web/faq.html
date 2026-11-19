@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ | Elvrek</title>
+<meta name="description" content="Answers about Elvrek: what it is, how it is kept safe, why QNX, what is real today and what comes next.">
+<meta name="theme-color" content="#07080a">
+<link rel="icon" href="/assets/elvrek-logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body data-page="faq">
+<div data-header></div>
+<main>
+  <section class="page-hero">
+    <canvas class="hero-bg" data-mode="soft" aria-hidden="true"></canvas>
+    <div class="wrap"><span class="eyebrow">FAQ</span><h1>Good <span class="red">questions</span></h1><p class="lead">Straight answers, including the uncomfortable ones.</p></div>
+  </section>
+
+  <section class="section">
+    <div class="narrow">
+      <div class="faq-group reveal">
+        <h3>The basics</h3>
+        <details class="qa"><summary>What is Elvrek?</summary><div class="ans">Elvrek is the control software for a mechanical CPR robot. It runs the piston that compresses the chest, times the breaths, charges the defibrillator and decides when the arm steps back for a shock. It runs on the QNX 8.0 real-time operating system.</div></details>
+        <details class="qa"><summary>Is it a medical device?</summary><div class="ans">No. Elvrek is research software with no clearance or certification. It must never be connected to a person. Today the piston and the chest are a physics model. A future bench version will only ever be tested on a training manikin.</div></details>
+        <details class="qa"><summary>Who is it for?</summary><div class="ans">Engineers, researchers, EMS trainers and device makers who want an open, testable controller for mechanical CPR, and anyone curious about how a safety critical machine can keep an AI component on a short leash.</div></details>
+        <details class="qa"><summary>Where does the name come from?</summary><div class="ans">Elvrek is a coined name, short enough to shout across a room. It has no meaning in the languages we checked, which leaves it free to mean this.</div></details>
+      </div>
+
+      <div class="faq-group reveal">
+        <h3>Safety</h3>
+        <details class="qa"><summary>Can the AI shock someone or stop compressions?</summary><div class="ans">No. The rhythm classifier runs as an unprivileged process with its abilities locked. It can only write advice. The piston, the charger and the shock line are written only by the safety process, and QNX refuses the advisor any route to them. Stopping compressions needs a trusted signal such as a pulse input or a sharp rise in end-tidal CO2.</div></details>
+        <details class="qa"><summary>What happens if the software crashes?</summary><div class="ans">If the advisor crashes or hangs, the supervisor restarts it and compressions continue on time. If the safety process itself stops, the hardware driver notices within 20 ms, lifts the piston to full recoil and holds it there. Nothing restarts the safety process automatically, because that decision belongs to a person.</div></details>
+        <details class="qa"><summary>How hard does it press?</summary><div class="ans">It aims for 5.3 cm and never more than 6 cm. It stops pushing at 600 N of force and treats anything above 650 N as a fault. If a stiff chest cannot reach 5 cm under that ceiling, the run reports a miss rather than pressing harder.</div></details>
+        <details class="qa"><summary>Does it shock automatically?</summary><div class="ans">The crew presses SHOCK, either when prompted or ahead of time while the charger fills. Either way the shock only happens if the arm is parked, the rhythm check agrees and the charger is full. If nobody presses within the 3 second window, compressions resume and the shock is offered again.</div></details>
+      </div>
+
+      <div class="faq-group reveal">
+        <h3>Results and honesty</h3>
+        <details class="qa"><summary>How good is the rhythm check?</summary><div class="ans">Not good enough yet. On 57 real arrest recordings it found ventricular fibrillation in 53 to 68% of windows, against an AHA goal above 90%. We publish that because it is true, and improving it is the next piece of work. Until then the parked check should be read as a timed pause with a basic check, not a diagnosis.</div></details>
+        <details class="qa"><summary>Why do you report ticks instead of microseconds?</summary><div class="ans">The current target runs in an emulator, and microsecond figures from an emulator mostly measure the emulator. Counting missed 1 ms ticks is honest on any platform. Hardware timing comes with the Raspberry Pi 5 build.</div></details>
+        <details class="qa"><summary>Do you compare yourselves with other products?</summary><div class="ans">No. Other devices are measured under their own conditions, and comparing our model with their published numbers would not be fair. We report our own pass and fail results and invite you to run them.</div></details>
+      </div>
+
+      <div class="faq-group reveal">
+        <h3>Technology</h3>
+        <details class="qa"><summary>Why QNX?</summary><div class="ans">Because the hard part is not the maths, it is making sure the right code runs on time and the wrong code cannot reach the actuators. QNX gives fixed priority scheduling, timer pulses, message passing that carries priority, per process abilities, security policy types and a launch monitor. Elvrek uses all of them.</div></details>
+        <details class="qa"><summary>Can I run it without hardware?</summary><div class="ans">Yes. The safety core builds and runs its 18 scenarios on any Linux machine. The full stack runs on QNX 8.0 in QEMU. No hardware is needed for either.</div></details>
+        <details class="qa"><summary>Is it open source?</summary><div class="ans">Yes, under the Apache License 2.0. The ECG data used for evaluation comes from PhysioNet and is downloaded by a script rather than stored in the repository.</div></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight" style="padding-bottom:120px">
+    <div class="wrap"><div class="band reveal"><h2>Still <span class="red">curious?</span></h2><p class="muted">Ask in the open, or read the code and decide for yourself.</p><div class="actions"><a class="btn btn-red" href="/contact">Get in touch</a><a class="btn btn-ghost" href="https://github.com/angelraph/elvrek" target="_blank" rel="noopener">Read the source</a></div></div></div>
+  </section>
+</main>
+<div data-footer></div>
+<script src="/assets/js/site.js"></script>
+</body>
+</html>
