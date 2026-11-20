@@ -487,14 +487,13 @@ int main(int argc, char **argv)
     if (pthread_create(&rt, &ta, resmgr_thread, dpp) != EOK) die("pthread_create resmgr");
     if (pthread_create(&rt_adv, &ta, resmgr_thread, dpp_adv) != EOK) die("pthread_create advice");
 
-    /* QNX timers expire on clock ticks. With the default 1 ms tick a 1 ms
-       timer can slip to the following tick, so the control loop ran about
-       15% slow on the target. A 0.5 ms system tick lets every 1 ms timer
-       land on time. Needs root (the clockperiod ability), so it is done
-       here, before the abilities are locked. */
-    struct _clockperiod cp = { .nsec = 500000, .fract = 0 };
-    if (ClockPeriod(CLOCK_REALTIME, &cp, NULL, 0) == -1)
-        LOG(SLOG2_WARNING, "ClockPeriod 0.5 ms failed: %s", strerror(errno));
+    /* QNX timers expire on system clock ticks, so log the tick the 1 ms
+       control timer runs on. On QNX 8.0 in QEMU it is a fixed 1 ms and
+       ClockPeriod cannot change it (it returns ENOTSUP), so we read it
+       rather than assume it. Missed ticks are measured in the loop. */
+    struct _clockperiod cp;
+    if (ClockPeriod(CLOCK_REALTIME, NULL, &cp, 0) == 0)
+        LOG(SLOG2_INFO, "system clock period %u ns", cp.nsec);
 
     /* nothing below needs these abilities again */
     lock_abilities();

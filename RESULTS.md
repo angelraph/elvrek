@@ -20,8 +20,11 @@ All runs: QNX 8.0, x86_64, QEMU with KVM on two virtual CPUs, inside WSL2 on a W
 | 10 | [`qnx-fault-suite-all-pass-4.txt`](docs/results/qnx-fault-suite-all-pass-4.txt) | **11 of 11** | Final code, second run in a row | |
 | 11 | [`qnx-fault-suite-strict-timing-1.txt`](docs/results/qnx-fault-suite-strict-timing-1.txt) | 5 of 11, strict | Real hardware timings in a nested VM: every failure is SENSOR_STALE | See "strict timing" below |
 | 12 | [`qnx-fault-suite-strict-timing-2-spinner.txt`](docs/results/qnx-fault-suite-strict-timing-2-spinner.txt) | 9 of 11, strict | Same, with two idle threads at priority 1 keeping the virtual CPUs awake | |
+| 13 | [`qnx-fault-suite-all-pass-5.txt`](docs/results/qnx-fault-suite-all-pass-5.txt) | **11 of 11** | Final code, after the controller stopped asking for a 0.5 ms tick (see the correction below): the third clean run in a row | |
 
-Before run 1, the very first target runs also forced three fixes that are now part of the design: a 0.5 ms system tick (the default 1 ms tick stretched the 1 ms timer to about 850 ticks a second), a force limit inside the motor driver (a paused controller had let a stiff chest reach 823 N), and catch-up ticks that replay missed time with buffered motion samples.
+Before run 1, the very first target runs also forced two fixes that are now part of the design: a force limit inside the motor driver (a paused controller had let a stiff chest reach 823 N), and catch-up ticks that replay missed time with buffered motion samples.
+
+**A correction.** One early run counted only about 850 ticks a second, and we first credited a call that asked QNX for a 0.5 ms system tick. While writing the codelab we tested that call on its own: on QNX 8.0 in QEMU the clock period is a fixed 1 ms and `ClockPeriod` refuses to change it (ENOTSUP). The call never took effect, so the slow run was most likely the virtual machine. Every run since counts 960 to 1,013 ticks a second on the default 1 ms tick. The controller now reads and logs the clock period instead.
 
 ## The replayed tick bug
 

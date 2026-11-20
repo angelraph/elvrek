@@ -92,7 +92,7 @@
       </div>
 
       <div class="tab-panel" id="target">
-        <p class="muted narrow" style="margin:0 0 20px">The whole stack, compiled with qcc for QNX 8.0 x86_64, running on QNX 8.0 in QEMU with KVM on two virtual CPUs, on an ordinary laptop that was busy with other work at the same time. With the final code, two full runs in a row pass every case. The raw output of every run, the failed ones included, is in the repository under docs/results.</p>
+        <p class="muted narrow" style="margin:0 0 20px">The whole stack, compiled with qcc for QNX 8.0 x86_64, running on QNX 8.0 in QEMU with KVM on two virtual CPUs, on an ordinary laptop that was busy with other work at the same time. With the final code, three full runs in a row pass every case. The raw output of every run, the failed ones included, is in the repository under docs/results.</p>
         <div class="notice" style="margin-bottom:30px"><strong>Emulator mode.</strong> A virtual machine on a busy host pauses for tens of milliseconds. These runs use the stack's explicit emulator mode: sensor timeout 50 ms and hardware watchdog 100 ms, instead of the 5 ms and 20 ms used on real hardware. Everything else, every limit and every rule, is the same code that will run on a board.</div>
         <div class="stats stagger" style="margin-bottom:34px">
           <div class="stat"><div class="num" data-count="11">11<small>/11</small></div><p>Fault cases passed on QNX 8.0</p></div>
@@ -116,7 +116,7 @@
         <h3 style="margin-top:44px">What the target taught us</h3>
         <p class="muted">The first runs on QNX did not all pass, and each failure led to a real improvement rather than a looser test:</p>
         <ul class="squares">
-          <li>The default 1 ms system tick stretched the 1 ms control timer to about 850 ticks a second. The safety process now sets a 0.5 ms tick, and the loop runs at about 1,000.</li>
+          <li>One early run counted only about 850 ticks a second, and we first credited a call asking QNX for a 0.5 ms system tick. Testing that call on its own showed QNX 8.0 in QEMU keeps a fixed 1 ms tick and refuses the change, so the slow run was the virtual machine. Every run since counts about 1,000 ticks a second, and the controller now reads the tick instead of assuming it.</li>
           <li>A paused controller let a stiff chest reach 823 N. The motor driver now has its own force limit, so the hard limit holds even when software is late.</li>
           <li>Road motion compensation moved from the controller into the driver, the way real motion systems split the work, so a late controller cannot make the depth wrong.</li>
           <li>After a pause the controller replays the ticks it missed, using the buffered motion samples, so its clocks stay in step with real time.</li>

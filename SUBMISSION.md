@@ -18,6 +18,7 @@ QNX Global Hackathon, "The power to shape the world". Deadline: **15 December 20
 | Toolchain | qcc (gcc_ntox86_64), mkqnximage, System Launch and Monitor |
 | Built with | C, QNX, QNX 8.0, QEMU, POSIX, Python, JavaScript, HTML, CSS, Vercel |
 | Project story | [`docs/devpost-story.md`](docs/devpost-story.md) |
+| Codelab (Best Codelab / Tutorial) | [`codelab/fail-safe-control-loop`](codelab/fail-safe-control-loop/fail-safe-control-loop.md): build a 1 ms control loop that fails safe on QNX 8.0 |
 | Builder | [@angelraph](https://github.com/angelraph) |
 
 ## Build and run
@@ -32,13 +33,13 @@ make test                         # the 20 host scenarios
 
 ## How it meets the QNX requirement
 
-It runs on QNX 8.0 and most of what makes it safe comes from QNX: a 1 ms timer pulse on a private channel, `SCHED_FIFO` priorities, a 0.5 ms tick set with `ClockPeriod`, resource managers for every device the hardware is reached through, `procmgr_ability` and an unprivileged user to fence the AI classifier, a supervisor that never restarts the safety process, System Launch and Monitor, and `slog2`. File by file in [QNX.md](QNX.md).
+It runs on QNX 8.0 and most of what makes it safe comes from QNX: a 1 ms timer pulse on a private channel, `SCHED_FIFO` priorities, missed ticks measured with `ClockCycles`, resource managers for every device the hardware is reached through, `procmgr_ability` and an unprivileged user to fence the AI classifier, a supervisor that never restarts the safety process, System Launch and Monitor, and `slog2`. File by file in [QNX.md](QNX.md).
 
 ## Evidence for reviewers
 
 | Claim | Where to check |
 |---|---|
-| 11 of 11 fault cases pass on QNX 8.0, two runs in a row | [`docs/results/qnx-fault-suite-all-pass-3.txt`](docs/results/qnx-fault-suite-all-pass-3.txt), [`-4.txt`](docs/results/qnx-fault-suite-all-pass-4.txt) |
+| 11 of 11 fault cases pass on QNX 8.0, three runs in a row | [`docs/results/qnx-fault-suite-all-pass-3.txt`](docs/results/qnx-fault-suite-all-pass-3.txt), [`-4.txt`](docs/results/qnx-fault-suite-all-pass-4.txt), [`-5.txt`](docs/results/qnx-fault-suite-all-pass-5.txt) |
 | 7 of 7 forbidden classifier actions refused by QNX | Case T3 in the files above, and 1:25 in the video |
 | Shock on 803 ticks of machine time, then return of circulation | Case T10, and 1:36 in the video |
 | Safety process killed, cup lifted to 0.0 mm, never restarted | Case T9, and 1:53 in the video |

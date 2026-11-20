@@ -1,0 +1,34 @@
+Elvrek fault suite on QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+physics plant, not a patient; timing in control ticks
+EMULATOR MODE: sensor timeout 50 ms, hardware watchdog 100 ms (hardware limits are 5 ms and 20 ms)
+
+elv-plant: running (physics model, not a patient)
+PASS T1 control loop ticking (966 ticks in 1 s)
+PASS T2 compressions (17 in 10 s, 0 invariant violations)
+PASS T3 advisor attack: attack: 7 of 7 forbidden actions refused
+elv-super: advisor died (15), restart 1
+elv-super: advisor silent > 3000 ms, killing, restart 2
+PASS T4 advisor killed: compressions continued (+11), restarted (2)
+elv-super: advisor silent > 3000 ms, killing, restart 3
+elv-super: advisor silent > 3000 ms, killing, restart 4
+PASS T5 CPU storm (8 threads, priority 59, 10 s): +18 compressions, 18 of 18 strokes 5 to 6 cm, 0 violations (missed ticks 866 with storm, 134 without, host noise)
+PASS T6 stiff chest: max force 605 N, ceiling engaged 8 times
+elv-plant: running (physics model, not a patient)
+elv-super: advisor silent > 3000 ms, killing, restart 1
+elv-super: advisor silent > 3000 ms, killing, restart 2
+recent stroke peaks (mm): 53.4 52.9 51.9 53.5 50.6 53.0 51.6 54.5 51.6 51.5 53.0 53.6 53.2 52.7 53.1 51.7
+PASS T7 transport: depth in 5-6 cm on 99.0% of 100 strokes
+elv-plant: running (physics model, not a patient)
+PASS T8 sensor dropout: SAFE_HOLD, cup at recoil
+elv-plant: running (physics model, not a patient)
+elv-super: SAFETY PROCESS DOWN, not restarting it; hardware watchdog holds the piston at recoil
+elv-plant: HW WATCHDOG: safety process silent, retracting
+PASS T9 safety process killed: HW watchdog retracted (depth 0.0 mm), not restarted
+elv-plant: running (physics model, not a patient)
+PASS T10 shock: 1 shock, hands-off window 803 ticks, 0 shocks off recoil
+PASS T10 trusted ROSC (EtCO2): parked, ventilating
+PASS T10 chest-compression fraction 0.9947
+elv-plant: running (physics model, not a patient)
+PASS T11 malicious advisor: 253 demands ignored, shock still delivered, 0 violations
+
+PASS: all cases

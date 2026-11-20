@@ -28,14 +28,14 @@ I checked the rhythm logic on real arrest ECG from PhysioNet. I tuned it on one 
 
 The first runs on QNX did not all pass, and that turned out to be the best part. Each failure led to a real fix rather than a looser test.
 
-* The default 1 ms system tick stretched my 1 ms timer, so the loop ran at about 850 ticks a second. A 0.5 ms tick fixed it.
+* One early run counted only about 850 ticks a second, and I first thought asking QNX for a 0.5 ms system tick fixed it. Later I tested that call on its own: on QNX 8.0 in QEMU the tick is a fixed 1 ms and the call is refused. The slow run was the virtual machine, and every run since counts about 1,000 ticks a second. Now the controller reads the tick instead of assuming it.
 * A paused controller let a stiff chest reach 823 N. Now the motor driver has its own force limit, so the hard limit holds even when software is late.
 * After a pause, the controller replayed missed ticks with the newest sample. The whole movement during the pause looked like it happened in one millisecond, the force guard tripped early and strokes came up short. Speed is now measured over real hardware sample time, and two host tests stall the controller on purpose so this cannot come back.
 * At real hardware timings the virtual machine itself was the limit. QEMU runs inside WSL2, which is itself a virtual machine on Windows, and it can freeze for longer than 5 ms. I report those runs as they are.
 
 ## Accomplishments that I'm proud of
 
-* 11 of 11 fault cases pass on QNX 8.0, two full runs in a row. They cover a malicious classifier, crashes, a CPU storm just below the control priority, a stiff chest, transport, sensor loss, killing the safety process, and a full shock with return of circulation.
+* 11 of 11 fault cases pass on QNX 8.0, three full runs in a row. They cover a malicious classifier, crashes, a CPU storm just below the control priority, a stiff chest, transport, sensor loss, killing the safety process, and a full shock with return of circulation.
 * 7 of 7 forbidden actions by the classifier are refused by the operating system.
 * 20 of 20 host scenarios pass with zero rule violations.
 * Every run, including the ones that failed, is published in the repository.
@@ -56,7 +56,7 @@ Elvrek is a research controller. It is not a medical device and must never be co
 
 Everything below is in the repository, so you can check it yourself.
 
-* `src/qnx/elvrekd.c` is the safety process. It sets a 0.5 ms system tick with `ClockPeriod`, runs at `SCHED_FIFO` priority 60, is woken by a `timer_create` pulse received with `MsgReceivePulse` on a private channel, serves `/dev/elvrek/status`, `advice`, `operator`, `piston` and `shock` through `resmgr_attach`, locks away abilities with `procmgr_ability`, and logs with `slog2`.
+* `src/qnx/elvrekd.c` is the safety process. It reads the system tick with `ClockPeriod`, measures every missed tick with `ClockCycles`, runs at `SCHED_FIFO` priority 60, is woken by a `timer_create` pulse received with `MsgReceivePulse` on a private channel, serves `/dev/elvrek/status`, `advice`, `operator`, `piston` and `shock` through `resmgr_attach`, locks away abilities with `procmgr_ability`, and logs with `slog2`.
 * `src/qnx/elv_advisor_main.c` is the classifier. It drops to an unprivileged user and locks its abilities. With `-a` it tries every forbidden action and counts the refusals.
 * `src/qnx/elv_super.c` restarts the classifier when it dies or hangs, and never restarts the safety process.
 * `src/qnx/elv_plant_main.c` stands in for the hardware and holds the motor driver watchdog.

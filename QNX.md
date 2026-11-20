@@ -16,7 +16,7 @@ This page shows exactly how and where Elvrek uses QNX 8.0, so a reviewer can che
 
 | QNX API | Where | What it does for Elvrek |
 |---|---|---|
-| `ClockPeriod(CLOCK_REALTIME, ...)` | line 496 | Sets a 0.5 ms system tick. The default 1 ms tick stretched the 1 ms timer to about 850 ticks a second |
+| `ClockPeriod(CLOCK_REALTIME, NULL, &cp, 0)` | line 495 | Reads and logs the system tick the 1 ms timer runs on. On QNX 8.0 in QEMU it is a fixed 1 ms; asking for 0.5 ms returns ENOTSUP, so we read it rather than assume it |
 | `pthread_setschedparam(..., SCHED_FIFO, ...)` | line 287 | The control thread runs at FIFO priority 60 |
 | `ChannelCreate(_NTO_CHF_PRIVATE)` | line 290 | A private channel nobody else can connect to |
 | `SIGEV_PULSE_INIT`, `timer_create(CLOCK_MONOTONIC, ...)` | lines 296 to 298 | A 1 ms timer that delivers a pulse at the control priority |

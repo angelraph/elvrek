@@ -22,8 +22,8 @@ Built for the **QNX Global Hackathon**, Robotics and Medical category.
 |---|---|
 | **Platform** | QNX 8.0 (SDP 8.0), x86_64 in QEMU with KVM, 2 virtual CPUs. The same code builds for aarch64le, ready for a Raspberry Pi 5 |
 | **Toolchain** | qcc (gcc_ntox86_64), image made with mkqnximage, started by System Launch and Monitor |
-| **Control loop** | 1 ms timer pulse on a private channel, SCHED_FIFO priority 60, 0.5 ms system tick |
-| **On QNX 8.0** | **11 of 11** fault cases pass, two full runs in a row ([raw output](docs/results/)) |
+| **Control loop** | 1 ms timer pulse on a private channel, SCHED_FIFO priority 60, missed ticks measured with `ClockCycles` |
+| **On QNX 8.0** | **11 of 11** fault cases pass, three full runs in a row ([raw output](docs/results/)) |
 | **Shock window** | 803 ticks of machine time (park, confirm, discharge). The crew's time is counted separately |
 | **AI fence** | **7 of 7** forbidden actions by the classifier refused by QNX |
 | **Hard limits** | The controller stops pushing at 600 N and 650 N is never crossed. Depth 5 to 6 cm, full recoil every stroke |
@@ -60,7 +60,7 @@ QNX is what makes the split between "may decide" and "may only suggest" real:
 |---|---|
 | Timer pulse on a private channel (`timer_create`, `MsgReceivePulse`) | The **1 ms heartbeat** that wakes the safety process |
 | `SCHED_FIFO` priorities | The safety process at 60 sits above everything except the hardware stand-in; the classifier runs at 10 |
-| `ClockPeriod` | A **0.5 ms system tick**, so the 1 ms timer is not stretched |
+| `ClockPeriod`, `ClockCycles` | The safety process reads the system tick it runs on and measures every late or missed tick |
 | Resource managers (`resmgr_attach`) | `/dev/elvrek/status`, `advice`, `operator`, `piston` and `shock`: the only doors to the hardware |
 | `procmgr_ability` and an unprivileged user | The classifier **cannot climb back**: no root, no priority raise, no hardware memory |
 | System Launch and Monitor | Starts the stack in order and marks the safety process `repair none` |
@@ -68,11 +68,11 @@ QNX is what makes the split between "may decide" and "may only suggest" real:
 
 ## Results on QNX 8.0
 
-The whole stack, built with qcc, running on QNX 8.0 in QEMU. Two full runs in a row with the final code, in the stack's labelled emulator mode (sensor timeout 50 ms and hardware watchdog 100 ms, because a virtual machine on a laptop pauses for tens of milliseconds).
+The whole stack, built with qcc, running on QNX 8.0 in QEMU. Three full runs in a row with the final code, in the stack's labelled emulator mode (sensor timeout 50 ms and hardware watchdog 100 ms, because a virtual machine on a laptop pauses for tens of milliseconds).
 
 | Case | What it does | Result |
 |---|---|---|
-| T1 Control loop | Counts ticks in one second | 960 to 1,013 ticks a second |
+| T1 Control loop | Counts ticks in one second | 960 to 1,013 ticks a second on the default 1 ms tick |
 | T2 Compressions | Ten seconds of compressions | 16 to 17, 0 rule violations |
 | T3 Advisor attack | The classifier tries 7 forbidden actions | **7 of 7 refused by QNX** |
 | T4 Advisor killed | Kill the classifier mid compression | Compressions continue, the supervisor restarts it |
@@ -84,7 +84,7 @@ The whole stack, built with qcc, running on QNX 8.0 in QEMU. Two full runs in a 
 | T10 Shock and return | A full shockable rhythm run | One shock, about 806 ticks hands-off, 0 shocks off recoil, return of circulation detected, CCF 99.5% |
 | T11 Malicious advisor | Hundreds of forged demands | All ignored, the shock still delivered, 0 violations |
 
-Raw output: [`docs/results/qnx-fault-suite-all-pass-3.txt`](docs/results/qnx-fault-suite-all-pass-3.txt) and [`-4.txt`](docs/results/qnx-fault-suite-all-pass-4.txt). Every earlier run, including the failed ones, is in [`docs/results/earlier/`](docs/results/earlier/), and [RESULTS.md](RESULTS.md) explains what each failure taught us.
+Raw output: [`docs/results/qnx-fault-suite-all-pass-3.txt`](docs/results/qnx-fault-suite-all-pass-3.txt), [`-4.txt`](docs/results/qnx-fault-suite-all-pass-4.txt) and [`-5.txt`](docs/results/qnx-fault-suite-all-pass-5.txt). Every earlier run, including the failed ones, is in [`docs/results/earlier/`](docs/results/earlier/), and [RESULTS.md](RESULTS.md) explains what each failure taught us.
 
 **At real hardware timings** (5 ms sensor timeout, 20 ms watchdog) the nested virtual machine is the limit: QEMU runs inside WSL2, which is itself a virtual machine on Windows. The first strict run passed 5 of 11, and every failure was the controller correctly calling the sensors silent and retracting. With two idle threads at the lowest priority keeping the virtual CPUs awake, **9 of 11** pass, including the full shock. Real hardware is what settles this.
 
@@ -154,7 +154,7 @@ Five features on 0.8 s of clean ECG, including the share of power in the 3 to 9 
  |        v                                                               |
  |  /dev/elvrek/advice                                                    |
  |        |                                                               |
- |  elvrekd  (SCHED_FIFO 60, 1 ms timer pulse, 0.5 ms system tick)        |
+ |  elvrekd  (SCHED_FIFO 60, 1 ms timer pulse on a private channel)        |
  |  state machine and independent monitor; owns piston, breaths,          |
  |  charger and shock line; serves /dev/elvrek/status, operator,          |
  |  piston and shock                                                      |
@@ -200,10 +200,11 @@ These rules live in `src/core/elv_core.c` and are checked again, independently, 
 |---|---|
 | 19 Nov 2026 | Safety core, independent monitor, physics model and host scenarios. Website and brand |
 | 19 Nov 2026 | Rhythm check tuned and scored on real PhysioNet arrest ECG |
-| 19 Nov 2026 | QNX 8.0 image in QEMU, qcc build, the first on-target fault suite runs and the fixes they forced (0.5 ms tick, driver force limit, transport in the driver, catch-up ticks) |
+| 19 Nov 2026 | QNX 8.0 image in QEMU, qcc build, the first on-target fault suite runs and the fixes they forced (driver force limit, transport in the driver, catch-up ticks) |
 | 19 Nov 2026 | 11 of 11 on QNX 8.0 |
-| 20 Nov 2026 | A repeat run uncovered a deeper bug in replayed ticks. Fixed, new stall tests added, then two clean runs in a row |
+| 20 Nov 2026 | A repeat run uncovered a deeper bug in replayed ticks. Fixed, new stall tests added, then clean runs in a row |
 | 20 Nov 2026 | Strict timing runs, the demo film with real QNX output, and the submission |
+| 20 Nov 2026 | Writing the codelab showed `ClockPeriod` cannot change the tick on QNX 8.0 in QEMU; the controller now reads it instead, and a third clean run followed |
 
 ## Quickstart
 
@@ -241,6 +242,7 @@ tools/          PhysioNet fetcher, QEMU and SDP setup
 docs/results/   raw output of every QNX run
 video/          the scripts that made the demo film, and the real QNX output it replays
 media/          screenshots used in this README
+codelab/        a QNX 8.0 codelab with its own runnable example
 web/            the website, deployed on Vercel
 ```
 
@@ -253,6 +255,7 @@ web/            the website, deployed on Vercel
 | [SAFETY.md](SAFETY.md) | The safety rules, the monitor, and what the controller will never do |
 | [RESULTS.md](RESULTS.md) | Every run on QNX, what failed and what it taught us |
 | [video/README.md](video/README.md) | How the demo film was made |
+| [Codelab: a 1 ms control loop that fails safe](codelab/fail-safe-control-loop/fail-safe-control-loop.md) | A step by step QNX 8.0 tutorial built from what Elvrek taught us, with runnable code |
 | [qnx/secpol/README.md](qnx/secpol/README.md) | The security policy types and how to generate the policy |
 | [DATA-NOTICE.md](DATA-NOTICE.md) | PhysioNet data and photo credits |
 
