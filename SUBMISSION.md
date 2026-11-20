@@ -18,7 +18,7 @@ QNX Global Hackathon, "The power to shape the world". Deadline: **15 December 20
 | Toolchain | qcc (gcc_ntox86_64), mkqnximage, System Launch and Monitor |
 | Built with | C, QNX, QNX 8.0, QEMU, POSIX, Python, JavaScript, HTML, CSS, Vercel |
 | Project story | [`docs/devpost-story.md`](docs/devpost-story.md) |
-| Codelab (Best Codelab / Tutorial) | [`codelab/fail-safe-control-loop`](codelab/fail-safe-control-loop/fail-safe-control-loop.md): build a 1 ms control loop that fails safe on QNX 8.0 |
+| Codelab (Best Codelab / Tutorial) | [qnx/codelabs pull request 81](https://github.com/qnx/codelabs/pull/81), source in [`codelab/fail-safe-control-loop`](codelab/fail-safe-control-loop/fail-safe-control-loop.md): build a 1 ms control loop that fails safe on QNX 8.0 |
 | Builder | [@angelraph](https://github.com/angelraph) |
 
 ## Build and run

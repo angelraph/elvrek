@@ -255,7 +255,7 @@ web/            the website, deployed on Vercel
 | [SAFETY.md](SAFETY.md) | The safety rules, the monitor, and what the controller will never do |
 | [RESULTS.md](RESULTS.md) | Every run on QNX, what failed and what it taught us |
 | [video/README.md](video/README.md) | How the demo film was made |
-| [Codelab: a 1 ms control loop that fails safe](codelab/fail-safe-control-loop/fail-safe-control-loop.md) | A step by step QNX 8.0 tutorial built from what Elvrek taught us, with runnable code |
+| [Codelab: a 1 ms control loop that fails safe](codelab/fail-safe-control-loop/fail-safe-control-loop.md) | A step by step QNX 8.0 tutorial built from what Elvrek taught us, with runnable code. Submitted to the official QNX codelabs as [pull request 81](https://github.com/qnx/codelabs/pull/81) |
 | [qnx/secpol/README.md](qnx/secpol/README.md) | The security policy types and how to generate the policy |
 | [DATA-NOTICE.md](DATA-NOTICE.md) | PhysioNet data and photo credits |
 
