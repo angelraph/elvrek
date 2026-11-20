@@ -1,0 +1,18 @@
+{
+  "voice": "en-US-AndrewNeural",
+  "rate": "+4%",
+  "scenes": [
+    {"id": "intro", "text": "When a heart stops, every second without compressions counts. This is Elvrek. A real-time safety controller for mechanical CPR, built on QNX 8.0."},
+    {"id": "home", "text": "Mechanical CPR machines never get tired, but their compressions, the breaths and the defibrillator usually run on separate clocks. Every extra second of pause before a shock lowers the odds of survival. Elvrek puts all three on one clock, ticking a thousand times a second. The AI only makes suggestions."},
+    {"id": "system", "text": "Here is the cycle. The charger fills while the piston keeps working. The arm parks at full recoil only for the shock itself, a trusted check confirms the rhythm, and compressions resume on the next tick. The machine's part of that pause is about eight tenths of a second. The crew's time is counted separately."},
+    {"id": "technology", "text": "Why QNX? Every job here is its own small process. The safety process runs at the top priority on a timer pulse. The rhythm classifier runs unprivileged, and QNX refuses it the piston and the shock line. If it crashes, it is restarted. The safety process never is. A hardware watchdog lifts the cup instead."},
+    {"id": "boot", "text": "Now the real thing. QNX 8.0 boots in QEMU, with the whole stack built with qcc. The piston and chest are a physics model, behind the same interface a real motor driver will use."},
+    {"id": "attack", "text": "First, the classifier attacks. It tries the piston, the shock line and every other forbidden path. Seven of seven are refused by the operating system."},
+    {"id": "shock", "text": "Next, a shockable rhythm. Compressions run while the charger fills. The crew pre-authorises, the window opens, the shock fires, and compressions are back in under a second. Then carbon dioxide rises, a trusted sign of returning circulation, and the piston parks."},
+    {"id": "watchdog", "text": "Last, we kill the safety process in the middle of a stroke. The driver's own watchdog lifts the cup to full recoil, and nothing restarts the controller."},
+    {"id": "evidence", "text": "Every result is on the evidence page. Eleven of eleven fault cases pass on QNX, two runs in a row. It also shows what is not good enough yet, like our rhythm check on real arrest ECG. We say so plainly."},
+    {"id": "simulator", "text": "You can replay a recorded run yourself, from the first compression to the moment circulation returns."},
+    {"id": "more", "text": "Questions are answered in the FAQ, and the whole site works on a phone."},
+    {"id": "outro", "text": "Elvrek is open source, and it is not a medical device. Next stop, a Raspberry Pi 5 and a training manikin. Save lives, smarter."}
+  ]
+}

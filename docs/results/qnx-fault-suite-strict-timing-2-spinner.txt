@@ -1,0 +1,35 @@
+QNX target at 172.31.1.10: QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+Elvrek fault suite on QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+physics plant, not a patient; timing in control ticks
+
+elv-plant: running (physics model, not a patient)
+PASS T1 control loop ticking (993 ticks in 1 s)
+PASS T2 compressions (18 in 10 s, 0 invariant violations)
+PASS T3 advisor attack: attack: 7 of 7 forbidden actions refused
+elv-super: advisor died (15), restart 1
+elv-super: advisor silent > 3000 ms, killing, restart 2
+PASS T4 advisor killed: compressions continued (+11), restarted (2)
+elv-super: advisor silent > 3000 ms, killing, restart 3
+elv-super: advisor silent > 3000 ms, killing, restart 4
+PASS T5 CPU storm (8 threads, priority 59, 10 s): +18 compressions, 10 of 10 strokes 5 to 6 cm, 0 violations (missed ticks 4327 with storm, 3269 without, host noise)
+PASS T6 stiff chest: max force 605 N, ceiling engaged 8 times
+elv-plant: running (physics model, not a patient)
+recent stroke peaks (mm): 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+FAIL T7 transport: 0.0% in range
+elv-plant: running (physics model, not a patient)
+PASS T8 sensor dropout: SAFE_HOLD, cup at recoil
+elv-plant: running (physics model, not a patient)
+elv-super: SAFETY PROCESS DOWN, not restarting it; hardware watchdog holds the piston at recoil
+elv-plant: HW WATCHDOG: safety process silent, retracting
+PASS T9 safety process killed: HW watchdog retracted (depth 0.0 mm), not restarted
+elv-plant: running (physics model, not a patient)
+PASS T10 shock: 1 shock, hands-off window 803 ticks, 0 shocks off recoil
+PASS T10 trusted ROSC (EtCO2): parked, ventilating
+PASS T10 chest-compression fraction 0.9946
+elv-plant: running (physics model, not a patient)
+elv-plant: HW WATCHDOG: safety process silent, retracting
+elv-plant: HW WATCHDOG: safety process silent, retracting
+elv-plant: HW WATCHDOG: safety process silent, retracting
+FAIL T11 malicious advisor: ignored 286 shocks 0 windows 0 retries 0 inv 0 state SAFE_HOLD fault SENSOR_STALE missed 115006
+
+FAIL: 2 case(s)

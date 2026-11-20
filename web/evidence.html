@@ -9,7 +9,7 @@
 <link rel="icon" href="/assets/elvrek-logo.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/site.css?v=202611192120">
+<link rel="stylesheet" href="/assets/css/site.css?v=202611201230">
 </head>
 <body data-page="evidence">
 <div data-header></div>
@@ -127,6 +127,8 @@
           <li>The CPU storm test used to compare missed ticks with and without the storm. On a virtual machine that number measures the host: one run missed more ticks with the storm, the next missed fewer. The test now judges what the patient gets during the storm: compressions on rate, every stroke 5 to 6 cm, no rule broken, no fault. Missed ticks are still printed.</li>
           <li>The test crew pressed once, from a status read a second old. It now behaves like a real crew and presses whenever the device asks.</li>
         </ul>
+        <h3 style="margin-top:44px">At real hardware timings</h3>
+        <p class="muted">We also ran the suite at the timings a real board will use: a 5 ms sensor timeout and a 20 ms hardware watchdog. Here QEMU runs inside WSL2, which is itself a virtual machine on Windows, and its virtual CPUs can freeze for longer than 5 ms. The first strict run passed 5 of 11 cases. Every failure was the controller correctly calling the sensors silent and retracting to safety. Two idle threads at the lowest priority keep the virtual CPUs awake without touching anything else, and with them 9 of 11 pass, including the full shock and return of circulation. Transport and the malicious advisor case still trip the 5 ms timeout. We think only real hardware can settle these numbers, and both runs are published in full.</p>
       </div>
 
       <div class="tab-panel" id="refs">
@@ -147,6 +149,6 @@
   </section>
 </main>
 <div data-footer></div>
-<script src="/assets/js/site.js?v=202611192120"></script>
+<script src="/assets/js/site.js?v=202611201230"></script>
 </body>
 </html>

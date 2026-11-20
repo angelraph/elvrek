@@ -572,3 +572,16 @@ details.qa .ans { padding: 0 0 1.4rem; color: #c1c7cf; }
 .modal .player canvas { height: min(420px, 46vh); }
 .modal .readout b { font-size: 1.5rem; }
 .modal .readout { padding: 12px 16px; }
+
+/* demo video: thumbnail first, YouTube loads only on click */
+.yt { position: relative; max-width: 1000px; margin: 0 auto; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden;
+  background: #000 center / cover no-repeat; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55); }
+.yt::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.45)); transition: opacity .3s; }
+.yt:hover::after { opacity: 0.4; }
+.yt-play { position: absolute; left: 50%; top: 50%; z-index: 1; width: 92px; height: 92px; margin: -46px 0 0 -46px; border-radius: 50%;
+  display: grid; place-items: center; background: #e3122d; color: #fff; box-shadow: 0 0 0 10px rgba(227,18,45,0.22); transition: transform .25s; }
+.yt:hover .yt-play { transform: scale(1.08); }
+.yt-play svg { width: 40px; height: 40px; margin-left: 5px; }
+.yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; z-index: 2; }
+@media (max-width: 640px) { .yt { border-radius: 12px; } .yt-play { width: 68px; height: 68px; margin: -34px 0 0 -34px; } .yt-play svg { width: 30px; height: 30px; } }

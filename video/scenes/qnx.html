@@ -1,0 +1,147 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#07080a;color:#e9ecef;font-family:Inter,sans-serif}
+.bg{position:absolute;inset:0;background:
+  radial-gradient(900px 600px at 78% 30%,rgba(225,29,46,.13),transparent 70%),
+  radial-gradient(800px 700px at 10% 90%,rgba(60,90,160,.10),transparent 70%)}
+.grid{position:absolute;inset:0;opacity:.07;background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:64px 64px}
+.badge{position:absolute;right:64px;top:118px;display:flex;gap:12px;align-items:center}
+.pill{font:600 15px/1 Inter;letter-spacing:.04em;padding:11px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);color:#cfd4da}
+.pill.live{color:#fff;border-color:rgba(225,29,46,.6)}
+.pill.live i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#e11d2e;margin-right:9px;box-shadow:0 0 10px #e11d2e}
+.pill.speed{color:#ffd166;border-color:rgba(255,209,102,.45)}
+.term{position:absolute;left:64px;top:200px;width:1080px;height:700px;border-radius:14px;overflow:hidden;
+  background:rgba(10,12,16,.92);border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.term .bar{height:46px;display:flex;align-items:center;gap:9px;padding:0 18px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.07)}
+.term .bar i{width:13px;height:13px;border-radius:50%;background:#2b2f36}
+.term .bar span{margin-left:14px;font:500 15px/1 'JetBrains Mono',monospace;color:#8b93a0}
+.term pre{padding:20px 24px;font:400 17.5px/1.62 'JetBrains Mono',monospace;color:#c9d1d9;white-space:pre;overflow:hidden;height:654px}
+.term .cmd{color:#fff;font-weight:600}.term .cmd b{color:#e11d2e}
+.term .deny{color:#ff6b6b}.term .ok{color:#5ee08a}.term .warn{color:#ffd166}.term .dim{color:#6b7480}
+.cursor{display:inline-block;width:10px;height:20px;background:#e11d2e;vertical-align:-3px}
+.side{position:absolute;left:1176px;top:200px;width:680px;height:700px;display:flex;flex-direction:column;gap:18px}
+.card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:22px 26px}
+.lbl{font:700 15px/1 'Barlow Condensed',sans-serif;letter-spacing:.2em;color:#8b93a0;text-transform:uppercase}
+.big{font:700 64px/1.05 'Barlow Condensed',sans-serif;color:#fff;margin-top:10px}
+.big small{font-size:28px;color:#8b93a0;margin-left:8px}
+.row{display:flex;gap:18px}.row .card{flex:1}
+.state{display:inline-block;margin-top:12px;padding:10px 18px;border-radius:10px;font:700 34px/1 'Barlow Condensed',sans-serif;letter-spacing:.06em}
+.st-IDLE{background:#2b2f36;color:#cfd4da}.st-COMPRESS{background:rgba(94,224,138,.15);color:#5ee08a;border:1px solid rgba(94,224,138,.4)}
+.st-SHOCK_WINDOW{background:rgba(255,184,0,.16);color:#ffc233;border:1px solid rgba(255,184,0,.5)}
+.st-ROSC_HOLD{background:rgba(90,160,255,.16);color:#7db4ff;border:1px solid rgba(90,160,255,.45)}
+.st-DOWN{background:rgba(225,29,46,.18);color:#ff5b6b;border:1px solid rgba(225,29,46,.55)}
+.proc{display:flex;align-items:center;gap:16px;margin-top:14px;font:500 20px/1 'JetBrains Mono',monospace}
+.proc .n{width:150px;color:#fff}.proc .barw{flex:1;height:12px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden}
+.proc .barw div{height:100%;border-radius:6px;background:linear-gradient(90deg,#e11d2e,#ff6b6b)}
+.proc .p{width:60px;text-align:right;color:#cfd4da}
+.proc .note{width:190px;font:500 15px/1.2 Inter;color:#8b93a0}
+.shield{display:flex;align-items:center;gap:22px}
+.shield svg{width:92px;height:92px}
+.list div{display:flex;justify-content:space-between;font:500 19px/1 'JetBrains Mono',monospace;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.list div span:last-child{color:#ff6b6b}
+canvas{display:block;margin-top:10px}
+.flash{position:absolute;inset:0;background:radial-gradient(circle at 70% 45%,rgba(255,230,140,.55),transparent 60%);opacity:0;pointer-events:none}
+</style></head>
+<body>
+<div class="bg"></div><div class="grid"></div>
+<div class="badge"><span class="pill live"><i></i>Real output from QNX 8.0 in QEMU</span><span class="pill speed" id="speed"></span></div>
+<div class="term"><div class="bar"><i></i><i></i><i></i><span id="ttl">root@qnx  /data/elvrek</span></div><pre id="pre"></pre></div>
+<div class="side" id="side"></div>
+<div class="flash" id="flash"></div>
+<script>
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function colour(l){
+  if (l.startsWith('$ ')) { const i=l.indexOf('#'); return '<span class="cmd"><b>$</b>'+esc(i>0?l.slice(1,i):l.slice(1))+'</span>'+(i>0?'<span class="dim">'+esc(l.slice(i))+'</span>':''); }
+  if (/denied|not permitted/.test(l)) return esc(l).replace(/(Permission denied|Operation not permitted)/,'<span class="deny">$1</span>');
+  if (/refused|safety_down=1|Startup complete|true_depth_mm=0\.0/.test(l)) return '<span class="ok">'+esc(l)+'</span>';
+  if (/WATCHDOG|SAFETY PROCESS DOWN|crew:/.test(l)) return '<span class="warn">'+esc(l)+'</span>';
+  if (/^--->|^Path|^ target/.test(l)) return '<span class="dim">'+esc(l)+'</span>';
+  return esc(l);
+}
+function short(l){ // compact status line for the terminal
+  const m = {}; l.split(' ').forEach(kv=>{const [k,v]=kv.split('=');m[k]=v});
+  return {m, txt:`tick=${m.tick.padStart(6)}  ${m.state.padEnd(12)} depth ${String(m.depth_mm).padStart(5)} mm  force ${String(m.force_n).padStart(4)} N  EtCO2 ${m.etco2}  shocks ${m.shocks}`};
+}
+function show(lines, cur){
+  const max = 22, s = lines.slice(-max);
+  document.getElementById('pre').innerHTML = s.map(colour).join('\n') + (cur ? '\n<span class="cmd"><b>$</b> </span><span class="cursor"></span>' : '');
+}
+function typed(cmd, p){ const n=Math.floor(cmd.length*Math.min(1,p)); return cmd.slice(0,n); }
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)), ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+window.__qnx = { D:null, scene:null,
+  init(scene, D){ this.D=D; this.scene=scene; const side=document.getElementById('side');
+    if (scene==='boot') side.innerHTML=`<div class="card"><div class="lbl">Target</div><div class="big" style="font-size:44px">QNX 8.0 &middot; x86_64</div><div style="margin-top:10px;color:#8b93a0;font-size:18px">QEMU with KVM, 2 virtual CPUs, built with qcc</div></div>
+      <div class="card" style="flex:1"><div class="lbl">Processes and priorities</div><div id="procs"></div></div>`;
+    if (scene==='attack') side.innerHTML=`<div class="card shield"><svg viewBox="0 0 24 24" fill="none" stroke="#5ee08a" stroke-width="1.6"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><div><div class="lbl">Refused by QNX</div><div class="big" id="cnt">0<small>/ 7</small></div></div></div>
+      <div class="card" style="flex:1"><div class="lbl">What the classifier tried</div><div class="list" id="list" style="margin-top:8px"></div></div>`;
+    if (scene==='shock') side.innerHTML=`<div class="card"><div class="lbl">Controller state</div><div class="state st-IDLE" id="st">IDLE</div></div>
+      <div class="row"><div class="card"><div class="lbl">Control tick</div><div class="big" id="tick">0</div></div><div class="card"><div class="lbl">Compressions</div><div class="big" id="comp">0</div></div></div>
+      <div class="row"><div class="card"><div class="lbl">Charger</div><div class="big" id="chg" style="font-size:44px">IDLE</div></div><div class="card"><div class="lbl">Shocks</div><div class="big" id="shk">0</div></div></div>
+      <div class="card" style="flex:1"><div class="lbl">End-tidal CO2 <span id="et" style="color:#fff;margin-left:10px"></span></div><canvas id="cv" width="628" height="120"></canvas><div id="mt" style="color:#8b93a0;font-size:18px;margin-top:6px"></div></div>`;
+    if (scene==='watchdog') side.innerHTML=`<div class="card"><div class="lbl">Safety process</div><div class="state st-COMPRESS" id="sp">RUNNING</div></div>
+      <div class="card"><div class="lbl">Cup depth in the chest</div><div class="big" id="dep" style="font-size:96px">0.0<small>mm</small></div><div style="height:16px;border-radius:8px;background:rgba(255,255,255,.07);margin-top:14px;overflow:hidden"><div id="depb" style="height:100%;width:0;background:linear-gradient(90deg,#e11d2e,#ff6b6b)"></div></div></div>
+      <div class="row"><div class="card"><div class="lbl">Watchdog trips</div><div class="big" id="wd">0</div></div><div class="card"><div class="lbl">Restarted</div><div class="big" id="rs" style="font-size:44px">&nbsp;</div></div></div>`;
+  },
+  render(t){ const D=this.D, sc=this.scene, sp=document.getElementById('speed');
+    if (sc==='boot'){
+      sp.textContent= t<4.4 ? 'boot shown in real time' : 'commands paced to read';
+      const out=[]; D.boot.forEach(b=>{ if (b.t<=t) out.push(b.l) });
+      const t0=4.4; const cmds=D.bootDemo;
+      cmds.forEach(c=>{ const tt=t0+c.t; if (c.l.startsWith('$ ')) { if (t>=tt-0.6) out.push('$ '+typed(c.l.slice(2), (t-tt+0.6)/0.6)); } else if (t>=tt) out.push(c.l); });
+      show(out, t>3.3 && t<4.4);
+      const procs=[['elv-plant',62,'hardware stand-in'],['elvrekd',60,'safety process'],['elv-super',10,'supervisor'],['elv-advisor',10,'AI classifier, unprivileged']];
+      document.getElementById('procs').innerHTML = procs.map((p,i)=>{ const a=clamp((t-(t0+4.2)-i*0.35)/0.6,0,1);
+        return `<div class="proc" style="opacity:${a};transform:translateX(${(1-ease(a))*30}px)"><span class="n">${p[0]}</span><span class="barw"><div style="width:${ease(a)*p[1]/64*100}%"></div></span><span class="p">${p[1]}</span><span class="note">${p[2]}</span></div>` }).join('');
+    }
+    if (sc==='attack'){
+      sp.textContent='slowed down to read';
+      const L=D.attack, out=[], step=0.75, t0=1.6; let n=0; const items=[];
+      if (t>=0.2) out.push('$ '+typed(L[0].slice(2),(t-0.2)/1.1));
+      for (let i=1;i<L.length;i++){ if (t>=t0+(i-1)*step){ out.push(L[i]); if (/->/.test(L[i])){ n++; const m=L[i].replace('attack: ','').split('->'); items.push(m) } } }
+      show(out, false);
+      document.getElementById('cnt').innerHTML = n+'<small>/ 7</small>';
+      document.getElementById('list').innerHTML = items.map(m=>`<div><span>${esc(m[0].trim().replace(/\s+/g,' '))}</span><span>${m[1].includes('denied')?'denied':'refused'}</span></div>`).join('');
+    }
+    if (sc==='shock'){
+      const S=D.shock, segs=D.segs; // segs: [t_scene, tick] pairs
+      let k=0; while(k<segs.length-2 && t>segs[k+1][0]) k++;
+      const [ta,xa]=segs[k],[tb,xb]=segs[k+1]; const tick=xa+(xb-xa)*clamp((t-ta)/(tb-ta),0,1);
+      const rate=(xb-xa)/1000/(tb-ta); sp.textContent = rate<0.85 ? 'slow motion, '+rate.toFixed(1)+'x' : rate<1.6 ? 'real time' : 'replayed '+Math.round(rate)+'x faster';
+      const out=['$ elv-ctl start']; let last=null;
+      for (const r of S){ if (r.tick>tick) break; if (r.crew) out.push(r.crew); else { out.push(short(r.l).txt); last=short(r.l).m; } }
+      show(out,false);
+      if (last){ const st=document.getElementById('st'); st.textContent=last.state.replace('_',' '); st.className='state st-'+last.state;
+        document.getElementById('tick').textContent=Math.round(tick).toLocaleString('en-US');
+        document.getElementById('comp').textContent=last.compressions;
+        document.getElementById('chg').textContent= last.state==='SHOCK_WINDOW' ? 'DISCHARGING' : last.ready==='1'?'READY':last.charge==='1'?'CHARGING':'IDLE';
+        document.getElementById('chg').style.color= last.ready==='1'?'#ffc233':last.charge==='1'?'#ffd166':'#fff';
+        document.getElementById('shk').textContent=last.shocks;
+        document.getElementById('et').textContent=last.etco2+' mmHg';
+        document.getElementById('mt').textContent= last.shocks==='1' ? 'Machine time in the shock window: '+last.machine+' ticks (1 ms each)' : '';
+        const cv=document.getElementById('cv'), g=cv.getContext('2d'); g.clearRect(0,0,628,120);
+        const pts=S.filter(r=>!r.crew && r.tick<=tick).map(r=>[r.tick, parseFloat(short(r.l).m.etco2)]);
+        g.strokeStyle='rgba(255,255,255,.08)'; for(let y=20;y<120;y+=30){g.beginPath();g.moveTo(0,y);g.lineTo(628,y);g.stroke();}
+        g.lineWidth=3; g.strokeStyle='#7db4ff'; g.beginPath();
+        pts.forEach((p,i)=>{ const x=p[0]/165000*628, y=115-p[1]/45*110; i?g.lineTo(x,y):g.moveTo(x,y) }); g.stroke();
+      }
+      const fl=document.getElementById('flash'); const ts=D.shockT; fl.style.opacity = t>ts && t<ts+0.9 ? (1-(t-ts)/0.9)*0.9 : 0;
+    }
+    if (sc==='watchdog'){
+      sp.textContent='paced to read';
+      const L=D.wd, out=[]; let killed=false, after=false;
+      for (const r of L){ if (r.t>t) break; out.push(r.l); if (/slay/.test(r.l)) killed=true; if (/WATCHDOG/.test(r.l)) after=r.t; }
+      show(out,false);
+      const d0=43.3; let d=d0; if (after!==false) d=d0*(1-clamp((t-after)/0.35,0,1)); if (t<L[1].t) d=0;
+      document.getElementById('dep').innerHTML=d.toFixed(1)+'<small>mm</small>';
+      document.getElementById('depb').style.width=(d/60*100)+'%';
+      const sp2=document.getElementById('sp'); sp2.textContent= killed && after!==false ? 'DOWN' : 'RUNNING'; sp2.className='state '+(killed&&after!==false?'st-DOWN':'st-COMPRESS');
+      document.getElementById('wd').textContent= after!==false ? 1 : 0;
+      document.getElementById('rs').textContent= after!==false && t>after+1.2 ? 'NEVER' : '';
+      document.getElementById('rs').style.color='#ff5b6b';
+    }
+  }
+};
+</script></body></html>

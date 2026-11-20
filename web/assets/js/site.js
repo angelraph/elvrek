@@ -732,3 +732,20 @@
     requestAnimationFrame(draw);
   });
 })();
+
+/* demo video: swap the thumbnail for the YouTube player on click */
+(() => {
+  document.querySelectorAll("[data-yt]").forEach((el) => {
+    const play = () => {
+      if (el.querySelector("iframe")) return;
+      const f = document.createElement("iframe");
+      f.src = "https://www.youtube-nocookie.com/embed/" + el.dataset.yt + "?autoplay=1&rel=0";
+      f.title = "Elvrek demo video";
+      f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+      f.allowFullscreen = true;
+      el.appendChild(f);
+    };
+    el.addEventListener("click", play);
+    el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); play(); } });
+  });
+})();

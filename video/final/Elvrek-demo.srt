@@ -1,0 +1,159 @@
+1
+00:00:01,650 --> 00:00:05,396
+When a heart stops, every second without compressions counts.
+
+2
+00:00:05,446 --> 00:00:06,562
+This is Elvrek.
+
+3
+00:00:06,612 --> 00:00:12,240
+A real-time safety controller for mechanical CPR, built on QNX 8.0.
+
+4
+00:00:13,350 --> 00:00:21,038
+Mechanical CPR machines never get tired, but their compressions, the breaths and the defibrillator usually run on separate clocks.
+
+5
+00:00:21,088 --> 00:00:25,425
+Every extra second of pause before a shock lowers the odds of survival.
+
+6
+00:00:25,475 --> 00:00:30,209
+Elvrek puts all three on one clock, ticking a thousand times a second.
+
+7
+00:00:30,259 --> 00:00:32,600
+The AI only makes suggestions.
+
+8
+00:00:33,417 --> 00:00:34,471
+Here is the cycle.
+
+9
+00:00:34,521 --> 00:00:37,199
+The charger fills while the piston keeps working.
+
+10
+00:00:37,249 --> 00:00:45,059
+The arm parks at full recoil only for the shock itself, a trusted check confirms the rhythm, and compressions resume on the next tick.
+
+11
+00:00:45,109 --> 00:00:48,497
+The machine's part of that pause is about eight tenths of a second.
+
+12
+00:00:48,547 --> 00:00:50,817
+The crew's time is counted separately.
+
+13
+00:00:51,617 --> 00:00:52,695
+Why QNX?
+
+14
+00:00:52,745 --> 00:00:55,339
+Every job here is its own small process.
+
+15
+00:00:55,389 --> 00:00:59,113
+The safety process runs at the top priority on a timer pulse.
+
+16
+00:00:59,163 --> 00:01:04,918
+The rhythm classifier runs unprivileged, and QNX refuses it the piston and the shock line.
+
+17
+00:01:04,968 --> 00:01:07,094
+If it crashes, it is restarted.
+
+18
+00:01:07,144 --> 00:01:09,005
+The safety process never is.
+
+19
+00:01:09,055 --> 00:01:11,777
+A hardware watchdog lifts the cup instead.
+
+20
+00:01:12,283 --> 00:01:13,277
+Now the real thing.
+
+21
+00:01:13,327 --> 00:01:18,806
+QNX 8.0 boots in QEMU, with the whole stack built with qcc.
+
+22
+00:01:18,856 --> 00:01:24,933
+The piston and chest are a physics model, behind the same interface a real motor driver will use.
+
+23
+00:01:25,850 --> 00:01:27,938
+First, the classifier attacks.
+
+24
+00:01:27,987 --> 00:01:32,168
+It tries the piston, the shock line and every other forbidden path.
+
+25
+00:01:32,218 --> 00:01:35,450
+Seven of seven are refused by the operating system.
+
+26
+00:01:36,350 --> 00:01:37,993
+Next, a shockable rhythm.
+
+27
+00:01:38,043 --> 00:01:40,421
+Compressions run while the charger fills.
+
+28
+00:01:40,471 --> 00:01:46,587
+The crew pre-authorises, the window opens, the shock fires, and compressions are back in under a second.
+
+29
+00:01:46,637 --> 00:01:52,460
+Then carbon dioxide rises, a trusted sign of returning circulation, and the piston parks.
+
+30
+00:01:53,350 --> 00:01:56,784
+Last, we kill the safety process in the middle of a stroke.
+
+31
+00:01:56,834 --> 00:02:02,500
+The driver's own watchdog lifts the cup to full recoil, and nothing restarts the controller.
+
+32
+00:02:02,983 --> 00:02:05,203
+Every result is on the evidence page.
+
+33
+00:02:05,253 --> 00:02:09,482
+Eleven of eleven fault cases pass on QNX, two runs in a row.
+
+34
+00:02:09,532 --> 00:02:14,794
+It also shows what is not good enough yet, like our rhythm check on real arrest ECG.
+
+35
+00:02:14,844 --> 00:02:16,383
+We say so plainly.
+
+36
+00:02:17,183 --> 00:02:23,213
+You can replay a recorded run yourself, from the first compression to the moment circulation returns.
+
+37
+00:02:24,017 --> 00:02:28,147
+Questions are answered in the FAQ, and the whole site works on a phone.
+
+38
+00:02:30,250 --> 00:02:33,840
+Elvrek is open source, and it is not a medical device.
+
+39
+00:02:33,890 --> 00:02:37,470
+Next stop, a Raspberry Pi 5 and a training manikin.
+
+40
+00:02:37,520 --> 00:02:39,350
+Save lives, smarter.

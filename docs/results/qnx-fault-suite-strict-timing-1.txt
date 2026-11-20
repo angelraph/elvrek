@@ -1,0 +1,36 @@
+Booting the QNX image in QEMU (KVM, 2 CPUs, 1 GB)...
+QNX target at 172.31.1.10: QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+Elvrek fault suite on QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+physics plant, not a patient; timing in control ticks
+
+elv-plant: running (physics model, not a patient)
+PASS T1 control loop ticking (958 ticks in 1 s)
+FAIL T2 compressions: c=0 inv=0
+PASS T3 advisor attack: attack: 7 of 7 forbidden actions refused
+elv-super: advisor died (15), restart 1
+elv-super: advisor silent > 3000 ms, killing, restart 2
+FAIL T4 advisor killed: dc=0 restarts=2
+elv-super: advisor silent > 3000 ms, killing, restart 3
+elv-super: advisor silent > 3000 ms, killing, restart 4
+elv-plant: HW WATCHDOG: safety process silent, retracting
+FAIL T5 CPU storm: compressions +0, in range 0 of 0, inv 0 to 0, state SAFE_HOLD fault SENSOR_STALE, missed 4124 vs 284
+FAIL T6 stiff chest: max force 0, limits 0
+elv-plant: running (physics model, not a patient)
+elv-plant: HW WATCHDOG: safety process silent, retracting
+recent stroke peaks (mm): 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+FAIL T7 transport: 0.0% in range
+elv-plant: running (physics model, not a patient)
+PASS T8 sensor dropout: SAFE_HOLD, cup at recoil
+elv-plant: running (physics model, not a patient)
+elv-plant: HW WATCHDOG: safety process silent, retracting
+elv-super: SAFETY PROCESS DOWN, not restarting it; hardware watchdog holds the piston at recoil
+PASS T9 safety process killed: HW watchdog retracted (depth 0.0 mm), not restarted
+elv-plant: running (physics model, not a patient)
+PASS T10 shock: 1 shock, hands-off window 803 ticks, 0 shocks off recoil
+PASS T10 trusted ROSC (EtCO2): parked, ventilating
+PASS T10 chest-compression fraction 0.9946
+elv-plant: running (physics model, not a patient)
+elv-plant: HW WATCHDOG: safety process silent, retracting
+FAIL T11 malicious advisor: ignored 273 shocks 0 windows 0 retries 0 inv 0 state SAFE_HOLD fault SENSOR_STALE missed 10922
+
+FAIL: 6 case(s)

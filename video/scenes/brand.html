@@ -1,0 +1,74 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#050608;color:#fff;font-family:Inter,sans-serif}
+#bg{position:absolute;inset:0;background:radial-gradient(1100px 700px at 50% 45%,rgba(225,29,46,.16),transparent 70%);opacity:0}
+canvas{position:absolute;inset:0}
+.wrap{position:absolute;left:0;right:0;top:250px;text-align:center}
+#logo{width:260px;height:260px;object-fit:contain;opacity:0;mix-blend-mode:lighten}
+.word{margin-top:18px;font:700 150px/1 'Barlow Condensed',sans-serif;letter-spacing:.06em;display:flex;justify-content:center;overflow:hidden;height:160px}
+.word span{display:inline-block;transform:translateY(170px)}
+.word span.r{color:#e11d2e}
+#sub{margin-top:26px;font:500 34px/1.3 Inter;color:#d6dae0;opacity:0}
+#pill{display:inline-block;margin-top:28px;padding:13px 24px;border-radius:999px;border:1px solid rgba(225,29,46,.55);
+  font:600 20px/1 Inter;letter-spacing:.12em;color:#fff;background:rgba(225,29,46,.10);opacity:0}
+#tag{margin-top:26px;font:700 30px/1 'Barlow Condensed',sans-serif;letter-spacing:.42em;color:#9aa2ad;opacity:0}
+.links{display:flex;gap:22px;justify-content:center;margin-top:44px;opacity:0}
+.links div{padding:16px 26px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);font:500 26px/1 Inter;color:#fff}
+.links div b{color:#e11d2e;font-weight:600;margin-right:12px}
+#note{margin-top:34px;font:400 21px/1.4 Inter;color:#8b93a0;opacity:0}
+</style></head>
+<body>
+<div id="bg"></div><canvas id="cv" width="1920" height="1080"></canvas>
+<div class="wrap">
+  <img id="logo" src="https://elvrek.vercel.app/assets/elvrek-logo.webp" alt="">
+  <div class="word" id="word"></div>
+  <div id="sub"></div>
+  <div id="pill">BUILT ON QNX 8.0</div>
+  <div id="tag">SAVE LIVES &middot; SMARTER</div>
+  <div class="links" id="links"><div><b>WEB</b>elvrek.vercel.app</div><div><b>CODE</b>github.com/angelraph/elvrek</div></div>
+  <div id="note">Research controller on QNX 8.0, tested against a physics model. Not a medical device.</div>
+</div>
+<script>
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)), ease=x=>1-Math.pow(1-clamp(x,0,1),3), io=x=>{x=clamp(x,0,1);return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};
+const $=id=>document.getElementById(id);
+'ELVREK'.split('').forEach((c,i)=>{const s=document.createElement('span');s.textContent=c;if(i===0)s.className='r';$('word').appendChild(s)});
+// heartbeat waveform: value at phase x in [0,1)
+function beat(x){ const g=(c,w,a)=>a*Math.exp(-Math.pow((x-c)/w,2));
+  return g(.18,.025,.12)-g(.30,.008,.18)+g(.33,.012,1)-g(.36,.01,.32)+g(.55,.05,.25); }
+function push(x){ return 0.55*Math.pow(Math.max(0,Math.sin(Math.PI*x*2)),2); }
+window.__brand={ mode:'intro', T:{}, init(mode,T){ this.mode=mode; this.T=T;
+  if(mode==='outro'){ $('sub').textContent=''; $('pill').style.display='none'; $('logo').style.width=$('logo').style.height='200px'; $('word').style.marginTop='6px'; }
+  else { $('sub').textContent='A real-time safety controller for mechanical CPR'; $('tag').style.display='none'; $('links').style.display='none'; $('note').style.display='none'; } },
+ render(t){ const T=this.T, g=$('cv').getContext('2d'); g.clearRect(0,0,1920,1080);
+  if (this.mode==='intro'){
+    // ECG: beats, then flatline when the voice says the heart stops, then compressions
+    const flat=T.flat, comp=T.comp, logoT=T.logo, sub=T.sub;
+    const fadeTrace = 1-clamp((t-logoT+0.2)/0.8,0,1);
+    if (fadeTrace>0){
+      const speed=520, N=1920, y0=560, total=t*speed, off=Math.max(0,total-N), vis=Math.min(total,N);
+      const val=tt=> tt<flat ? beat((tt/0.82)%1) : tt>=comp ? push(((tt-comp)/0.55)%1) : 0;
+      g.lineWidth=4; g.lineJoin='round'; g.shadowColor='rgba(225,29,46,.9)'; g.shadowBlur=18;
+      g.strokeStyle=`rgba(255,59,74,${fadeTrace})`; g.beginPath();
+      let ly=y0;
+      for (let sx=0; sx<=vis; sx+=3){ ly=y0-val((sx+off)/speed)*230; sx?g.lineTo(sx,ly):g.moveTo(sx,ly); }
+      g.stroke(); g.shadowBlur=0;
+      g.fillStyle=`rgba(255,255,255,${fadeTrace})`; g.beginPath(); g.arc(vis,ly,6,0,7); g.fill();
+    }
+    $('bg').style.opacity = clamp((t-logoT)/1.2,0,1);
+    const lp=ease((t-logoT)/0.9); $('logo').style.opacity=lp; $('logo').style.transform=`scale(${0.82+0.18*lp})`;
+    [...$('word').children].forEach((s,i)=>{ const p=io((t-logoT-0.35-i*0.07)/0.7); s.style.transform=`translateY(${(1-p)*170}px)` });
+    const sp=ease((t-sub)/0.8); $('sub').style.opacity=sp; $('sub').style.transform=`translateY(${(1-sp)*24}px)`;
+    const pp=ease((t-sub-0.9)/0.8); $('pill').style.opacity=pp; $('pill').style.transform=`translateY(${(1-pp)*18}px)`;
+  } else {
+    $('bg').style.opacity=1;
+    const lp=ease(t/0.9); $('logo').style.opacity=lp; $('logo').style.transform=`scale(${0.85+0.15*lp})`;
+    [...$('word').children].forEach((s,i)=>{ const p=io((t-0.3-i*0.06)/0.7); s.style.transform=`translateY(${(1-p)*170}px)` });
+    const a=ease((t-1.1)/0.8); $('tag').style.opacity=a; $('tag').style.letterSpacing=(0.6-0.18*a)+'em';
+    const b=ease((t-T.links)/0.8); $('links').style.opacity=b; $('links').style.transform=`translateY(${(1-b)*24}px)`;
+    const c=ease((t-T.note)/0.8); $('note').style.opacity=c;
+  }
+ } };
+</script></body></html>

@@ -8,7 +8,9 @@ Elvrek is the brain of a chest compression robot. One real-time process on QNX o
 
 Please read this first: **Elvrek is a research controller. It is not a medical device and must never be connected to a person.** In this repository the piston and the chest are a physics model behind the same interface a real actuator driver will use. No shock is ever delivered; on a bench the shock line drives a lamp.
 
-Website: see `web/`, deployed on Vercel.
+Website: https://elvrek.vercel.app (source in `web/`).
+
+Demo video (2:41): https://youtu.be/lBU1zjZX8Ok
 
 ## Why it exists
 
@@ -53,6 +55,8 @@ These rules live in `src/core/elv_core.c` and are checked independently on every
 * T10 a full shockable rhythm run: one pre-authorised shock with 806 ticks hands-off, 0 shocks off recoil, return of circulation detected, CCF 99.5%; T11 258 forged advisor demands ignored, shock still delivered, 0 violations.
 
 These runs use the explicit emulator mode (sensor timeout 50 ms, hardware watchdog 100 ms instead of 5 ms and 20 ms), because a virtual machine on a busy laptop pauses for tens of milliseconds. The first target runs did not all pass, and each failure led to a real fix: a 0.5 ms system tick so the 1 ms timer is not stretched, a force limit inside the motor driver after a paused controller let a stiff chest reach 823 N, road motion compensation moved into the driver, catch-up ticks with buffered motion samples, and a supervisor start-up bug. A second run then failed T6 and T7, which uncovered a deeper bug: replayed ticks reused the newest sample, so the movement during a pause looked like it happened in 1 ms, the force guard tripped early and strokes came up short. Speed is now measured over real hardware sample time. Two smaller fixes followed: sensor silence is counted only over time the controller was awake, and the stiff chest fault takes effect at full recoil instead of mid push. The test crew now presses whenever the device asks, like a real crew. One rule changed, and openly: T5 used to compare missed ticks with and without the storm, but on a virtual machine that measures the host (one run missed more ticks with the storm, the next fewer), so T5 now judges what the chest gets during the storm and still prints the missed ticks. The earlier partial runs are kept in `docs/results/earlier/`.
+
+At real hardware timings (5 ms sensor timeout, 20 ms hardware watchdog) the nested virtual machine is the limit: QEMU runs inside WSL2, itself a virtual machine on Windows, and its virtual CPUs can freeze for longer than 5 ms. The first strict run passed 5 of 11, and every failure was the controller correctly calling the sensors silent and retracting. With two idle threads at the lowest priority keeping the virtual CPUs awake, 9 of 11 pass, including the full shock and return of circulation; transport (T7) and the malicious advisor (T11) still trip the 5 ms timeout. Both logs are in `docs/results/` (`qnx-fault-suite-strict-timing-1.txt` and `-2-spinner.txt`). Real hardware is what settles this.
 
 On the host:
 
