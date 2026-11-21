@@ -14,7 +14,7 @@ OUT     = $(ROOT)/build/qnx-$(ARCH)
 CFLAGS  = -std=gnu11 -O2 -Wall -Wextra -Wno-missing-field-initializers \
           -I$(ROOT)/include -I$(ROOT)/src/core -I$(ROOT)/src/plant \
           -I$(ROOT)/src/ecg -I$(ROOT)/src/advisor -I$(ROOT)/src/qnx
-CORE    = $(ROOT)/src/core/elv_core.c $(ROOT)/src/core/elv_inv.c
+CORE    = $(ROOT)/src/core/elv_core.c $(ROOT)/src/core/elv_inv.c $(ROOT)/src/core/elv_cancel.c $(ROOT)/src/core/elv_rhythm.c
 PLANT   = $(ROOT)/src/plant/elv_plant.c $(ROOT)/src/ecg/elv_ecg.c
 ADV     = $(ROOT)/src/advisor/elv_advisor.c
 

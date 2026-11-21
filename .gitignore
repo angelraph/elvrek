@@ -3,3 +3,5 @@ data/
 *.mp4
 .claude/
 .vercel/
+__pycache__/
+*.npy

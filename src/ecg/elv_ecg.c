@@ -54,7 +54,17 @@ float elv_ecg_next(elv_ecg_t *e, double artifact_m)
         v = noise(e, 0.02f);
         break;
     }
-    /* compression artifact: proportional to chest displacement */
-    v += (float)(artifact_m / 0.05 * 1.5);
+    /* compression artifact, as in the rhythm evaluation: the chest follows
+       the piston 20 ms late, the response is not linear, and electrode
+       motion adds band limited noise (0.5 to 12 Hz) that the piston does
+       not predict */
+    e->art_hist[e->art_head] = artifact_m;
+    e->art_head = (e->art_head + 1) % 8;
+    double d = e->art_hist[(e->art_head + 3) % 8] / 0.05;     /* 5 samples back */
+    double wn = noise(e, 1.0f) * 1.7;
+    e->art_n1 += 0.26 * (wn - e->art_n1);
+    e->art_n2 += 0.012 * (e->art_n1 - e->art_n2);
+    double moving = artifact_m > 0.002 ? 1.0 : 0.0;
+    v += (float)(1.5 * d + 0.4 * d * d + moving * 0.35 * (e->art_n1 - e->art_n2));
     return v;
 }

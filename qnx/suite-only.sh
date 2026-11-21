@@ -32,4 +32,4 @@ sed -i 's/\r$//' "$ROOT/tests/fault_suite.sh"
 ssh $OPT "root@$IP" "slay -f elv-super elv-advisor elv-telemetry elvrekd elv-plant 2>/dev/null; sleep 1; mkdir -p /data/elvrek/bin"
 scp $OPT "$ROOT"/build/qnx-x86_64/* "root@$IP:/data/elvrek/bin/" > /dev/null
 scp $OPT "$ROOT/tests/fault_suite.sh" "root@$IP:/data/elvrek/" > /dev/null
-ssh $OPT "root@$IP" "QUICK=$QUICK EMU=$EMU sh /data/elvrek/fault_suite.sh" 2>&1 | tee "$ROOT/build/fault-suite${EMU:+-emulator}.txt"
+ssh $OPT "root@$IP" "QUICK=$QUICK EMU=$EMU TYPES=$TYPES sh /data/elvrek/fault_suite.sh" 2>&1 | tee "$ROOT/build/fault-suite${EMU:+-emulator}.txt"

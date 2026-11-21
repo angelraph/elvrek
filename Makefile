@@ -3,7 +3,7 @@ CC      ?= gcc
 CFLAGS  ?= -std=c11 -O2 -Wall -Wextra -Werror -Wno-missing-field-initializers -D_POSIX_C_SOURCE=200809L
 INC      = -Iinclude -Isrc/core -Isrc/plant -Isrc/ecg -Isrc/advisor
 
-CORE     = src/core/elv_core.c src/core/elv_inv.c
+CORE     = src/core/elv_core.c src/core/elv_inv.c src/core/elv_cancel.c src/core/elv_rhythm.c
 SIM      = src/plant/elv_plant.c src/ecg/elv_ecg.c src/advisor/elv_advisor.c
 
 build/scenarios: tests/host/scenarios.c $(CORE) $(SIM) $(wildcard include/*.h src/*/*.h)
@@ -55,3 +55,14 @@ build/rhythm_tune: tests/host/rhythm_tune.c $(CORE)
 .PHONY: rhythm-tune
 rhythm-tune: build/rhythm_tune
 	./build/rhythm_tune build/ecg/*.bin
+
+# Rhythm read through compressions: features for every window, then train
+# on CUDB and score VFDB (needs the PhysioNet files, see tools/fetch_physionet.py).
+build/zp_dump: tests/host/zp_dump.c $(CORE)
+	@mkdir -p build
+	$(CC) $(CFLAGS) $(INC) -o $@ $^ -lm
+.PHONY: zero-pause
+zero-pause: build/zp_dump
+	@mkdir -p build/zp
+	./build/zp_dump build/zp/features.csv build/ecg/*.bin
+	python3 -I tools/zp_train.py build/zp/features.csv include/elv_rhythm_model.h

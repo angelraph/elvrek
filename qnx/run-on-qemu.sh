@@ -23,8 +23,13 @@ ACCEL=no
 # A fixed address on the 172.31.1.0/24 bridge that mkqnximage sets up, so
 # the host does not need a DHCP server (dnsmasq) for the guest.
 IP=${ELV_TARGET_IP:-172.31.1.10}
+# SECPOL=open records a policy with secpolgenerate; SECPOL=secure enforces
+# POLICY (a text policy, compiled into the image). Default: no policy.
+SP="--secpol=${SECPOL:-no}"
+PP=""
+[ -n "$POLICY" ] && PP="--policy=$(cd "$ROOT" && readlink -f "$POLICY")"
 mkqnximage --type=qemu --arch=x86_64 --cpu=2 --ram=1G --tcg=$ACCEL \
-           --ip="$IP" --ssh-ident="$KEY.pub" --noprompt --build
+           --ip="$IP" --ssh-ident="$KEY.pub" --noprompt $SP $PP --build
 mkqnximage --stop > /dev/null 2>&1 || true
 # detached, so the guest keeps running after this script and its terminal end
 setsid nohup mkqnximage --run=-h --assumed-ip="$IP" > /tmp/elvrek-qemu.log 2>&1 < /dev/null &

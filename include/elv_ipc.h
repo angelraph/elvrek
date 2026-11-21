@@ -115,6 +115,8 @@ typedef struct {
     double   ccf;
     uint32_t shocks, windows, max_window, last_window, compressions, breaths;
     uint32_t max_machine, last_machine, max_human, last_human, press_retries, preauth_shocks;
+    uint32_t zp_checks, zp_skipped, zp_sure_shock, zp_unsure;
+    float    zp_mean;
     double   depth_cmd_m, force_n, pos_m, etco2;
     int      epi_prompt;
     uint32_t epi_prompts, epi_given;

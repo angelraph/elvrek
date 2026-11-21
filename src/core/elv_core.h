@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "elv_hw.h"
+#include "elv_cancel.h"
 #include "elv_proto.h"
 #include "elv_limits.h"
 
@@ -46,7 +47,7 @@ typedef enum {
 typedef enum {
     ELV_EV_START = 1, ELV_EV_WINDOW_OPEN, ELV_EV_SHOCK, ELV_EV_WINDOW_NO_SHOCK,
     ELV_EV_ROSC, ELV_EV_REARREST, ELV_EV_FAULT, ELV_EV_EPI_DUE, ELV_EV_EPI_GIVEN,
-    ELV_EV_ADVISOR_SKIP, ELV_EV_STOP
+    ELV_EV_ADVISOR_SKIP, ELV_EV_STOP, ELV_EV_ZP_SKIP, ELV_EV_ZP_SURE
 } elv_event_t;
 
 typedef struct { uint64_t tick; uint16_t type; int32_t value; } elv_log_entry_t;
@@ -76,7 +77,33 @@ typedef struct {
     uint32_t epi_prompts;
     uint32_t epi_given;
     uint64_t first_shock_tick;
+    /* rhythm read through compressions (zero pause) */
+    uint32_t zp_checks;          /* 2-minute checks decided with a verdict */
+    uint32_t zp_skipped;         /* sure not shockable: no pause at all    */
+    uint32_t zp_sure_shock;      /* sure shockable: no 0.8 s look          */
+    uint32_t zp_unsure;          /* classic 0.8 s look                     */
 } elv_metrics_t;
+
+/* Extended features for the rhythm model (see elv_rhythm_model.h). */
+#define ELV_RF_N 12
+#define ELV_RF_MAXN 1024
+#define ELV_RF_BINS 77
+/* Staged feature computation, so the work can be spread over control ticks. */
+typedef struct {
+    float    xw[ELV_RF_MAXN];
+    double   p[ELV_RF_BINS];
+    float    out[ELV_RF_N];
+    uint32_t n;
+    int      k;
+    bool     active;
+} elv_rf_t;
+void elv_rf_begin(elv_rf_t *st, const float *mv, uint32_t n);
+bool elv_rf_step(elv_rf_t *st);          /* true when the features are ready */
+void elv_rhythm_features_ext(const float *mv, uint32_t n, float out[ELV_RF_N]);
+/* Logistic score in [0, 1] from the extended features and frozen weights. */
+float elv_rhythm_score(const float feat[ELV_RF_N]);
+/* Verdict from the mean of 8 scores: +1 sure shockable, -1 sure not, 0 unsure. */
+int8_t elv_rhythm_verdict(float mean_score);
 
 typedef struct {
     /* public, read-only for telemetry and the invariant monitor */
@@ -137,6 +164,19 @@ typedef struct {
     /* ACLS clock */
     uint64_t epi_due_tick;          /* 0 = not running                       */
     bool     epi_prompt;            /* crew prompt showing                   */
+    /* rhythm read through compressions: artifact canceller on the
+       commanded compression phase, a 3 s window scored every second,
+       the last 8 scores (10 s) decide at the 2-minute check */
+    elv_cancel_t canc;
+    float    zp_buf[3 * ELV_ECG_HZ];
+    uint32_t zp_head, zp_since, zp_run;
+    float    zp_score[8];
+    uint32_t zp_nscore;
+    int8_t   zp_verdict;            /* +1 sure shockable, -1 sure not, 0 unsure */
+    bool     zp_sure;               /* this window was opened on a sure verdict */
+    bool     zp_enabled;
+    float    zp_mean;
+    elv_rf_t zp_rf;                 /* features being computed, a bin per tick */
     /* event record */
     elv_log_entry_t log[ELV_LOG_LEN];
     uint32_t log_n;
@@ -166,6 +206,7 @@ typedef struct { float ptp, flat, xing_hz, steep, fib; } elv_rhythm_feat_t;
 typedef struct { float min_ptp, max_flat, min_steep, min_xing, max_xing, min_fib; } elv_rhythm_thr_t;
 extern const elv_rhythm_thr_t ELV_RHYTHM_THR;
 void elv_rhythm_features(const float *mv, uint32_t n, elv_rhythm_feat_t *f);
+
 bool elv_rhythm_decide(const elv_rhythm_feat_t *f, const elv_rhythm_thr_t *t);
 
 #endif

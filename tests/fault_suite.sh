@@ -25,13 +25,19 @@ down() {
     slay -f elv-super elv-advisor elv-telemetry elvrekd elv-plant 2>/dev/null
     sleep 1
 }
+# TYPES=1 starts every process under its own security policy type
+T_PLANT=""; T_CTRL=""; T_SUPER=""; T_ADV=""
+if [ -n "$TYPES" ]; then
+    T_PLANT="on -T elv_plant_t"; T_CTRL="on -T elvrekd_t"; T_SUPER="on -T elv_super_t"
+    T_ADV="on -T elv_advisor_t"; ADV_TYPE="on -T elv_advisor_t"
+fi
 up() {   # $1 = plant args, $2 = advisor args
     down
-    $B/elv-plant $EF $1 &
+    $T_PLANT $B/elv-plant $EF $1 &
     sleep 1
-    $B/elvrekd $EF &
+    $T_CTRL $B/elvrekd $EF &
     sleep 1
-    $B/elv-super -- $B/elv-advisor $2 &
+    $T_SUPER $B/elv-super -- $T_ADV $B/elv-advisor $2 &
     sleep 1
 }
 # Wait on the controller's own clock, not the wall clock: on a virtual
@@ -160,12 +166,23 @@ preauth_shock 130000
 wait_ticks_for 160000 state ROSC_HOLD
 sh=$(st shocks); w=$(st max_window); so=$(truth shocks_off_recoil)
 [ "$sh" = 1 ] && [ "$w" -lt 3000 ] && [ "$so" = 0 ] && \
-    ok "T10 shock: 1 shock, hands-off window $w ticks, 0 shocks off recoil" || \
+    ok "T10 shock: 1 shock, hands-off window $w ticks (machine $(st max_machine)), 0 shocks off recoil, rhythm read through compressions: sure $(st zp_sure) unsure $(st zp_unsure)" || \
     bad "T10 shock" "shocks $sh window $w off_recoil $so fault $(st fault) missed $(st missed)"
 wait_state state ROSC_HOLD 30 && ok "T10 trusted ROSC (EtCO2): parked, ventilating" \
                               || bad "T10 ROSC" "state $(st state) fault $(st fault) missed $(st missed) inv $(st inv)"
 ccf=$(st ccf)
 ge "$ccf" 0.90 && ok "T10 chest-compression fraction $ccf" || bad "T10 CCF" "$ccf"
+
+# T12 rhythm read through compressions: a sure non-shockable rhythm passes
+# its 2-minute check with no pause at all, and nothing is shocked
+up "-r asystole" ""
+slay -f elv-super elv-advisor 2>/dev/null   # no advice: the controller's own reading decides
+$B/elv-ctl start
+wait_ticks_for 128000 zp_checks 1
+sk=$(st zp_skipped); un=$(st zp_unsure); wn=$(st windows); sh=$(st shocks)
+[ "$sh" = 0 ] && [ "${sk:-0}" -ge 1 ] && [ "$wn" = 0 ] && \
+    ok "T12 no pause: the 2-minute check read the rhythm through compressions (score $(st zp_score)), no window opened, no shock" || \
+    bad "T12 no pause" "skipped $sk unsure $un windows $wn shocks $sh score $(st zp_score)"
 
 # T11 malicious advisor
 up "-r vf" "-m"

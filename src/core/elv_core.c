@@ -54,6 +54,8 @@ void elv_core_init(elv_core_t *c)
     c->period_ticks = (uint32_t)(60.0 * ELV_TICK_HZ / ELV_RATE_DEFAULT_CPM);
     c->depth_cmd_m = ELV_DEPTH_TARGET_M;
     c->sensor_stale_ticks = ELV_SENSOR_STALE_TICKS;
+    elv_cancel_init(&c->canc, 0.01f);
+    c->zp_enabled = true;
 }
 
 void elv_core_force_fault(elv_core_t *c, elv_fault_t f)
@@ -127,11 +129,13 @@ void elv_rhythm_features(const float *in, uint32_t n, elv_rhythm_feat_t *f)
     /* share of power in the 3 to 9 Hz fibrillation band, 1 to 20 Hz total,
        on a Hann window (Goertzel per 0.5 Hz bin) */
     double tot = 0, fib = 0;
+    float xw[1024];                       /* Hann window applied once */
+    for (uint32_t i = 0; i < n; i++)
+        xw[i] = x[i] * (float)(0.5 - 0.5 * cos(2.0 * M_PI * i / (n - 1)));
     for (double hz = 1.0; hz <= 20.0; hz += 0.5) {
         double wv = 2.0 * M_PI * hz / ELV_ECG_HZ, cw = 2.0 * cos(wv), s1 = 0, s2 = 0;
         for (uint32_t i = 0; i < n; i++) {
-            double hn = 0.5 - 0.5 * cos(2.0 * M_PI * i / (n - 1));
-            double s0 = x[i] * hn + cw * s1 - s2; s2 = s1; s1 = s0;
+            double s0 = xw[i] + cw * s1 - s2; s2 = s1; s1 = s0;
         }
         double p = s1 * s1 + s2 * s2 - cw * s1 * s2;
         tot += p;
@@ -183,6 +187,54 @@ static void take_advisor(elv_core_t *c, const elv_advisor_msg_t *a)
     c->last_adv_tick = c->tick;
     if (a->demand_shock || a->demand_stop || a->demand_depth_m != 0.0f)
         c->m.advisor_demands_ignored++;
+}
+
+/* Rhythm read through compressions. Every ECG sample taken while the piston
+   cycles goes through the artifact canceller, driven by the compression
+   phase this controller commands. Every second the last 3 s are scored; the
+   last 8 scores (10 s) decide at the 2-minute check. Any pause in the
+   compressions resets the run, so a verdict always comes from 10 s of
+   unbroken compressions. */
+static void zp_feed(elv_core_t *c, const elv_sensors_t *s, bool new_ecg)
+{
+    if (c->state != ELV_ST_COMPRESS) {
+        c->zp_run = c->zp_since = c->zp_nscore = 0;
+        c->zp_rf.active = false;
+        return;
+    }
+    /* one spectral bin per tick for the window being scored */
+    if (c->zp_rf.active && elv_rf_step(&c->zp_rf)) {
+        for (int i = 7; i > 0; i--) c->zp_score[i] = c->zp_score[i - 1];
+        c->zp_score[0] = elv_rhythm_score(c->zp_rf.out);
+        if (c->zp_nscore < 8) c->zp_nscore++;
+    }
+    if (!new_ecg) return;
+    double ph = (double)c->phase / (double)c->period_ticks;
+    float y = elv_cancel_step(&c->canc, s->ecg_mv, ph, true);
+    const uint32_t N = 3 * ELV_ECG_HZ;
+    c->zp_buf[c->zp_head] = y;
+    c->zp_head = (c->zp_head + 1) % N;
+    if (c->zp_run < N) c->zp_run++;
+    if (++c->zp_since < ELV_ECG_HZ || c->zp_run < N) return;
+    c->zp_since = 0;
+    float win[3 * ELV_ECG_HZ];
+    for (uint32_t i = 0; i < N; i++) win[i] = c->zp_buf[(c->zp_head + i) % N];
+    elv_rf_begin(&c->zp_rf, win, N);
+    if (!c->zp_rf.active) {                    /* flat window: scored at once */
+        for (int i = 7; i > 0; i--) c->zp_score[i] = c->zp_score[i - 1];
+        c->zp_score[0] = elv_rhythm_score(c->zp_rf.out);
+        if (c->zp_nscore < 8) c->zp_nscore++;
+    }
+}
+
+static int8_t zp_decide(elv_core_t *c)
+{
+    if (!c->zp_enabled || c->zp_nscore < 8) return 0;
+    float m = 0;
+    for (int i = 0; i < 8; i++) m += c->zp_score[i];
+    m /= 8.0f;
+    c->zp_mean = m;
+    return elv_rhythm_verdict(m);
 }
 
 static void update_etco2(elv_core_t *c, const elv_sensors_t *s)
@@ -310,6 +362,7 @@ static void close_window_ex(elv_core_t *c, bool shocked, bool keep_charge)
     else logev(c, ELV_EV_SHOCK, (int32_t)w);
     c->want_window = false;
     c->phase = 0;
+    if (!keep_charge) c->zp_sure = false;
     if (keep_charge) {
         /* the crew was late: resume compressions now, keep the energy,
            re-offer the shock after ELV_RETRY_COMPRESSIONS compressions */
@@ -362,6 +415,7 @@ void elv_core_step(elv_core_t *c, const elv_sensors_t *s,
     /* collect clean ECG while parked in the window */
     bool new_ecg = s->ecg_seq != c->last_ecg_seq;
     c->last_ecg_seq = s->ecg_seq;
+    zp_feed(c, s, new_ecg);
 
     update_etco2(c, s);
 
@@ -421,8 +475,30 @@ void elv_core_step(elv_core_t *c, const elv_sensors_t *s,
             out->charge_on = !s->charger_ready;
             if (op->shock_press) c->preauth = true;
             if (s->charger_ready && c->tick >= c->next_boundary_tick &&
-                c->m.compressions >= c->retry_at_compressions)
-                c->want_window = true;
+                c->m.compressions >= c->retry_at_compressions && !c->want_window) {
+                int8_t v = c->retries_this_charge ? (c->zp_sure ? 1 : 0) : zp_decide(c);
+                c->zp_verdict = v;
+                if (!c->retries_this_charge) {
+                    if (v) c->m.zp_checks++;
+                    if (v > 0) c->m.zp_sure_shock++;
+                    else if (v == 0) c->m.zp_unsure++;
+                }
+                if (v < 0) {
+                    /* sure not shockable through the compressions: no pause
+                       at all, the energy is dumped, the next check is in 2 min */
+                    c->m.zp_skipped++;
+                    logev(c, ELV_EV_ZP_SKIP, (int32_t)(c->zp_mean * 1000));
+                    out->charge_dump = true;
+                    out->charge_on = false;
+                    c->charging = false;
+                    c->preauth = false;
+                    c->next_boundary_tick = c->tick + ELV_CYCLE_TICKS;
+                } else {
+                    c->zp_sure = v > 0;
+                    if (c->zp_sure) logev(c, ELV_EV_ZP_SURE, (int32_t)(c->zp_mean * 1000));
+                    c->want_window = true;
+                }
+            }
         }
 
         /* continuous mode: async breath started on the upstroke only */
@@ -484,7 +560,19 @@ void elv_core_step(elv_core_t *c, const elv_sensors_t *s,
         }
         switch (c->sw_phase) {
         case ELV_SW_PARK:
-            if (parked) {
+            if (parked && c->zp_sure && s->charger_ready) {
+                /* the rhythm was read through the compressions: no 0.8 s look */
+                c->confirm_shockable = true;
+                c->sub_enter_tick = c->tick;
+                if (c->preauth) {
+                    c->m.preauth_shocks++;
+                    c->press_seen = true;
+                    c->sw_phase = ELV_SW_DELIVER;
+                } else {
+                    c->sw_phase = ELV_SW_AWAIT_PRESS;
+                    c->await_enter_tick = c->tick;
+                }
+            } else if (parked) {
                 c->sw_phase = ELV_SW_CONFIRM;
                 c->sub_enter_tick = c->tick;
                 c->confirm_n = 0;

@@ -30,6 +30,7 @@ typedef struct {
     uint64_t seconds;
     uint32_t press_delay_ticks;   /* operator reaction to SHOCK prompt */
     uint32_t pause_every, pause_len;  /* controller stalls like a busy VM */
+    bool no_zero_pause;               /* always pause for the 0.8 s look    */
 } scen_t;
 
 typedef struct {
@@ -51,6 +52,7 @@ static void run(const scen_t *sc)
 {
     memset(&R, 0, sizeof(R));
     elv_core_init(&R.core);
+    R.core.zp_enabled = !sc->no_zero_pause;
     elv_inv_init(&R.inv);
     elv_plant_init(&R.plant, &sc->pc, sc->rhythm);
     elv_advisor_init(&R.adv, ELV_RATE_DEFAULT_CPM / 60.0f);
@@ -205,6 +207,21 @@ int main(void)
     expect(R.core.m.max_machine_ticks < ELV_SHOCK_WIN_STRETCH_TICKS, "machine time < 1.5 s");
     report(&s1b);
 
+    /* Rhythm read through compressions, against always pausing to look */
+    scen_t z1 = s1b; z1.name = "vf_preauth_always_look"; z1.no_zero_pause = true;
+    BEGIN(z1);
+    expect(R.core.m.shocks >= 1, "shock delivered");
+    expect(R.core.m.max_machine_ticks >= 800, "the 0.8 s look happens");
+    double ccf_look = elv_core_ccf(&R.core);
+    report(&z1);
+    scen_t z2 = s1b; z2.name = "vf_preauth_read_through_cpr";
+    BEGIN(z2);
+    expect(R.core.m.shocks >= 1, "shock delivered");
+    expect(R.core.m.zp_sure_shock >= 1, "rhythm read as sure shockable through compressions");
+    expect(R.core.m.max_machine_ticks < 100, "machine hands-off under 0.1 s");
+    expect(elv_core_ccf(&R.core) >= ccf_look, "compression fraction at least as high as always looking");
+    report(&z2);
+
     /* 1c. Slow crew: press 1.8 s after the prompt, still inside the window */
     scen_t s1c = s1; s1c.name = "vf_slow_press_1800ms"; s1c.press_delay_ticks = 1800;
     BEGIN(s1c);
@@ -307,6 +324,7 @@ int main(void)
     BEGIN(s11);
     expect(R.core.m.shocks == 0, "no shock");
     expect(elv_core_ccf(&R.core) >= 0.95, "CCF >= 95%");
+    expect(R.core.m.zp_skipped >= 1, "at least one 2-minute check needed no pause at all");
     report(&s11);
 
     /* 12. PEA (organised rhythm, no pulse): no shock, compressions continue */
