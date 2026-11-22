@@ -12,7 +12,7 @@
 <link rel="icon" href="/assets/elvrek-logo.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/site.css?v=202611201230">
+<link rel="stylesheet" href="/assets/css/site.css?v=202611221100">
 </head>
 <body data-page="home">
 <div data-header></div>
@@ -53,7 +53,7 @@
         <div class="stat"><div class="num" data-count="1">1<small>ms</small></div><p>Control tick. The safety process wakes a thousand times a second on a QNX timer pulse.</p></div>
         <div class="stat"><div class="num" data-count="0.80">0.80<small>s</small></div><p>Machine time in the shock window: park, confirm, discharge. The crew's time is counted separately.</p></div>
         <div class="stat"><div class="num" data-count="600">600<small>N</small></div><p>Force ceiling on the chest. Above it the controller stops pushing and backs off.</p></div>
-        <div class="stat"><div class="num" data-count="11">11<small>/11</small></div><p>Fault cases passed on real QNX 8.0: attacks, crashes, CPU storms, a stiff chest, transport and a full shock.</p></div>
+        <div class="stat"><div class="num" data-count="3">3<small>ticks</small></div><p>Hands-off for a shock on real QNX 8.0. Elvrek reads the rhythm through its own compressions, so it only stops for the shock itself.</p></div>
       </div>
     </div>
   </section>
@@ -184,7 +184,7 @@
 </div>
 
 <div data-footer></div>
-<script src="/assets/js/site.js?v=202611201230"></script>
-<script src="/assets/js/player.js?v=202611201230"></script>
+<script src="/assets/js/site.js?v=202611221100"></script>
+<script src="/assets/js/player.js?v=202611221100"></script>
 </body>
 </html>

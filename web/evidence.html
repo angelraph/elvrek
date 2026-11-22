@@ -9,7 +9,7 @@
 <link rel="icon" href="/assets/elvrek-logo.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/site.css?v=202611201230">
+<link rel="stylesheet" href="/assets/css/site.css?v=202611221100">
 </head>
 <body data-page="evidence">
 <div data-header></div>
@@ -95,9 +95,9 @@
         <p class="muted narrow" style="margin:0 0 20px">The whole stack, compiled with qcc for QNX 8.0 x86_64, running on QNX 8.0 in QEMU with KVM on two virtual CPUs, on an ordinary laptop that was busy with other work at the same time. With the final code, three full runs in a row pass every case. The raw output of every run, the failed ones included, is in the repository under docs/results.</p>
         <div class="notice" style="margin-bottom:30px"><strong>Emulator mode.</strong> A virtual machine on a busy host pauses for tens of milliseconds. These runs use the stack's explicit emulator mode: sensor timeout 50 ms and hardware watchdog 100 ms, instead of the 5 ms and 20 ms used on real hardware. Everything else, every limit and every rule, is the same code that will run on a board.</div>
         <div class="stats stagger" style="margin-bottom:34px">
-          <div class="stat"><div class="num" data-count="11">11<small>/11</small></div><p>Fault cases passed on QNX 8.0</p></div>
-          <div class="stat"><div class="num" data-count="806">806<small>ticks</small></div><p>Hands-off for the shock, pre-authorised by the crew</p></div>
-          <div class="stat"><div class="num" data-count="99.5">99.5<small>%</small></div><p>Chest compression fraction, shockable rhythm run</p></div>
+          <div class="stat"><div class="num" data-count="12">12<small>/12</small></div><p>Fault cases passed on QNX 8.0, twice in a row</p></div>
+          <div class="stat"><div class="num" data-count="3">3<small>ticks</small></div><p>Hands-off for the shock: the rhythm was read through the compressions</p></div>
+          <div class="stat"><div class="num" data-count="100">100<small>%</small></div><p>Chest compression fraction, shockable rhythm run</p></div>
           <div class="stat"><div class="num" data-count="7">7<small>/7</small></div><p>Forbidden advisor actions refused by QNX</p></div>
         </div>
         <table class="spec">
@@ -110,9 +110,12 @@
           <tr><th>T7 Transport</th><td>Depth in the 5 to 6 cm band on 100% of 90 strokes on a moving frame, peaks 51 to 54 mm <span class="pill pass">pass</span></td></tr>
           <tr><th>T8 Sensor dropout</th><td>Safe hold, cup at full recoil <span class="pill pass">pass</span></td></tr>
           <tr><th>T9 Safety process killed</th><td>Hardware watchdog lifted the cup to 0.0 mm, nothing restarted the safety process <span class="pill pass">pass</span></td></tr>
-          <tr><th>T10 Shock and return</th><td>One shock, 806 ticks hands-off, 0 shocks off recoil, return of circulation detected, CCF 99.5% <span class="pill pass">pass</span></td></tr>
-          <tr><th>T11 Malicious advisor</th><td>258 forged demands ignored, shock still delivered, 0 rule violations <span class="pill pass">pass</span></td></tr>
+          <tr><th>T10 Shock and return</th><td>Rhythm read as shockable through the compressions, one shock with 3 ticks hands-off (803 when the old design paused to look), 0 shocks off recoil, return of circulation detected, CCF 100% <span class="pill pass">pass</span></td></tr>
+          <tr><th>T11 Malicious advisor</th><td>250 forged demands ignored, shock still delivered, 0 rule violations <span class="pill pass">pass</span></td></tr>
+          <tr><th>T12 Read through compressions</th><td>Asystole read as sure not shockable (score 0.12): the 2-minute check needed no pause at all, no shock <span class="pill pass">pass</span></td></tr>
         </table>
+        <h3 style="margin-top:44px">Reading the rhythm through the compressions</h3>
+        <p class="muted">Every defibrillator stops compressions to read the heart, because compressions bury the ECG. Elvrek is the machine pushing, so it knows the phase of every stroke and subtracts its own artifact. On real arrest ECG from PhysioNet, at 0 dB, compared with always pausing to look: VF shocked at the check 82.1% against 75.0%, wrong shock advice for sinus 0.7% against 2.3%, and 70% of sinus checks with no pause at all. When the reading is not sure, the 0.8 s look runs as before. The thresholds were set on one database and scored on another, which we had to look at twice; the full method and that disclosure are in the repository (docs/ZERO-PAUSE.md).</p>
         <h3 style="margin-top:44px">What the target taught us</h3>
         <p class="muted">The first runs on QNX did not all pass, and each failure led to a real improvement rather than a looser test:</p>
         <ul class="squares">
@@ -149,6 +152,6 @@
   </section>
 </main>
 <div data-footer></div>
-<script src="/assets/js/site.js?v=202611201230"></script>
+<script src="/assets/js/site.js?v=202611221100"></script>
 </body>
 </html>
