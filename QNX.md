@@ -52,6 +52,10 @@ Starts the plant, then the safety process, then the supervisor and the classifie
 
 ## Security policy: `qnx/secpol/`
 
+Enforced. The image is built with `mkqnximage --secpol=secure` and the policy in [`qnx/secpol/elvrek.pol`](qnx/secpol/elvrek.pol), which was recorded with `secpolgenerate` while the whole fault suite ran and then tightened by hand. Every Elvrek process runs under its own type. Because a QNX channel takes its creator's type, advice goes through a separate process, [`elv-advice-gate`](src/qnx/elv_advice_gate.c) (`elv_gate_t`), and the advisor may connect to that and nothing else. The supervisor spawns the advisor into its type with `secpol_posix_spawnattr_settypeid()`. Results, including an A/B attack test, are in [`qnx/secpol/README.md`](qnx/secpol/README.md).
+
+## Security policy draft (superseded)
+
 A draft policy in the QNX 8.0 policy language gives each process its own type, and the advice channel its own type, so the classifier can be allowed to talk to `/dev/elvrek/advice` and nothing else. It is not compiled or enforced yet; today the fence is the unprivileged user and locked abilities, which is what T3 tests. [`qnx/secpol/README.md`](qnx/secpol/README.md) describes how it will be generated with `secpolgenerate` and tightened.
 
 ## Emulator mode

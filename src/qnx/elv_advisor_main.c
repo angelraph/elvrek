@@ -80,11 +80,13 @@ static int attack(void)
 
 int main(int argc, char **argv)
 {
-    bool malicious = false, do_attack = false;
+    bool malicious = false, do_attack = false, stay_root = false;
     long hang_after = 0;
     int opt;
-    while ((opt = getopt(argc, argv, "mH:a")) != -1) {
+    while ((opt = getopt(argc, argv, "mH:aR")) != -1) {
         if (opt == 'm') malicious = true;
+        else if (opt == 'R') stay_root = true;   /* test only: attack as root, so
+                                                   only the kernel policy can refuse */
         else if (opt == 'H') hang_after = atol(optarg);
         else if (opt == 'a') do_attack = true;
     }
@@ -105,6 +107,10 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    if (stay_root && do_attack) {
+        printf("attack: TEST MODE, staying root (uid %d): only the security policy can refuse\n", (int)geteuid());
+        return attack();
+    }
     drop_privileges();
     if (do_attack) return attack();
 

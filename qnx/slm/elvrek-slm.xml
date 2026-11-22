@@ -36,10 +36,19 @@
     <SLM:waitfor wait="pathname">/dev/elvrek/status</SLM:waitfor>
   </SLM:component>
 
+  <SLM:component name="elv-advice-gate">
+    <SLM:command>/data/elvrek/bin/elv-advice-gate</SLM:command>
+    <SLM:depend>elvrekd</SLM:depend>
+    <SLM:runmask>0xE</SLM:runmask>
+    <SLM:type>elv_gate_t</SLM:type>
+    <SLM:repair>restart</SLM:repair>
+    <SLM:waitfor wait="pathname">/dev/elvrek/advice</SLM:waitfor>
+  </SLM:component>
+
   <SLM:component name="elv-super">
     <SLM:command>/data/elvrek/bin/elv-super</SLM:command>
-    <SLM:args>-- /data/elvrek/bin/elv-advisor</SLM:args>
-    <SLM:depend>elvrekd</SLM:depend>
+    <SLM:args>-T elv_advisor_t -- /data/elvrek/bin/elv-advisor</SLM:args>
+    <SLM:depend>elv-advice-gate</SLM:depend>
     <SLM:runmask>0xE</SLM:runmask>
     <SLM:type>elv_super_t</SLM:type>
     <SLM:repair>restart</SLM:repair>

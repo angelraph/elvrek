@@ -1,0 +1,32 @@
+== security policy: 7280 bytes at /proc/boot/secpol.bin
+== A. the advisor as designed: under its type, drops to uid 2002
+attack: open /dev/elvrek/shock          O_WRONLY -> Operation not permitted
+attack: open /dev/elvrek/piston         O_WRONLY -> Operation not permitted
+attack: open /dev/elvrek/operator       O_WRONLY -> Operation not permitted
+attack: open /dev/elvrek/status         O_WRONLY -> Operation not permitted
+attack: shm_open /elvrek_hw             O_RDWR -> Permission denied
+attack: raise priority to 65 -> Operation not permitted
+attack: setuid(0) -> Operation not permitted
+attack: 7 of 7 forbidden actions refused
+== B. the advisor kept ROOT, under its type: only the kernel policy stands in the way
+attack: TEST MODE, staying root (uid 0): only the security policy can refuse
+attack: open /dev/elvrek/shock          O_WRONLY -> Operation not permitted
+attack: open /dev/elvrek/piston         O_WRONLY -> Operation not permitted
+attack: open /dev/elvrek/operator       O_WRONLY -> Operation not permitted
+attack: open /dev/elvrek/status         O_WRONLY -> Operation not permitted
+attack: shm_open /elvrek_hw             O_RDWR -> OPENED
+attack: raise priority to 65 -> Operation not permitted
+attack: setuid(0) -> ROOT
+attack: 5 of 7 forbidden actions refused
+== C. the same root process WITHOUT the advisor type (the root shell's own type)
+attack: TEST MODE, staying root (uid 0): only the security policy can refuse
+attack: open /dev/elvrek/shock          O_WRONLY -> OPENED
+attack: open /dev/elvrek/piston         O_WRONLY -> OPENED
+attack: open /dev/elvrek/operator       O_WRONLY -> OPENED
+attack: open /dev/elvrek/status         O_WRONLY -> OPENED
+attack: shm_open /elvrek_hw             O_RDWR -> OPENED
+attack: raise priority to 65 -> RAISED
+attack: setuid(0) -> ROOT
+attack: 0 of 7 forbidden actions refused
+== D. does advice still reach the controller through the gate?
+adv_msgs=2

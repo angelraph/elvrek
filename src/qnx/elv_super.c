@@ -22,6 +22,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include "elv_ipc.h"
+#ifdef __QNX__
+#include <secpol/secpol.h>
+#endif
 
 extern char **environ;
 
@@ -56,10 +59,13 @@ int main(int argc, char **argv)
 {
     long hang_ms = 3000;
     int opt;
-    while ((opt = getopt(argc, argv, "H:")) != -1)
+    const char *adv_type = NULL;          /* -T: spawn the advisor under this type */
+    while ((opt = getopt(argc, argv, "H:T:")) != -1) {
         if (opt == 'H') hang_ms = atol(optarg);
+        else if (opt == 'T') adv_type = optarg;
+    }
     if (optind >= argc) {
-        fprintf(stderr, "usage: elv-super [-H hang_ms] -- advisor [args]\n");
+        fprintf(stderr, "usage: elv-super [-H hang_ms] [-T type] -- advisor [args]\n");
         return 2;
     }
     char **child = &argv[optind];
@@ -84,7 +90,24 @@ int main(int argc, char **argv)
         }
         seen = 1;
         if (pid <= 0) {
-            if (posix_spawn(&pid, child[0], NULL, NULL, child, environ) != 0) {
+            /* With a security policy in force, the advisor is spawned
+               straight into its own type, so it never runs as ours. */
+            posix_spawnattr_t attr, *ap = NULL;
+            posix_spawnattr_init(&attr);
+#ifdef __QNX__
+            if (adv_type) {
+                if (secpol_posix_spawnattr_settypeid(NULL, &attr, adv_type, SECPOL_TYPE_NAME) == 0)
+                    ap = &attr;
+                else
+                    fprintf(stderr, "elv-super: no type %s (%s), spawning without one\n",
+                            adv_type, strerror(errno));
+            }
+#else
+            (void)adv_type;
+#endif
+            int sr = posix_spawn(&pid, child[0], NULL, ap, child, environ);
+            posix_spawnattr_destroy(&attr);
+            if (sr != 0) {
                 perror("elv-super: spawn");
                 pid = -1;
                 sleep(1);

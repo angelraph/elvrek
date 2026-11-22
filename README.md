@@ -26,7 +26,7 @@ Built for the **QNX Global Hackathon**, Robotics and Medical category.
 | **On QNX 8.0** | **12 of 12** fault cases pass with the rhythm read through compressions, two full runs in a row ([raw output](docs/results/)) |
 | **Reads the rhythm through compressions** | The controller cancels its own compression artifact using the piston phase it commands, so most rhythm checks need no pause at all. On real arrest ECG (VFDB, 0 dB): VF shocked 82.1% against 75.0% for always pausing, and wrong shock advice falls by two thirds ([details](docs/ZERO-PAUSE.md)) |
 | **Shock window** | 4 ticks of machine time on QNX when the rhythm was read through the compressions; 803 ticks (park, 0.8 s look, discharge) when it was not sure. The crew's time is counted separately |
-| **AI fence** | **7 of 7** forbidden actions by the classifier refused by QNX |
+| **AI fence** | An enforced QNX security policy: the classifier's only door is a separate advice gate. 7 of 7 forbidden actions refused; kept as root under its type, the kernel still refuses every path to the piston and shock line ([A/B](docs/results/qnx-secpol-attack-ab.txt)) |
 | **Hard limits** | The controller stops pushing at 600 N and 650 N is never crossed. Depth 5 to 6 cm, full recoil every stroke |
 | **Host tests** | **22 of 22** scenarios with 0 rule violations, run on every push by GitHub Actions |
 | **Real ECG** | 57 PhysioNet arrest records. Held out: VF found 75.0%, normal sinus left alone 97.7%. Still short of clinical goals, and we say so |
@@ -64,6 +64,8 @@ QNX is what makes the split between "may decide" and "may only suggest" real:
 | `ClockPeriod`, `ClockCycles` | The safety process reads the system tick it runs on and measures every late or missed tick |
 | Resource managers (`resmgr_attach`) | `/dev/elvrek/status`, `advice`, `operator`, `piston` and `shock`: the only doors to the hardware |
 | `procmgr_ability` and an unprivileged user | The classifier **cannot climb back**: no root, no priority raise, no hardware memory |
+| Security policy (`secpolgenerate`, `secpolcompile`, `--secpol=secure`) | Every process under its own type; the classifier may connect to the advice gate and nothing else, enforced by the kernel ([qnx/secpol](qnx/secpol/README.md)) |
+| `secpol_posix_spawnattr_settypeid` | The supervisor spawns the classifier straight into its own type |
 | System Launch and Monitor | Starts the stack in order and marks the safety process `repair none` |
 | `slog2` | The event log of every state change and fault |
 
@@ -159,7 +161,8 @@ Five features on 0.8 s of clean ECG, including the share of power in the 3 to 9 
  |  rhythm classifier, untrusted            restarts the advisor,         |
  |        |  advice only                    never the safety process      |
  |        v                                                               |
- |  /dev/elvrek/advice                                                    |
+ |  elv-advice-gate  (type elv_gate_t, uid 2003): /dev/elvrek/advice,      |
+ |  the advisor's only door; forwards to the root-only advice_core         |
  |        |                                                               |
  |  elvrekd  (SCHED_FIFO 60, 1 ms timer pulse on a private channel)        |
  |  state machine and independent monitor; owns piston, breaths,          |
@@ -178,6 +181,7 @@ Five features on 0.8 s of clean ECG, including the share of power in the 3 to 9 
 | `elvrekd` | 60 | root, abilities locked | Owns everything that touches the patient | The driver watchdog lifts the cup; nobody restarts it |
 | `elv-plant` | 62 | root | Stands in for the motor driver and sensors | (hardware) |
 | `elv-advisor` | 10 | uid 2002, abilities locked | Suggests a rhythm | The supervisor restarts it; compressions continue |
+| `elv-advice-gate` | 10 | uid 2003, abilities locked | The advisor's only door to the safety process | SLM restarts it |
 | `elv-super` | 10 | root | Watches the advisor and reports on the safety process | Started by SLM |
 | `elv-telemetry` | 12 | root | Streams status for a crew screen | Optional |
 | `elv-ctl`, `elv-fault` | | root | Crew controls, and fault injection for tests | |
@@ -212,6 +216,7 @@ These rules live in `src/core/elv_core.c` and are checked again, independently, 
 | 20 Nov 2026 | A repeat run uncovered a deeper bug in replayed ticks. Fixed, new stall tests added, then clean runs in a row |
 | 20 Nov 2026 | Strict timing runs, the demo film with real QNX output, and the submission |
 | 20 Nov 2026 | Writing the codelab showed `ClockPeriod` cannot change the tick on QNX 8.0 in QEMU; the controller now reads it instead, and a third clean run followed |
+| 22 Nov 2026 | Security policy recorded with secpolgenerate, tightened and enforced; advice gate process; 12 of 12 with the policy enforced; A/B attack test |
 | 21 to 22 Nov 2026 | Reading the rhythm through the compressions: piston-referenced artifact canceller, rhythm model trained on CUDB, spread over control ticks; a lost charge dump found and fixed; 12 of 12 on QNX twice, with 3 ticks of hands-off for the shock |
 
 ## Quickstart
@@ -264,7 +269,7 @@ web/            the website, deployed on Vercel
 | [RESULTS.md](RESULTS.md) | Every run on QNX, what failed and what it taught us |
 | [video/README.md](video/README.md) | How the demo film was made |
 | [Codelab: a 1 ms control loop that fails safe](codelab/fail-safe-control-loop/fail-safe-control-loop.md) | A step by step QNX 8.0 tutorial built from what Elvrek taught us, with runnable code. Submitted to the official QNX codelabs as [pull request 81](https://github.com/qnx/codelabs/pull/81) |
-| [qnx/secpol/README.md](qnx/secpol/README.md) | The security policy types and how to generate the policy |
+| [qnx/secpol/README.md](qnx/secpol/README.md) | The enforced security policy: how it was recorded and tightened, the advice gate, and the A/B attack results |
 | [DATA-NOTICE.md](DATA-NOTICE.md) | PhysioNet data and photo credits |
 
 ## Risks and limits
@@ -273,7 +278,7 @@ web/            the website, deployed on Vercel
 * **Physics model, not hardware.** The piston and chest are modelled. The next step is a Raspberry Pi 5, a linear actuator, a load cell, a recoil switch, a mechanical stop and a lamp instead of a shock, on a training manikin only.
 * **Rhythm check.** On held-out real ECG it does not yet meet clinical goals (VF above 90%, sinus above 99%, asystole above 95%), so the 0.8 s step is a careful timed pause, not a diagnosis.
 * **Timing in a virtual machine.** The 11 of 11 runs use the labelled emulator mode. At real hardware timings, a nested VM passes 9 of 11.
-* **Security policy.** Today the classifier is fenced by an unprivileged user and locked abilities. The QNX security policy is drafted but not yet enforced.
+* **Security policy.** Enforced on the QNX image. A classifier that somehow stayed root under its type could still open the hardware shared memory, which this policy does not govern; the real classifier drops root first, which closes it ([details](qnx/secpol/README.md)).
 * **Performance results.** Timing is reported in control ticks and PASS or FAIL, not microseconds, while the QNX Everywhere licence question about publishing performance results is open.
 
 ## Data and licence

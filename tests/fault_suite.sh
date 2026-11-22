@@ -22,14 +22,14 @@ ge()   { awk -v a="$1" -v b="$2" 'BEGIN{exit !(a>=b)}'; }
 le()   { awk -v a="$1" -v b="$2" 'BEGIN{exit !(a<=b)}'; }
 
 down() {
-    slay -f elv-super elv-advisor elv-telemetry elvrekd elv-plant 2>/dev/null
+    slay -f elv-super elv-advisor elv-advice-gate elv-telemetry elvrekd elv-plant 2>/dev/null
     sleep 1
 }
 # TYPES=1 starts every process under its own security policy type
-T_PLANT=""; T_CTRL=""; T_SUPER=""; T_ADV=""
+T_PLANT=""; T_CTRL=""; T_SUPER=""; S_ADV=""; T_GATE=""
 if [ -n "$TYPES" ]; then
-    T_PLANT="on -T elv_plant_t"; T_CTRL="on -T elvrekd_t"; T_SUPER="on -T elv_super_t"
-    T_ADV="on -T elv_advisor_t"; ADV_TYPE="on -T elv_advisor_t"
+    T_PLANT="on -T elv_plant_t"; T_CTRL="on -T elvrekd_t"; T_SUPER="on -T elv_super_t"; T_GATE="on -T elv_gate_t"
+    S_ADV="-T elv_advisor_t"; ADV_TYPE="on -T elv_advisor_t"
 fi
 up() {   # $1 = plant args, $2 = advisor args
     down
@@ -37,7 +37,8 @@ up() {   # $1 = plant args, $2 = advisor args
     sleep 1
     $T_CTRL $B/elvrekd $EF &
     sleep 1
-    $T_SUPER $B/elv-super -- $T_ADV $B/elv-advisor $2 &
+    $T_GATE $B/elv-advice-gate &
+    $T_SUPER $B/elv-super $S_ADV -- $B/elv-advisor $2 &
     sleep 1
 }
 # Wait on the controller's own clock, not the wall clock: on a virtual

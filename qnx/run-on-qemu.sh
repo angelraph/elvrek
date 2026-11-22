@@ -47,5 +47,6 @@ $SSH "mkdir -p /data/elvrek/bin"
 $SCP "$ROOT"/build/qnx-x86_64/* "root@$IP:/data/elvrek/bin/"
 $SCP "$ROOT/tests/fault_suite.sh" "root@$IP:/data/elvrek/"
 $SSH "uname -a; pidin info | head -3"
+[ -n "$BOOT_ONLY" ] && { echo "Booted; suite not run (BOOT_ONLY)"; exit 0; }
 $SSH "QUICK=$QUICK sh /data/elvrek/fault_suite.sh" 2>&1 | tee "$ROOT/build/fault-suite.txt"
 echo "Saved to build/fault-suite.txt"

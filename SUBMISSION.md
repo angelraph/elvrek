@@ -46,6 +46,7 @@ It runs on QNX 8.0 and most of what makes it safe comes from QNX: a 1 ms timer p
 | Shock on 803 ticks of machine time, then return of circulation | Case T10, and 1:36 in the video |
 | Safety process killed, cup lifted to 0.0 mm, never restarted | Case T9, and 1:53 in the video |
 | Runs at real hardware timings | [`qnx-fault-suite-strict-timing-1.txt`](docs/results/qnx-fault-suite-strict-timing-1.txt) (5 of 11), [`-2-spinner.txt`](docs/results/qnx-fault-suite-strict-timing-2-spinner.txt) (9 of 11) |
+| Enforced security policy, 12 of 12 under it, and the A/B attack test | [qnx/secpol/README.md](qnx/secpol/README.md) |
 | Every failed run, and what it taught us | [RESULTS.md](RESULTS.md) |
 | 22 of 22 host scenarios | `make test`, run on every push by GitHub Actions |
 

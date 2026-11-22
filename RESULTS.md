@@ -37,6 +37,15 @@ Before run 1, the very first target runs also forced two fixes that are now part
 
 T12 tests what must always hold: the 2-minute check is decided from the compressions, nothing is shocked, and the pause is either zero (sure) or the 0.8 s look (not sure). Earlier versions of T12 demanded a skip every time; that tested chance, because on VFDB only about half of asystole checks are sure. Method and numbers: [docs/ZERO-PAUSE.md](docs/ZERO-PAUSE.md).
 
+## With the security policy enforced
+
+| File | Result | What happened |
+|---|---|---|
+| [`qnx-fault-suite-secpol-enforced-1.txt`](docs/results/qnx-fault-suite-secpol-enforced-1.txt) | **12 of 12** | Enforcing image, every process under its own type, advice through the gate |
+| [`qnx-secpol-attack-ab.txt`](docs/results/qnx-secpol-attack-ab.txt) | 7 / 5 / 0 of 7 | Advisor attack as designed, kept root under its type, and root without the type |
+
+While recording, T3 refused only 5 of 7: recording mode lets everything through, which is how the recorder learns. The supervisor could not yet spawn the advisor under a type, which led to `elv-super -T`.
+
 ## The replayed tick bug
 
 When the virtual machine paused, the controller woke late and replayed the ticks it had missed, feeding each one the newest sensor sample. The first replayed tick therefore saw the whole movement of the pause as if it had happened in one millisecond. That looked like a very fast piston, so the force guard stopped the stroke early and the controller cut its target depth by 2 mm. Every pause shrank the strokes a little more.

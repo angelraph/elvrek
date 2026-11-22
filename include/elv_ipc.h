@@ -32,7 +32,8 @@
 #define ELV_SHM_FLT  "/elvrek_flt"
 #define ELV_DEV_DIR      "/dev/elvrek"
 #define ELV_DEV_STATUS   ELV_DEV_DIR "/status"
-#define ELV_DEV_ADVICE   ELV_DEV_DIR "/advice"
+#define ELV_DEV_ADVICE   ELV_DEV_DIR "/advice"       /* served by elv-advice-gate */
+#define ELV_DEV_ADVICE_CORE ELV_DEV_DIR "/advice_core" /* elvrekd, root only: the gate forwards here */
 #define ELV_DEV_OPERATOR ELV_DEV_DIR "/operator"
 #define ELV_DEV_PISTON   ELV_DEV_DIR "/piston"
 #define ELV_DEV_SHOCK    ELV_DEV_DIR "/shock"

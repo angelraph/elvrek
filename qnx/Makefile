@@ -18,7 +18,7 @@ CORE    = $(ROOT)/src/core/elv_core.c $(ROOT)/src/core/elv_inv.c $(ROOT)/src/cor
 PLANT   = $(ROOT)/src/plant/elv_plant.c $(ROOT)/src/ecg/elv_ecg.c
 ADV     = $(ROOT)/src/advisor/elv_advisor.c
 
-BINS = elvrekd elv-plant elv-advisor elv-ctl elv-fault elv-telemetry elv-super
+BINS = elvrekd elv-plant elv-advisor elv-ctl elv-fault elv-telemetry elv-super elv-advice-gate
 all: $(addprefix $(OUT)/,$(BINS))
 
 $(OUT):
@@ -37,8 +37,11 @@ $(OUT)/elv-fault: $(ROOT)/src/qnx/elv_fault.c | $(OUT)
 $(OUT)/elv-telemetry: $(ROOT)/src/qnx/elv_telemetry.c | $(OUT)
 	$(QCC) $(CFLAGS) -o $@ $^ -lsocket
 $(OUT)/elv-super: $(ROOT)/src/qnx/elv_super.c | $(OUT)
-	$(QCC) $(CFLAGS) -o $@ $^
+	$(QCC) $(CFLAGS) -o $@ $^ -lsecpol
 
 clean:
 	rm -rf $(OUT)
 .PHONY: all clean
+
+$(OUT)/elv-advice-gate: $(ROOT)/src/qnx/elv_advice_gate.c | $(OUT)
+	$(QCC) $(CFLAGS) -o $@ $^

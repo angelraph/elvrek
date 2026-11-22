@@ -475,13 +475,15 @@ int main(int argc, char **argv)
     attach(dpp, &ra, ELV_DEV_PISTON,   &a_piston,   0400);
     attach(dpp, &ra, ELV_DEV_SHOCK,    &a_shock,    0400);
 
-    /* The advice device lives on its own dispatch, so its own channel. Under
-       the security policy that channel gets its own type
-       (allow_attach elvrekd_t /dev/elvrek/advice elv_advice_t), and the
-       advisor's type may connect to that channel and nothing else. */
+    /* Advice reaches us only through elv-advice-gate, a separate process
+       with its own security type that serves /dev/elvrek/advice to the
+       advisor. Our side, advice_core, is root only, and under the security
+       policy only the gate's type may connect to this process at all.
+       It keeps its own dispatch thread so advice never queues behind
+       status reads. */
     dispatch_t *dpp_adv = dispatch_create();
     if (!dpp_adv) die("dispatch_create advice");
-    attach(dpp_adv, &ra, ELV_DEV_ADVICE, &a_advice, 0622);
+    attach(dpp_adv, &ra, ELV_DEV_ADVICE_CORE, &a_advice, 0600);
 
     pthread_attr_t ta;
     pthread_attr_init(&ta);
