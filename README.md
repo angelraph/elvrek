@@ -29,6 +29,7 @@ Built for the **QNX Global Hackathon**, Robotics and Medical category.
 | **AI fence** | An enforced QNX security policy: the classifier's only door is a separate advice gate. 7 of 7 forbidden actions refused; kept as root under its type, the kernel still refuses every path to the piston and shock line ([A/B](docs/results/qnx-secpol-attack-ab.txt)) |
 | **Hard limits** | The controller stops pushing at 600 N and 650 N is never crossed. Depth 5 to 6 cm, full recoil every stroke |
 | **Kernel trace** | QNX `tracelogger`: control work per tick median 27 to 37 µs, 0 ticks past 1 ms; under a priority 59 CPU storm the controller preempts it within 42 µs ([docs/TIMING.md](docs/TIMING.md)) |
+| **Crew console** | Drawn with QNX Screen on the target, read only, from the safety process's status. Every frame saved from Screen matches the host replay pixel for pixel; switching it on makes no difference to missed ticks that we can measure on this emulator ([docs/CONSOLE.md](docs/CONSOLE.md)) |
 | **Host tests** | **22 of 22** scenarios with 0 rule violations, run on every push by GitHub Actions |
 | **Real ECG** | 57 PhysioNet arrest records. Held out: VF found 75.0%, normal sinus left alone 97.7%. Still short of clinical goals, and we say so |
 | **Website** | 12 pages: landing, system, technology, evidence, recorded run, FAQ and more, on desktop and phone |
@@ -107,6 +108,7 @@ Raw output: [`docs/results/qnx-fault-suite-zero-pause-1.txt`](docs/results/qnx-f
 
 | | |
 |---|---|
+| ![Crew console on QNX Screen](media/console/2-charging.png) | **Crew console on QNX 8.0.** Charging while the piston keeps working, the next rhythm check, and the EtCO2 trend, drawn with QNX Screen |
 | ![Landing page](media/landing.jpg) | **Landing.** The arm pressing on a patient's chest, and the case for one clock |
 | ![The system](media/system.jpg) | **The system.** Charge while compressing, park only to shock, machine time and human time kept apart |
 | ![Technology](media/technology.jpg) | **Technology.** The AI may suggest. QNX decides who may touch |
@@ -219,6 +221,7 @@ These rules live in `src/core/elv_core.c` and are checked again, independently, 
 | 20 Nov 2026 | Writing the codelab showed `ClockPeriod` cannot change the tick on QNX 8.0 in QEMU; the controller now reads it instead, and a third clean run followed |
 | 22 Nov 2026 | Security policy recorded with secpolgenerate, tightened and enforced; advice gate process; 12 of 12 with the policy enforced; A/B attack test |
 | 21 to 22 Nov 2026 | Reading the rhythm through the compressions: piston-referenced artifact canceller, rhythm model trained on CUDB, spread over control ticks; a lost charge dump found and fixed; 12 of 12 on QNX twice, with 3 ticks of hands-off for the shock |
+| 22 Nov 2026 | Kernel trace timing proof with tracelogger. Crew console on QNX Screen; its first real run showed the depth, rate and rounding fixes it needed, and every saved Screen frame now matches the host replay |
 
 ## Quickstart
 
@@ -249,7 +252,8 @@ src/core/       state machine (elv_core) and the independent monitor (elv_inv)
 src/plant/      physics model and motor driver stand-in
 src/ecg/        synthetic ECG for the plant
 src/advisor/    rhythm classifier
-src/qnx/        the QNX processes: elvrekd, elv-plant, elv-advisor, elv-super, elv-ctl, elv-fault, elv-telemetry
+src/qnx/        the QNX processes: elvrekd, elv-plant, elv-advisor, elv-advice-gate, elv-super, elv-console, elv-ctl, elv-fault, elv-telemetry
+src/console/    the crew screen's drawing code, shared by the QNX console and the host replay
 qnx/            qcc Makefile, build and image scripts, SLM config, security policy draft
 tests/          host scenarios, ECG evaluation, on-target fault suite
 tools/          PhysioNet fetcher, QEMU and SDP setup
@@ -268,6 +272,7 @@ web/            the website, deployed on Vercel
 | [QNX.md](QNX.md) | Exactly how and where QNX 8.0 is used, file by file |
 | [SAFETY.md](SAFETY.md) | The safety rules, the monitor, and what the controller will never do |
 | [RESULTS.md](RESULTS.md) | Every run on QNX, what failed and what it taught us |
+| [docs/CONSOLE.md](docs/CONSOLE.md) | The crew console on QNX Screen, and how its pictures are checked against the target |
 | [docs/TIMING.md](docs/TIMING.md) | Timing from a QNX kernel trace, and what a virtual machine cannot prove |
 | [video/README.md](video/README.md) | How the demo film was made |
 | [Codelab: a 1 ms control loop that fails safe](codelab/fail-safe-control-loop/fail-safe-control-loop.md) | A step by step QNX 8.0 tutorial built from what Elvrek taught us, with runnable code. Submitted to the official QNX codelabs as [pull request 81](https://github.com/qnx/codelabs/pull/81) |

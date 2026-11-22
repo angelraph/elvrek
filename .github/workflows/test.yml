@@ -16,3 +16,5 @@ jobs:
         run: make host-procs
       - name: Smoke test of the portable processes
         run: sh tests/host/smoke_procs.sh
+      - name: Crew console drawing and replay build, six previews
+        run: make console

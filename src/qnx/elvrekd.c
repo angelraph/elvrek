@@ -100,7 +100,7 @@ static int format_status(char *buf, size_t len)
         "inv=%u missed=%llu late=%llu overrun=%llu adv_age=%llu adv_msgs=%u "
         "adv_rejected=%u adv_ignored=%u adv_skips=%u shock_line=%d vent=%d charge=%d "
         "ready=%d transport=%d mode_30_2=%d force_limits=%u emulator=%d "
-        "zp_checks=%u zp_skipped=%u zp_sure=%u zp_unsure=%u zp_score=%.2f\n",
+        "zp_checks=%u zp_skipped=%u zp_sure=%u zp_unsure=%u zp_score=%.2f next_check=%u in_window=%u\n",
         (unsigned long long)s.tick, elv_state_name((elv_state_t)s.state), s.sw_phase,
         elv_fault_name((elv_fault_t)s.fault), s.ccf, s.shocks, s.windows,
         s.max_window, s.last_window, s.last_machine, s.max_machine, s.last_human, s.max_human,
@@ -110,7 +110,8 @@ static int format_status(char *buf, size_t len)
         (unsigned long long)s.work_overruns, (unsigned long long)s.adv_age_ticks,
         s.adv_msgs, s.adv_rejected, s.adv_ignored, s.adv_skips, s.shock_line, s.vent_on,
         s.charge_on, s.charger_ready, s.transport_comp, s.mode_30_2, s.force_limit_events,
-        g_emulator, s.zp_checks, s.zp_skipped, s.zp_sure_shock, s.zp_unsure, s.zp_mean);
+        g_emulator, s.zp_checks, s.zp_skipped, s.zp_sure_shock, s.zp_unsure, s.zp_mean,
+        s.next_check_ticks, s.window_ticks);
 }
 
 static int io_read(resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb)
@@ -245,6 +246,8 @@ static void publish_status(const elv_sensors_t *s, const elv_actuators_t *a,
     g_status.zp_sure_shock = c->m.zp_sure_shock;
     g_status.zp_unsure = c->m.zp_unsure;
     g_status.zp_mean = c->zp_mean;
+    g_status.next_check_ticks = c->next_boundary_tick > c->tick ? (uint32_t)(c->next_boundary_tick - c->tick) : 0;
+    g_status.window_ticks = c->state == ELV_ST_SHOCK_WINDOW ? (uint32_t)(c->tick - c->window_enter_tick) : 0;
     g_status.compressions = c->m.compressions;
     g_status.breaths = c->m.breaths;
     g_status.depth_cmd_m = c->depth_cmd_m;

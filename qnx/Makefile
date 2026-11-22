@@ -18,7 +18,7 @@ CORE    = $(ROOT)/src/core/elv_core.c $(ROOT)/src/core/elv_inv.c $(ROOT)/src/cor
 PLANT   = $(ROOT)/src/plant/elv_plant.c $(ROOT)/src/ecg/elv_ecg.c
 ADV     = $(ROOT)/src/advisor/elv_advisor.c
 
-BINS = elvrekd elv-plant elv-advisor elv-ctl elv-fault elv-telemetry elv-super elv-advice-gate
+BINS = elvrekd elv-plant elv-advisor elv-ctl elv-fault elv-telemetry elv-super elv-advice-gate elv-console
 all: $(addprefix $(OUT)/,$(BINS))
 
 $(OUT):
@@ -45,3 +45,6 @@ clean:
 
 $(OUT)/elv-advice-gate: $(ROOT)/src/qnx/elv_advice_gate.c | $(OUT)
 	$(QCC) $(CFLAGS) -o $@ $^
+
+$(OUT)/elv-console: $(ROOT)/src/qnx/elv_console.c $(ROOT)/src/console/elv_console_draw.c | $(OUT)
+	$(QCC) $(CFLAGS) -I$(ROOT)/src/console -o $@ $^ -lscreen -lm

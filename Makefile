@@ -66,3 +66,17 @@ zero-pause: build/zp_dump
 	@mkdir -p build/zp
 	./build/zp_dump build/zp/features.csv build/ecg/*.bin
 	python3 -I tools/zp_train.py build/zp/features.csv include/elv_rhythm_model.h
+
+# Crew console: draw six controller states on the host, and replay a console
+# log recorded on the QNX target through the same drawing code.
+CONSOLE  = src/console/elv_console_draw.c
+build/console_preview: tests/host/console_preview.c $(CONSOLE) include/elv_font.h src/console/elv_console_draw.h
+	@mkdir -p build
+	$(CC) $(CFLAGS) $(INC) -Isrc/console -o $@ tests/host/console_preview.c $(CONSOLE) -lm
+build/console_replay: tests/host/console_replay.c $(CONSOLE) include/elv_font.h src/console/elv_console_draw.h
+	@mkdir -p build
+	$(CC) $(CFLAGS) $(INC) -Isrc/console -o $@ tests/host/console_replay.c $(CONSOLE) -lm
+.PHONY: console
+console: build/console_preview build/console_replay
+	@mkdir -p build/console
+	./build/console_preview build/console
