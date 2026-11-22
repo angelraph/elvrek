@@ -48,7 +48,13 @@ Without the canceller, at 0 dB, only 1.3% of VF checks could skip the look. Ever
 | Other rhythms wrongly given shock advice | 2.0% | **0.5%** |
 | Asystole wrongly given shock advice | 10.0% | **4.7%** |
 | Checks with no pause at all | 0% | **70% sinus, 79% other, 53% asystole** |
-| Machine hands-off for a pre-authorised shock | 803 ticks | **3 ticks** (host scenario) |
+| Machine hands-off for a pre-authorised shock | 803 ticks | **3 ticks** (host scenario, and on QNX 8.0 in two full runs) |
+
+## On QNX 8.0
+
+On the target the scoring is spread over the control ticks (one spectral bin per tick, [`elv_rf_step`](../src/core/elv_rhythm.c)), so the 1 ms loop never runs late because of it. Fault suite case T10 delivered the shock with 3 ticks of hands-off in two full runs, and T12 read asystole as sure not shockable (scores 0.08 and 0.12), so that check had no pause at all ([raw output](results/)). In earlier runs the same asystole case came back unsure (0.40 to 0.60) and took the 0.8 s look, which is the intended fallback; on a virtual machine the piston phase and the ECG samples drift apart a little whenever the guest freezes.
+
+Building this also found a real bug: a one-tick command to dump the charger could be lost when the loop replays missed ticks, because only the last replayed tick reaches the hardware. The controller now re-asserts the dump on every tick whenever energy is stored that it does not intend to use.
 
 ## Disclosure
 

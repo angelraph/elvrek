@@ -212,13 +212,14 @@ These rules live in `src/core/elv_core.c` and are checked again, independently, 
 | 20 Nov 2026 | A repeat run uncovered a deeper bug in replayed ticks. Fixed, new stall tests added, then clean runs in a row |
 | 20 Nov 2026 | Strict timing runs, the demo film with real QNX output, and the submission |
 | 20 Nov 2026 | Writing the codelab showed `ClockPeriod` cannot change the tick on QNX 8.0 in QEMU; the controller now reads it instead, and a third clean run followed |
+| 21 to 22 Nov 2026 | Reading the rhythm through the compressions: piston-referenced artifact canceller, rhythm model trained on CUDB, spread over control ticks; a lost charge dump found and fixed; 12 of 12 on QNX twice, with 3 ticks of hands-off for the shock |
 
 ## Quickstart
 
 **Host tests** (Linux or WSL with gcc):
 
 ```sh
-make test                                              # 20 safety scenarios
+make test                                              # 22 safety scenarios
 make host-procs                                        # the portable target processes
 python3 -I tools/fetch_physionet.py && make ecg-eval   # real ECG evaluation
 ```

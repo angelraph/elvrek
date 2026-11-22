@@ -39,13 +39,15 @@ It runs on QNX 8.0 and most of what makes it safe comes from QNX: a 1 ms timer p
 
 | Claim | Where to check |
 |---|---|
-| 11 of 11 fault cases pass on QNX 8.0, three runs in a row | [`docs/results/qnx-fault-suite-all-pass-3.txt`](docs/results/qnx-fault-suite-all-pass-3.txt), [`-4.txt`](docs/results/qnx-fault-suite-all-pass-4.txt), [`-5.txt`](docs/results/qnx-fault-suite-all-pass-5.txt) |
+| 12 of 12 fault cases pass on QNX 8.0 with the rhythm read through compressions, two runs in a row (3 ticks of hands-off for the shock) | [`docs/results/qnx-fault-suite-zero-pause-1.txt`](docs/results/qnx-fault-suite-zero-pause-1.txt), [`-2.txt`](docs/results/qnx-fault-suite-zero-pause-2.txt) |
+| Reading the rhythm through compressions on real arrest ECG | [docs/ZERO-PAUSE.md](docs/ZERO-PAUSE.md) |
+| 11 of 11 fault cases pass on QNX 8.0 with the earlier always-look design, three runs in a row | [`docs/results/qnx-fault-suite-all-pass-3.txt`](docs/results/qnx-fault-suite-all-pass-3.txt), [`-4.txt`](docs/results/qnx-fault-suite-all-pass-4.txt), [`-5.txt`](docs/results/qnx-fault-suite-all-pass-5.txt) |
 | 7 of 7 forbidden classifier actions refused by QNX | Case T3 in the files above, and 1:25 in the video |
 | Shock on 803 ticks of machine time, then return of circulation | Case T10, and 1:36 in the video |
 | Safety process killed, cup lifted to 0.0 mm, never restarted | Case T9, and 1:53 in the video |
 | Runs at real hardware timings | [`qnx-fault-suite-strict-timing-1.txt`](docs/results/qnx-fault-suite-strict-timing-1.txt) (5 of 11), [`-2-spinner.txt`](docs/results/qnx-fault-suite-strict-timing-2-spinner.txt) (9 of 11) |
 | Every failed run, and what it taught us | [RESULTS.md](RESULTS.md) |
-| 20 of 20 host scenarios | `make test`, run on every push by GitHub Actions |
+| 22 of 22 host scenarios | `make test`, run on every push by GitHub Actions |
 
 ## AI tools
 

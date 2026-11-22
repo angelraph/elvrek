@@ -26,6 +26,17 @@ Before run 1, the very first target runs also forced two fixes that are now part
 
 **A correction.** One early run counted only about 850 ticks a second, and we first credited a call that asked QNX for a 0.5 ms system tick. While writing the codelab we tested that call on its own: on QNX 8.0 in QEMU the clock period is a fixed 1 ms and `ClockPeriod` refuses to change it (ENOTSUP). The call never took effect, so the slow run was most likely the virtual machine. Every run since counts 960 to 1,013 ticks a second on the default 1 ms tick. The controller now reads and logs the clock period instead.
 
+## Reading the rhythm through the compressions
+
+| # | File | Result | What happened |
+|---|---|---|---|
+| 14 | [`earlier/qnx-fault-suite-run13-zp-vm-freeze.txt`](docs/results/earlier/qnx-fault-suite-run13-zp-vm-freeze.txt) | 9 of 12 | First full runs of the new design. The guest had run for over 15 hours and dozens of suites, and missed up to 10% of ticks; T11 tripped the sensor timeout. A fresh guest fixed it. Along the way: per-second scoring was too heavy for one tick and is now spread one spectral bin per tick, and a one-tick charge dump lost on replayed ticks is now re-asserted every tick |
+| 15 | [`earlier/qnx-fault-suite-run15-host-slept.txt`](docs/results/earlier/qnx-fault-suite-run15-host-slept.txt) | 10 of 12 | The laptop went to sleep in the middle of T10 (120,000 missed ticks). Not a valid run |
+| 16 | [`qnx-fault-suite-zero-pause-1.txt`](docs/results/qnx-fault-suite-zero-pause-1.txt) | **12 of 12** | T10 shock with 3 ticks of hands-off; T12 no pause at all |
+| 17 | [`qnx-fault-suite-zero-pause-2.txt`](docs/results/qnx-fault-suite-zero-pause-2.txt) | **12 of 12** | Second run in a row, same results |
+
+T12 tests what must always hold: the 2-minute check is decided from the compressions, nothing is shocked, and the pause is either zero (sure) or the 0.8 s look (not sure). Earlier versions of T12 demanded a skip every time; that tested chance, because on VFDB only about half of asystole checks are sure. Method and numbers: [docs/ZERO-PAUSE.md](docs/ZERO-PAUSE.md).
+
 ## The replayed tick bug
 
 When the virtual machine paused, the controller woke late and replayed the ticks it had missed, feeding each one the newest sensor sample. The first replayed tick therefore saw the whole movement of the pause as if it had happened in one millisecond. That looked like a very fast piston, so the force guard stopped the stroke early and the controller cut its target depth by 2 mm. Every pause shrank the strokes a little more.
