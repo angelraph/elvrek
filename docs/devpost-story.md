@@ -10,6 +10,7 @@ Elvrek is the safety controller for a chest compression robot. One QNX process w
 
 * It keeps compressions at 100 to 120 a minute and 5 to 6 cm deep, with full recoil and a hard force ceiling.
 * It charges the defibrillator while the piston keeps working, parks the arm at full recoil only for the shock itself, checks the rhythm on clean ECG, and resumes on the next tick. The machine's part of that pause is about 0.8 seconds, and the crew's time is counted separately so neither number hides the other.
+* It reads the heart rhythm through its own compressions. Every defibrillator stops compressions to look at the heart, because compressions bury the ECG. Elvrek is the machine pushing, so it knows the phase of every stroke to the millisecond and subtracts its own artifact. When the reading is sure, the 2-minute check needs no pause at all, or the arm parks only for the shock pulse. When it is not sure, it takes the usual 0.8 s look. On QNX 8.0 the shock went through with 3 ticks of hands-off instead of 803.
 * It times breaths so they never land on a downstroke.
 * It holds depth on a moving ambulance by letting the motor driver correct for chest motion.
 * A trusted sign of returning circulation, like a jump in carbon dioxide, parks the piston within one compression.
@@ -35,14 +36,17 @@ The first runs on QNX did not all pass, and that turned out to be the best part.
 
 ## Accomplishments that I'm proud of
 
-* 11 of 11 fault cases pass on QNX 8.0, three full runs in a row. They cover a malicious classifier, crashes, a CPU storm just below the control priority, a stiff chest, transport, sensor loss, killing the safety process, and a full shock with return of circulation.
+* 12 of 12 fault cases pass on QNX 8.0, two full runs in a row, with the rhythm read through the compressions. The earlier design passed 11 of 11 three runs in a row. They cover a malicious classifier, crashes, a CPU storm just below the control priority, a stiff chest, transport, sensor loss, killing the safety process, and a full shock with return of circulation.
 * 7 of 7 forbidden actions by the classifier are refused by the operating system.
-* 20 of 20 host scenarios pass with zero rule violations.
+* On real arrest ECG from PhysioNet, at 0 dB, reading through the compressions shocked 82.1% of VF at the check against 75.0% for always pausing, cut wrong shock advice for sinus from 2.3% to 0.7%, and needed no pause at all for 70% of sinus checks. The method and an honest disclosure (we had to look at the test database twice) are in docs/ZERO-PAUSE.md.
+* 22 of 22 host scenarios pass with zero rule violations.
 * Every run, including the ones that failed, is published in the repository.
 
 ## What I learned
 
 Real time is not about being fast. It is about knowing exactly who is allowed to do what, and what happens when something goes quiet. QNX made that easy to express: priorities, separate processes, abilities that can be locked away, and a supervisor that knows which process must never come back on its own.
+
+Owning the actuator turned out to be the biggest advantage. A defibrillator has to guess what the compressions did to the ECG; a robot that is pushing knows exactly. That one fact turned our weakest number into the feature I am proudest of.
 
 I also learned to be honest about the hard parts. My rhythm check on real ECG finds 75% of VF windows and leaves 97.7% of normal rhythm alone. That is a big step up from where it started, but it is still short of clinical goals, so the website says so plainly.
 
@@ -58,6 +62,7 @@ Everything below is in the repository, so you can check it yourself.
 
 * `src/qnx/elvrekd.c` is the safety process. It reads the system tick with `ClockPeriod`, measures every missed tick with `ClockCycles`, runs at `SCHED_FIFO` priority 60, is woken by a `timer_create` pulse received with `MsgReceivePulse` on a private channel, serves `/dev/elvrek/status`, `advice`, `operator`, `piston` and `shock` through `resmgr_attach`, locks away abilities with `procmgr_ability`, and logs with `slog2`.
 * `src/qnx/elv_advisor_main.c` is the classifier. It drops to an unprivileged user and locks its abilities. With `-a` it tries every forbidden action and counts the refusals.
+* `src/core/elv_cancel.c` and `src/core/elv_rhythm.c` run inside the safety process: the artifact canceller on every ECG sample, and the rhythm features spread over the control ticks, one spectral bin per tick, so the 1 ms loop is never late because of them.
 * `src/qnx/elv_super.c` restarts the classifier when it dies or hangs, and never restarts the safety process.
 * `src/qnx/elv_plant_main.c` stands in for the hardware and holds the motor driver watchdog.
 * `qnx/slm/elvrek-slm.xml` starts the stack with System Launch and Monitor and marks the safety process `repair none`. `qnx/secpol/` holds the security policy draft.
