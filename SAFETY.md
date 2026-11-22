@@ -25,7 +25,7 @@ They live in [`src/core/elv_core.c`](src/core/elv_core.c) and are checked again 
 2. **The independent monitor** checks the rules from the outside on every tick.
 3. **The motor driver** has its own force limit and its own watchdog. If the safety process goes quiet for 20 ms, it lifts the cup and dumps the charger.
 4. **The supervisor** never restarts the safety process. A controller that quietly comes back in the middle of a resuscitation is more dangerous than one that stays down and says so.
-5. **QNX** fences the classifier with an enforced security policy: its only door is the advice gate, so a crash, a lie or even a root compromise of the AI cannot reach the piston or the shock line.
+5. **QNX** fences the classifier with an enforced security policy: its only door is the advice gate, so a crash or a lie in the AI changes nothing, and even a classifier that stayed root under its type is refused the piston and shock devices by the kernel. One limit, stated plainly: such a root process could still open the hardware shared memory, which this policy does not govern. The real classifier drops root before it runs, which closes that path ([details](qnx/secpol/README.md)).
 
 ## What it will never do
 
