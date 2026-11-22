@@ -9,7 +9,7 @@
 <link rel="icon" href="/assets/elvrek-logo.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/site.css?v=202611221100">
+<link rel="stylesheet" href="/assets/css/site.css?v=202611221230">
 </head>
 <body data-page="technology">
 <div data-header></div>
@@ -56,7 +56,7 @@
         <ul class="squares">
           <li>The advisor drops to its own user and locks the abilities it could use to climb back: priority, spawn, fork, setuid, physical memory and I/O.</li>
           <li>The piston and shock devices are read only. The operator device is root only. The hardware memory is root only.</li>
-          <li>Under the security policy, the advice device gets its own channel type, so the kernel itself refuses the advisor any route to the rest of the safety process.</li>
+          <li>An enforced QNX security policy runs every process under its own type. Advice goes through a small gate process, and the advisor may connect to the gate and nothing else. Kept as root under its type, the advisor is still refused the piston and the shock line by the kernel itself (5 of 7 attacks refused as root, 7 of 7 as designed, 0 of 7 without the type).</li>
           <li>Its worst case is to talk the controller out of one pre-charge. The next two minute boundary is always checked.</li>
           <li><code>elv-advisor -a</code> tries every forbidden path and prints the refusals. It is a test case on the target.</li>
         </ul>
@@ -129,7 +129,7 @@
   </section>
 </main>
 <div data-footer></div>
-<script src="/assets/js/site.js?v=202611221100"></script>
+<script src="/assets/js/site.js?v=202611221230"></script>
 <script>
   (() => {
     const st = [...document.querySelectorAll("#state-walk .st")];
