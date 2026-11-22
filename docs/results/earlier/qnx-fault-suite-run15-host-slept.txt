@@ -1,0 +1,98 @@
+QNX target at 172.31.1.10: QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+Elvrek fault suite on QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+physics plant, not a patient; timing in control ticks
+VM KEEP-AWAKE: two idle threads at priority 1 (below every Elvrek process)
+EMULATOR MODE: sensor timeout 50 ms, hardware watchdog 100 ms (hardware limits are 5 ms and 20 ms)
+
+elv-plant: running (physics model, not a patient)
+PASS T1 control loop ticking (998 ticks in 1 s)
+PASS T2 compressions (17 in 10 s, 0 invariant violations)
+PASS T3 advisor attack: attack: 7 of 7 forbidden actions refused
+elv-super: advisor died (15), restart 1
+elv-super: advisor silent > 3000 ms, killing, restart 2
+PASS T4 advisor killed: compressions continued (+11), restarted (2)
+elv-super: advisor silent > 3000 ms, killing, restart 3
+elv-super: advisor silent > 3000 ms, killing, restart 4
+PASS T5 CPU storm (8 threads, priority 59, 10 s): +18 compressions, 18 of 18 strokes 5 to 6 cm, 0 violations (missed ticks 845 with storm, 149 without, host noise)
+PASS T6 stiff chest: max force 606 N, ceiling engaged 8 times
+elv-plant: running (physics model, not a patient)
+recent stroke peaks (mm): 51.6 53.0 52.3 51.6 52.9 53.0 51.6 48.6 48.1 52.8 51.5 53.2 52.9 52.2 50.0 49.4
+PASS T7 transport: depth in 5-6 cm on 95.7% of 69 strokes
+elv-plant: running (physics model, not a patient)
+elv-super: advisor silent > 3000 ms, killing, restart 1
+PASS T8 sensor dropout: SAFE_HOLD, cup at recoil
+elv-plant: running (physics model, not a patient)
+elv-super: SAFETY PROCESS DOWN, not restarting it; hardware watchdog holds the piston at recoil
+elv-plant: HW WATCHDOG: safety process silent, retracting
+PASS T9 safety process killed: HW watchdog retracted (depth 0.0 mm), not restarted
+elv-plant: running (physics model, not a patient)
+elv-plant: HW WATCHDOG: safety process silent, retracting
+elv-plant: HW WATCHDOG: safety process silent, retracting
+elv-plant: HW WATCHDOG: safety process silent, retracting
+elv-super: advisor silent > 3000 ms, killing, restart 1
+elv-plant: HW WATCHDOG: safety process silent, retracting
+elv-plant: HW WATCHDOG: safety process silent, retracting
+elv-super: advisor silent > 3000 ms, killing, restart 2
+elv-super: advisor silent > 3000 ms, killing, restart 3
+elv-super: advisor silent > 3000 ms, killing, restart 4
+elv-super: advisor silent > 3000 ms, killing, restart 5
+elv-super: advisor silent > 3000 ms, killing, restart 6
+elv-super: advisor silent > 3000 ms, killing, restart 7
+elv-super: advisor silent > 3000 ms, killing, restart 8
+elv-super: advisor silent > 3000 ms, killing, restart 9
+elv-super: advisor silent > 3000 ms, killing, restart 10
+elv-super: advisor silent > 3000 ms, killing, restart 11
+elv-super: advisor silent > 3000 ms, killing, restart 12
+elv-super: advisor silent > 3000 ms, killing, restart 13
+elv-super: advisor silent > 3000 ms, killing, restart 14
+elv-super: advisor silent > 3000 ms, killing, restart 15
+elv-super: advisor silent > 3000 ms, killing, restart 16
+elv-super: advisor silent > 3000 ms, killing, restart 17
+elv-super: advisor silent > 3000 ms, killing, restart 18
+elv-super: advisor silent > 3000 ms, killing, restart 19
+elv-super: advisor silent > 3000 ms, killing, restart 20
+elv-super: advisor silent > 3000 ms, killing, restart 21
+elv-super: advisor silent > 3000 ms, killing, restart 22
+elv-super: advisor silent > 3000 ms, killing, restart 23
+elv-super: advisor silent > 3000 ms, killing, restart 24
+elv-super: advisor silent > 3000 ms, killing, restart 25
+elv-super: advisor silent > 3000 ms, killing, restart 26
+elv-super: advisor silent > 3000 ms, killing, restart 27
+elv-super: advisor silent > 3000 ms, killing, restart 28
+elv-super: advisor silent > 3000 ms, killing, restart 29
+FAIL T10 shock: shocks 0 window 0 off_recoil 0 fault SENSOR_STALE missed 120131
+FAIL T10 ROSC: state SAFE_HOLD fault SENSOR_STALE missed 124282 inv 0
+PASS T10 chest-compression fraction 1.0000
+elv-plant: running (physics model, not a patient)
+PASS T12 rhythm read through compressions: not sure (score 0.44): took the 0.8 s look, 831 ticks, no shock
+elv-plant: running (physics model, not a patient)
+elv-super: advisor silent > 3000 ms, killing, restart 1
+elv-super: advisor silent > 3000 ms, killing, restart 2
+elv-super: advisor silent > 3000 ms, killing, restart 3
+elv-super: advisor silent > 3000 ms, killing, restart 4
+elv-super: advisor silent > 3000 ms, killing, restart 5
+elv-super: advisor silent > 3000 ms, killing, restart 6
+elv-super: advisor silent > 3000 ms, killing, restart 7
+elv-super: advisor silent > 3000 ms, killing, restart 8
+elv-super: advisor silent > 3000 ms, killing, restart 9
+elv-super: advisor silent > 3000 ms, killing, restart 10
+elv-super: advisor silent > 3000 ms, killing, restart 11
+elv-super: advisor silent > 3000 ms, killing, restart 12
+elv-super: advisor silent > 3000 ms, killing, restart 13
+elv-super: advisor silent > 3000 ms, killing, restart 14
+elv-super: advisor silent > 3000 ms, killing, restart 15
+elv-super: advisor silent > 3000 ms, killing, restart 16
+elv-super: advisor silent > 3000 ms, killing, restart 17
+elv-super: advisor silent > 3000 ms, killing, restart 18
+elv-super: advisor silent > 3000 ms, killing, restart 19
+elv-super: advisor silent > 3000 ms, killing, restart 20
+elv-super: advisor silent > 3000 ms, killing, restart 21
+elv-super: advisor silent > 3000 ms, killing, restart 22
+elv-super: advisor silent > 3000 ms, killing, restart 23
+elv-super: advisor silent > 3000 ms, killing, restart 24
+elv-super: advisor silent > 3000 ms, killing, restart 25
+elv-super: advisor silent > 3000 ms, killing, restart 26
+elv-super: advisor silent > 3000 ms, killing, restart 27
+FAIL T11 malicious advisor: ignored 0 shocks 1 windows 1 retries 0 inv 0 state COMPRESS fault NONE missed 70547
+
+FAIL: 3 case(s)

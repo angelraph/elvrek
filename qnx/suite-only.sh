@@ -32,4 +32,11 @@ sed -i 's/\r$//' "$ROOT/tests/fault_suite.sh"
 ssh $OPT "root@$IP" "slay -f elv-super elv-advisor elv-telemetry elvrekd elv-plant 2>/dev/null; sleep 1; mkdir -p /data/elvrek/bin"
 scp $OPT "$ROOT"/build/qnx-x86_64/* "root@$IP:/data/elvrek/bin/" > /dev/null
 scp $OPT "$ROOT/tests/fault_suite.sh" "root@$IP:/data/elvrek/" > /dev/null
-ssh $OPT "root@$IP" "QUICK=$QUICK EMU=$EMU TYPES=$TYPES sh /data/elvrek/fault_suite.sh" 2>&1 | tee "$ROOT/build/fault-suite${EMU:+-emulator}.txt"
+# SPIN=1: two idle threads at priority 1 keep the virtual CPUs from being
+# parked by the host (QEMU inside WSL2 inside Windows). They run below every
+# Elvrek process, which preempts them at once. Results say when this is on.
+if [ -n "$SPIN" ]; then
+    ssh $OPT "root@$IP" "slay -f elv-spin 2>/dev/null; cp /data/elvrek/bin/elv-fault /tmp/elv-spin; nohup /tmp/elv-spin cpu-storm 2 3600 1 >/dev/null 2>&1 < /dev/null &"
+fi
+ssh $OPT "root@$IP" "QUICK=$QUICK EMU=$EMU TYPES=$TYPES SPIN=$SPIN sh /data/elvrek/fault_suite.sh" 2>&1 | tee "$ROOT/build/fault-suite${EMU:+-emulator}.txt"
+[ -n "$SPIN" ] && ssh $OPT "root@$IP" "slay -f elv-spin" 2>/dev/null || true

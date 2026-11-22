@@ -706,6 +706,13 @@ void elv_core_step(elv_core_t *c, const elv_sensors_t *s,
     }
 
     /* last line of defence inside the core itself */
+    /* Never hold energy we do not intend to use. A one-tick dump can be
+       lost when the loop replays missed ticks (only the last replayed
+       tick reaches the hardware), so the rule is re-asserted every tick. */
+    if (s->charger_ready && !c->charging && c->state != ELV_ST_SHOCK_WINDOW) {
+        out->charge_dump = true;
+        out->charge_on = false;
+    }
     if (out->piston_target_m > ELV_DEPTH_MAX_M + ELV_COMP_MAX_M)
         out->piston_target_m = ELV_DEPTH_MAX_M + ELV_COMP_MAX_M;
     if (c->state != ELV_ST_SHOCK_WINDOW) out->shock_line = false;

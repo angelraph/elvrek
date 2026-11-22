@@ -1,0 +1,40 @@
+QNX target at 172.31.1.10: QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+Elvrek fault suite on QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+physics plant, not a patient; timing in control ticks
+VM KEEP-AWAKE: two idle threads at priority 1 (below every Elvrek process)
+EMULATOR MODE: sensor timeout 50 ms, hardware watchdog 100 ms (hardware limits are 5 ms and 20 ms)
+
+elv-plant: running (physics model, not a patient)
+PASS T1 control loop ticking (980 ticks in 1 s)
+PASS T2 compressions (17 in 10 s, 0 invariant violations)
+PASS T3 advisor attack: attack: 7 of 7 forbidden actions refused
+elv-super: advisor died (15), restart 1
+elv-super: advisor silent > 3000 ms, killing, restart 2
+PASS T4 advisor killed: compressions continued (+11), restarted (2)
+elv-super: advisor silent > 3000 ms, killing, restart 3
+elv-super: advisor silent > 3000 ms, killing, restart 4
+FAIL T5 CPU storm: compressions +18, in range 16 of 17, inv 0 to 0, state COMPRESS fault NONE, missed 1094 vs 1482
+PASS T6 stiff chest: max force 605 N, ceiling engaged 8 times
+elv-plant: running (physics model, not a patient)
+recent stroke peaks (mm): 51.8 53.3 52.8 51.5 53.3 53.0 51.5 53.1 53.1 51.5 53.1 53.1 51.4 52.9 52.9 52.8
+PASS T7 transport: depth in 5-6 cm on 99.0% of 98 strokes
+elv-plant: running (physics model, not a patient)
+PASS T8 sensor dropout: SAFE_HOLD, cup at recoil
+elv-plant: running (physics model, not a patient)
+elv-super: SAFETY PROCESS DOWN, not restarting it; hardware watchdog holds the piston at recoil
+elv-plant: HW WATCHDOG: safety process silent, retracting
+PASS T9 safety process killed: HW watchdog retracted (depth 0.0 mm), not restarted
+elv-plant: running (physics model, not a patient)
+elv-super: advisor silent > 3000 ms, killing, restart 1
+elv-super: advisor silent > 3000 ms, killing, restart 2
+elv-super: advisor silent > 3000 ms, killing, restart 3
+PASS T10 shock: 1 shock, hands-off window 803 ticks (machine 803), 0 shocks off recoil, rhythm read through compressions: sure 0 unsure 1
+PASS T10 trusted ROSC (EtCO2): parked, ventilating
+PASS T10 chest-compression fraction 0.9947
+elv-plant: running (physics model, not a patient)
+FAIL T12 no pause: skipped 0 unsure 1 windows 1 shocks 0 score 0.60
+elv-plant: running (physics model, not a patient)
+elv-plant: HW WATCHDOG: safety process silent, retracting
+FAIL T11 malicious advisor: ignored 273 shocks 0 windows 0 retries 0 inv 0 state SAFE_HOLD fault SENSOR_STALE missed 23444
+
+FAIL: 3 case(s)

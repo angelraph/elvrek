@@ -23,11 +23,12 @@ Built for the **QNX Global Hackathon**, Robotics and Medical category.
 | **Platform** | QNX 8.0 (SDP 8.0), x86_64 in QEMU with KVM, 2 virtual CPUs. The same code builds for aarch64le, ready for a Raspberry Pi 5 |
 | **Toolchain** | qcc (gcc_ntox86_64), image made with mkqnximage, started by System Launch and Monitor |
 | **Control loop** | 1 ms timer pulse on a private channel, SCHED_FIFO priority 60, missed ticks measured with `ClockCycles` |
-| **On QNX 8.0** | **11 of 11** fault cases pass, three full runs in a row ([raw output](docs/results/)) |
-| **Shock window** | 803 ticks of machine time (park, confirm, discharge). The crew's time is counted separately |
+| **On QNX 8.0** | **12 of 12** fault cases pass with the rhythm read through compressions, two full runs in a row ([raw output](docs/results/)) |
+| **Reads the rhythm through compressions** | The controller cancels its own compression artifact using the piston phase it commands, so most rhythm checks need no pause at all. On real arrest ECG (VFDB, 0 dB): VF shocked 82.1% against 75.0% for always pausing, and wrong shock advice falls by two thirds ([details](docs/ZERO-PAUSE.md)) |
+| **Shock window** | 4 ticks of machine time on QNX when the rhythm was read through the compressions; 803 ticks (park, 0.8 s look, discharge) when it was not sure. The crew's time is counted separately |
 | **AI fence** | **7 of 7** forbidden actions by the classifier refused by QNX |
 | **Hard limits** | The controller stops pushing at 600 N and 650 N is never crossed. Depth 5 to 6 cm, full recoil every stroke |
-| **Host tests** | **20 of 20** scenarios with 0 rule violations, run on every push by GitHub Actions |
+| **Host tests** | **22 of 22** scenarios with 0 rule violations, run on every push by GitHub Actions |
 | **Real ECG** | 57 PhysioNet arrest records. Held out: VF found 75.0%, normal sinus left alone 97.7%. Still short of clinical goals, and we say so |
 | **Website** | 12 pages: landing, system, technology, evidence, recorded run, FAQ and more, on desktop and phone |
 
@@ -68,7 +69,7 @@ QNX is what makes the split between "may decide" and "may only suggest" real:
 
 ## Results on QNX 8.0
 
-The whole stack, built with qcc, running on QNX 8.0 in QEMU. Three full runs in a row with the final code, in the stack's labelled emulator mode (sensor timeout 50 ms and hardware watchdog 100 ms, because a virtual machine on a laptop pauses for tens of milliseconds).
+The whole stack, built with qcc, running on QNX 8.0 in QEMU. Two full runs in a row with the final code, which reads the rhythm through the compressions, in the stack's labelled emulator mode (sensor timeout 50 ms and hardware watchdog 100 ms, because a virtual machine on a laptop pauses for tens of milliseconds).
 
 | Case | What it does | Result |
 |---|---|---|
@@ -81,10 +82,11 @@ The whole stack, built with qcc, running on QNX 8.0 in QEMU. Three full runs in 
 | T7 Transport | A moving ambulance frame | Depth in range on 100% of strokes, peaks 51 to 54 mm |
 | T8 Sensor dropout | The hardware goes silent | Controlled retract, safe hold |
 | T9 Safety process killed | `slay elvrekd` mid stroke | The driver watchdog lifts the cup to 0.0 mm; nothing restarts the controller |
-| T10 Shock and return | A full shockable rhythm run | One shock, about 806 ticks hands-off, 0 shocks off recoil, return of circulation detected, CCF 99.5% |
+| T10 Shock and return | A full shockable rhythm run | Rhythm read as shockable through the compressions, so one shock with **3 ticks** of hands-off (803 when the old design paused to look), 0 shocks off recoil, return of circulation detected, CCF 100% |
 | T11 Malicious advisor | Hundreds of forged demands | All ignored, the shock still delivered, 0 violations |
+| T12 Read through compressions | Asystole, no advice, to the 2-minute check | Read as sure not shockable (scores 0.08 and 0.12), so **no pause at all** and no shock. When the reading is not sure, the 0.8 s look runs instead |
 
-Raw output: [`docs/results/qnx-fault-suite-all-pass-3.txt`](docs/results/qnx-fault-suite-all-pass-3.txt), [`-4.txt`](docs/results/qnx-fault-suite-all-pass-4.txt) and [`-5.txt`](docs/results/qnx-fault-suite-all-pass-5.txt). Every earlier run, including the failed ones, is in [`docs/results/earlier/`](docs/results/earlier/), and [RESULTS.md](RESULTS.md) explains what each failure taught us.
+Raw output: [`docs/results/qnx-fault-suite-zero-pause-1.txt`](docs/results/qnx-fault-suite-zero-pause-1.txt) and [`-2.txt`](docs/results/qnx-fault-suite-zero-pause-2.txt). The earlier design, which always paused 0.8 s to look, passed 11 of 11 three runs in a row ([`all-pass-3`](docs/results/qnx-fault-suite-all-pass-3.txt), [`-4`](docs/results/qnx-fault-suite-all-pass-4.txt), [`-5`](docs/results/qnx-fault-suite-all-pass-5.txt)). These runs use two idle threads at the lowest priority to keep QEMU's virtual CPUs awake (labelled in the output). Every earlier run, including the failed ones, is in [`docs/results/earlier/`](docs/results/earlier/), and [RESULTS.md](RESULTS.md) explains what each failure taught us.
 
 **At real hardware timings** (5 ms sensor timeout, 20 ms watchdog) the nested virtual machine is the limit: QEMU runs inside WSL2, which is itself a virtual machine on Windows. The first strict run passed 5 of 11, and every failure was the controller correctly calling the sensors silent and retracting. With two idle threads at the lowest priority keeping the virtual CPUs awake, **9 of 11** pass, including the full shock. Real hardware is what settles this.
 
@@ -92,6 +94,7 @@ Raw output: [`docs/results/qnx-fault-suite-all-pass-3.txt`](docs/results/qnx-fau
 
 | | |
 |---|---|
+| **The robot cancels its own noise** | Every defibrillator stops compressions to read the heart, because compressions bury the ECG. Elvrek is the machine pushing, so it knows the phase of every stroke to the millisecond and subtracts its own artifact. Sure readings need no pause; unsure ones fall back to a 0.8 s look. No other entry owns the actuator, so no other entry can do this ([docs/ZERO-PAUSE.md](docs/ZERO-PAUSE.md)) |
 | **What's new** | A machine that closes a force loop on a body on a 1 ms deadline, and owns the whole resuscitation clock: compressions, breaths, charge, shock, return of circulation and the drug timer. The only hands-off time left is the shock itself, and the machine's part of it is 0.8 s |
 | **Built on QNX** | Timer pulses, priorities, resource managers, abilities, an unprivileged classifier, a supervisor that never restarts the safety process, System Launch and Monitor, slog2, qcc and mkqnximage. All of it is exercised by an on-target fault suite ([QNX.md](QNX.md)) |
 | **Robotics where it counts** | Force control with a ceiling, adaptive depth for a stiff chest, chest motion correction in transport, a controlled retract that never stops at the bottom of a stroke, and a driver watchdog that works even when the software is dead |
@@ -138,7 +141,11 @@ A trusted sign, either a pulse input or an abrupt rise in end-tidal carbon dioxi
 
 Any fault lifts the piston to full recoil at a controlled speed and holds it there. If the safety process stops talking, the driver's own watchdog does the same, and the supervisor never restarts the safety process behind anyone's back.
 
-### 7. The rhythm check
+### 7. Reading the rhythm through the compressions
+
+Every ECG sample taken while the piston cycles goes through an adaptive filter fed with harmonics of the compression phase the controller commands, which removes most of the artifact. Every second the last 3 s are scored by twelve standard rhythm features and a small frozen network trained on CUDB only, a little work on each tick so the 1 ms loop is never late. At the 2-minute check the mean of the last 10 s decides: sure shockable means the arm parks only for the shock pulse; sure not shockable means no pause at all; unsure means the classic 0.8 s look. Method, results and an honest disclosure in [docs/ZERO-PAUSE.md](docs/ZERO-PAUSE.md).
+
+### 8. The rhythm check
 
 Five features on 0.8 s of clean ECG, including the share of power in the 3 to 9 Hz fibrillation band. The thresholds were tuned on one PhysioNet database with a rule fixed in advance, and scored once on another.
 
@@ -188,7 +195,7 @@ These rules live in `src/core/elv_core.c` and are checked again, independently, 
 
 ## Verification
 
-* **Host scenarios** (`make test`): 20 scenarios run the same core code faster than real time against the physics model, including two that stall the controller the way a busy virtual machine does. GitHub Actions runs them on every push.
+* **Host scenarios** (`make test`): 22 scenarios, including the same VF run with and without reading through the compressions (3 against 803 ticks of hands-off), run the same core code faster than real time against the physics model, including two that stall the controller the way a busy virtual machine does. GitHub Actions runs them on every push.
 * **Independent monitor**: six rules checked on every tick by separate code, with 0 violations in every run.
 * **On-target fault suite** (`tests/fault_suite.sh`): 11 cases on QNX 8.0, judged on what the chest gets, with the raw output published.
 * **Real ECG**: 57 PhysioNet records, tuned on CUDB and scored once on VFDB ([DATA-NOTICE.md](DATA-NOTICE.md)).
