@@ -1,0 +1,10 @@
+
+build/trace/storm.txt
+  control thread (elvrekd, priority 60): 4589 timer pulses in the trace
+  pulse gap   median  1008.4 us   p99  2681.4 us   max  10678.3 us
+  wake        median    67.9 us   p99   481.7 us   max   4679.4 us
+  work        median    26.9 us   p99   161.0 us   max    466.0 us
+  hardware stand-in (elv-plant, priority 62) work: median 28.4 us, max 933.1 us
+  ticks whose work ran past 1 ms: 0 of 4417
+  pulses that arrived while a storm thread (priority 59) held a CPU: 11; the controller then ran after median 29.6 us, p99 41.4 us, max 41.5 us
+  response time bound: worst controller work 466.0 us + worst higher priority work 933.1 us = 1399.1 us (period 1000 us)

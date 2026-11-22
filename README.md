@@ -28,6 +28,7 @@ Built for the **QNX Global Hackathon**, Robotics and Medical category.
 | **Shock window** | 4 ticks of machine time on QNX when the rhythm was read through the compressions; 803 ticks (park, 0.8 s look, discharge) when it was not sure. The crew's time is counted separately |
 | **AI fence** | An enforced QNX security policy: the classifier's only door is a separate advice gate. 7 of 7 forbidden actions refused; kept as root under its type, the kernel still refuses every path to the piston and shock line ([A/B](docs/results/qnx-secpol-attack-ab.txt)) |
 | **Hard limits** | The controller stops pushing at 600 N and 650 N is never crossed. Depth 5 to 6 cm, full recoil every stroke |
+| **Kernel trace** | QNX `tracelogger`: control work per tick median 27 to 37 µs, 0 ticks past 1 ms; under a priority 59 CPU storm the controller preempts it within 42 µs ([docs/TIMING.md](docs/TIMING.md)) |
 | **Host tests** | **22 of 22** scenarios with 0 rule violations, run on every push by GitHub Actions |
 | **Real ECG** | 57 PhysioNet arrest records. Held out: VF found 75.0%, normal sinus left alone 97.7%. Still short of clinical goals, and we say so |
 | **Website** | 12 pages: landing, system, technology, evidence, recorded run, FAQ and more, on desktop and phone |
@@ -267,6 +268,7 @@ web/            the website, deployed on Vercel
 | [QNX.md](QNX.md) | Exactly how and where QNX 8.0 is used, file by file |
 | [SAFETY.md](SAFETY.md) | The safety rules, the monitor, and what the controller will never do |
 | [RESULTS.md](RESULTS.md) | Every run on QNX, what failed and what it taught us |
+| [docs/TIMING.md](docs/TIMING.md) | Timing from a QNX kernel trace, and what a virtual machine cannot prove |
 | [video/README.md](video/README.md) | How the demo film was made |
 | [Codelab: a 1 ms control loop that fails safe](codelab/fail-safe-control-loop/fail-safe-control-loop.md) | A step by step QNX 8.0 tutorial built from what Elvrek taught us, with runnable code. Submitted to the official QNX codelabs as [pull request 81](https://github.com/qnx/codelabs/pull/81) |
 | [qnx/secpol/README.md](qnx/secpol/README.md) | The enforced security policy: how it was recorded and tightened, the advice gate, and the A/B attack results |

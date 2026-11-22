@@ -62,6 +62,10 @@ A draft policy in the QNX 8.0 policy language gives each process its own type, a
 
 `elvrekd -e` and `elv-plant -e` widen the sensor timeout from 5 ms to 50 ms and the hardware watchdog from 20 ms to 100 ms, because a virtual machine on a laptop pauses for tens of milliseconds. Every status line and every result file says when it was used. Every other limit and rule is the same code that will run on a board. Runs at the real timings are published too ([RESULTS.md](RESULTS.md)).
 
+## Kernel tracing: `qnx/trace-run.sh`, `tools/tracecheck.py`
+
+`tracelogger` records every scheduling event while the stack runs, quiet and under a CPU storm; `traceprinter` turns it into text and `tools/tracecheck.py` measures the control thread's pulse gaps, wake-ups, work per tick and preemption by the storm. Results and limits in [docs/TIMING.md](docs/TIMING.md).
+
 ## On-target tests: `tests/fault_suite.sh`
 
 Eleven cases that run on the QNX target and print PASS or FAIL. They are judged on what the chest gets, timed on the controller's own clock, and the raw output of every run is in [`docs/results/`](docs/results/). Run them with `EMU=1 bash qnx/suite-only.sh` from the host.
