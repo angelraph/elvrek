@@ -6,11 +6,11 @@
 
 Elvrek is the safety controller for a chest compression robot, built on QNX 8.0. One real-time process owns the piston, the timing of every breath, the defibrillator charger and the shock line, all on a clock that ticks a thousand times a second. The AI rhythm classifier can only make suggestions, and QNX refuses it everything else. If the safety process itself dies, the motor driver lifts the cup off the chest on its own.
 
-[**Live site: elvrek.vercel.app**](https://elvrek.vercel.app) · [**Demo video (2:41)**](https://youtu.be/lBU1zjZX8Ok) · [Submission](SUBMISSION.md) · [QNX integration](QNX.md) · [Results review](RESULTS.md) · [Safety rules](SAFETY.md)
+[**Live site: elvrek.vercel.app**](https://elvrek.vercel.app) · [**Demo video (2:37)**](https://youtu.be/3AMjyNAI1NY) · [Submission](SUBMISSION.md) · [QNX integration](QNX.md) · [Results review](RESULTS.md) · [Safety rules](SAFETY.md)
 
-[![Watch the Elvrek demo (2:41)](media/demo-thumbnail.jpg)](https://youtu.be/lBU1zjZX8Ok)
+[![Watch the Elvrek demo (2:37)](media/demo-thumbnail.jpg)](https://youtu.be/3AMjyNAI1NY)
 
-*Watch the 2:41 demo on YouTube. Every QNX clip is real output recorded on QNX 8.0 in QEMU, labelled with its playback speed. How it was made is in [video/README.md](video/README.md).*
+*Watch the 2:37 demo on YouTube. Every QNX clip is real output recorded on QNX 8.0 in QEMU, labelled with its playback speed. How it was made is in [video/README.md](video/README.md).*
 
 Built for the **QNX Global Hackathon**, Robotics and Medical category.
 

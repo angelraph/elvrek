@@ -11,7 +11,7 @@ QNX Global Hackathon, "The power to shape the world". Deadline: **15 December 20
 | Category | Robotics and Medical |
 | New or existing | New. Started on 19 November 2026, inside the submission period; the first commit is dated 19 November 2026 |
 | Repository | https://github.com/angelraph/elvrek (public, Apache License 2.0) |
-| Demo video | https://youtu.be/lBU1zjZX8Ok (2:41, under the three minute limit, public on YouTube) |
+| Demo video | https://youtu.be/3AMjyNAI1NY (2:37, under the three minute limit, public on YouTube) |
 | Website | https://elvrek.vercel.app |
 | QNX version | QNX SDP 8.0 |
 | Target | QNX 8.0 for x86_64 in QEMU with KVM, 2 virtual CPUs, 1 GB. Also builds for aarch64le (Raspberry Pi 5) |
