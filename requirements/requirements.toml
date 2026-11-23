@@ -317,3 +317,17 @@ why = "Every second of boot is a second without blood flow."
 code = ["qnx/instant-on/ifs_start.custom:elvrekd -e", "src/qnx/elvrekd.c:g_boot_comp_ms = mono_ms()"]
 evidence = [{ file = "docs/results/qnx-instant-on-ab.txt", match = "controller_process=\\d+ control_loop=\\d+ status_seen=\\d+ start=\\d+ first_compression=1\\d\\d\\d state=COMPRESS", min = 5 }]
 limit = "Emulator times, on the kernel's clock. Real boards add firmware time before the kernel."
+
+# ------------------------------------------------------------ the workflow
+
+[[req]]
+id = "R31"
+group = "The workflow"
+text = "On one clock, pause less for a shock than a mechanical CPR device and a separate AED on the same arrest, even when that crew pre-charges."
+why = "The pre-shock pause is where survival is lost (Cheskes et al. 2011); separate devices need human hand-offs between their clocks."
+code = ["tests/host/workflow_ab.c:core.no_defib = arm != ARM_ELVREK", "src/core/elv_core.c:if (c->no_defib && op->start)"]
+evidence = [
+  { file = "docs/results/host-workflow-ab.txt", match = 'VF, first shock converts\s+Elvrek, one clock\s+1\s+\S+\s+0\.30s' },
+  { file = "docs/results/host-workflow-ab.txt", match = 'VF, first shock converts\s+CPR device \+ AED, crew pre-charges\s+1\s+\S+\s+(3|5|10)\.30s', min = 3 },
+]
+limit = "A model of the conventional workflow on the same code, with stated crew and AED times; not a clinical comparison."

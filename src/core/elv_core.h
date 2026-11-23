@@ -131,6 +131,12 @@ typedef struct {
     double   cycle_peak_force;
     uint64_t next_boundary_tick;    /* next 2-minute rhythm-check boundary   */
     bool     charging;
+    bool     no_defib;              /* comparison only: a CPR device with no
+                                       defibrillator connected. Never charges
+                                       or opens a window, and START resumes
+                                       from STOPPED, as on a conventional
+                                       device. Off by default; elvrekd never
+                                       sets it (tests/host/workflow_ab.c). */
     bool     want_window;           /* go to window at next recoil           */
     bool     skipped_last_boundary;
     uint64_t state_enter_tick;

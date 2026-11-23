@@ -87,3 +87,12 @@ console: build/console_preview build/console_replay
 trace: build/scenarios
 	./build/scenarios > build/scenarios.txt
 	python3 tools/trace.py build/scenarios.txt REQUIREMENTS.md
+
+# The same arrest run two ways: Elvrek's one clock against a mechanical CPR
+# device plus a separate AED (docs/WORKFLOW-AB.md).
+build/workflow_ab: tests/host/workflow_ab.c $(CORE) src/plant/elv_plant.c src/ecg/elv_ecg.c
+	@mkdir -p build
+	$(CC) $(CFLAGS) $(INC) -o $@ $^ -lm
+.PHONY: workflow-ab
+workflow-ab: build/workflow_ab
+	./build/workflow_ab

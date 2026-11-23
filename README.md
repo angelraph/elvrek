@@ -29,6 +29,7 @@ Built for the **QNX Global Hackathon**, Robotics and Medical category.
 | **AI fence** | An enforced QNX security policy: the classifier's only door is a separate advice gate. 7 of 7 forbidden actions refused; kept as root under its type, the kernel still refuses every path to the piston and shock line ([A/B](docs/results/qnx-secpol-attack-ab.txt)) |
 | **Hard limits** | The controller stops pushing at 600 N and 650 N is never crossed. Depth 5 to 6 cm, full recoil every stroke |
 | **Kernel trace** | QNX `tracelogger`: control work per tick median 27 to 37 µs, 0 ticks past 1 ms; under a priority 59 CPU storm the controller preempts it within 42 µs ([docs/TIMING.md](docs/TIMING.md)) |
+| **One clock vs two** | The same arrest on the same code: pre-shock pause 0.3 s (the crew's press) against 12.3 s for a mechanical CPR device plus a separate AED, and 5.3 s even when that crew pre-charges (5 s AED analysis). 10 minutes of refractory VF: 1.2 s hands-off against 53.2 s and 25.2 s ([docs/WORKFLOW-AB.md](docs/WORKFLOW-AB.md)) |
 | **Requirements** | **30 of 30** safety requirements traced to code, host tests in their own words, QNX runs and result files. The matrix is generated and every link checked in CI ([REQUIREMENTS.md](REQUIREMENTS.md)) |
 | **Instant on** | The safety process starts from the QNX boot image, before disks or network: first full compression 1.39 s after the kernel starts, against 3.67 s when started after the normal boot (median of 5 boots each) ([docs/INSTANT-ON.md](docs/INSTANT-ON.md)) |
 | **Crew console** | Drawn with QNX Screen on the target, read only, from the safety process's status. Every frame saved from Screen matches the host replay pixel for pixel; switching it on makes no difference to missed ticks that we can measure on this emulator ([docs/CONSOLE.md](docs/CONSOLE.md)) |
@@ -226,6 +227,7 @@ These rules live in `src/core/elv_core.c` and are checked again, independently, 
 | 22 Nov 2026 | Kernel trace timing proof with tracelogger. Crew console on QNX Screen; its first real run showed the depth, rate and rounding fixes it needed, and every saved Screen frame now matches the host replay |
 | 23 Nov 2026 | Instant on: the safety process starts from the boot image and compresses 2.3 s earlier than a normal start, five boots of each |
 | 23 Nov 2026 | Requirements traceability: 30 requirements generated into a checked matrix; writing it added host checks for rate and full recoil, and showed recoil in transport cannot yet be judged |
+| 23 Nov 2026 | Workflow A/B: the same arrest run with one clock and with a CPR device plus a separate AED, analysis time swept |
 
 ## Quickstart
 
@@ -276,6 +278,7 @@ web/            the website, deployed on Vercel
 | [QNX.md](QNX.md) | Exactly how and where QNX 8.0 is used, file by file |
 | [SAFETY.md](SAFETY.md) | The safety rules, the monitor, and what the controller will never do |
 | [RESULTS.md](RESULTS.md) | Every run on QNX, what failed and what it taught us |
+| [docs/WORKFLOW-AB.md](docs/WORKFLOW-AB.md) | Elvrek's one clock against a CPR device plus a separate AED, on the same arrest and code |
 | [REQUIREMENTS.md](REQUIREMENTS.md) | Every safety requirement with its reason, code, tests and QNX results, generated and checked |
 | [docs/INSTANT-ON.md](docs/INSTANT-ON.md) | Compressing from the boot image, before the rest of QNX has booted, and the A/B against a normal start |
 | [docs/CONSOLE.md](docs/CONSOLE.md) | The crew console on QNX Screen, and how its pictures are checked against the target |

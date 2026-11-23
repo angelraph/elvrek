@@ -459,7 +459,7 @@ void elv_core_step(elv_core_t *c, const elv_sensors_t *s,
         out->chest_ref = c->transport_comp;
 
         /* pre-charge while compressing, ahead of the 2-minute boundary */
-        if (!c->charging && !c->want_window &&
+        if (!c->no_defib && !c->charging && !c->want_window &&
             c->tick + ELV_PRECHARGE_LEAD_TICKS >= c->next_boundary_tick) {
             if (advisor_vetoes_precharge(c)) {
                 c->skipped_last_boundary = true;
@@ -678,6 +678,10 @@ void elv_core_step(elv_core_t *c, const elv_sensors_t *s,
     case ELV_ST_STOPPED:
         out->piston_target_m = 0.0;
         out->charge_dump = true;
+        if (c->no_defib && op->start) {          /* conventional device: resume */
+            c->phase = 0;
+            enter(c, ELV_ST_COMPRESS);
+        }
         break;
     }
 

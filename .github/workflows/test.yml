@@ -20,3 +20,5 @@ jobs:
         run: make console
       - name: Requirements trace (every link checked, matrix must be current)
         run: make trace && git diff --exit-code REQUIREMENTS.md
+      - name: Workflow A/B (one clock against a CPR device plus a separate AED)
+        run: make workflow-ab
