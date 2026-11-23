@@ -80,3 +80,10 @@ build/console_replay: tests/host/console_replay.c $(CONSOLE) include/elv_font.h 
 console: build/console_preview build/console_replay
 	@mkdir -p build/console
 	./build/console_preview build/console
+
+# Requirements traceability: run the scenarios, then check every link in
+# requirements/requirements.toml and write REQUIREMENTS.md (fails if any is broken).
+.PHONY: trace
+trace: build/scenarios
+	./build/scenarios > build/scenarios.txt
+	python3 tools/trace.py build/scenarios.txt REQUIREMENTS.md

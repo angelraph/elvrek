@@ -153,6 +153,21 @@ static void common_checks(void)
     expect(R.max_true_depth <= ELV_DEPTH_MAX_M + 0.001, "true chest depth <= 6.1 cm");
     expect(R.max_force <= ELV_FORCE_ABS_N, "force <= 650 N");
     expect(R.plant.shocks_while_not_parked == 0, "no shock with the cup off recoil");
+    /* full recoil: the chest model counts a stroke only when the cup comes
+       back within 3 mm of the chest, so its count matches the controller's
+       only if every stroke was released (the last one may be in progress) */
+    long dstrokes = (long)R.plant.strokes - (long)R.core.m.compressions;
+    if (R.plant.cfg.transport)   /* the chest itself moves: reported, not judged (see REQUIREMENTS.md) */
+        printf("      transport: chest strokes %u of %u controller strokes\n", R.plant.strokes, R.core.m.compressions);
+    else
+        expect(dstrokes >= -1 && dstrokes <= 1, "every stroke released to full recoil");
+    /* rate while compressing, from the strokes the controller completed over
+       the ticks it spent in COMPRESS (checked once there is a minute of it) */
+    if (R.core.m.hands_on_ticks >= 60000) {
+        double rate = R.core.m.compressions * 60000.0 / (double)R.core.m.hands_on_ticks;
+        printf("      rate while compressing %.1f per minute\n", rate);
+        expect(rate >= ELV_RATE_MIN_CPM && rate <= ELV_RATE_MAX_CPM, "compression rate 100 to 120 per minute");
+    }
 }
 
 static void report(const scen_t *sc)

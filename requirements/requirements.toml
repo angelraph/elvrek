@@ -1,0 +1,319 @@
+# Elvrek safety requirements, traced to code, tests and QNX results.
+# tools/trace.py checks every link below and writes REQUIREMENTS.md:
+#   code      "path:text"   the text must be found in the file (its line is linked)
+#   host      scenario names from tests/host/scenarios.c, or "all"; each must PASS
+#             in this run, and every "checks" text must be an expect() in that file
+#   qnx       fault suite cases; "PASS <case>" must be in every run listed in [runs]
+#   evidence  other result files; the pattern must match (at least "min" times)
+# A requirement with no test of its own is listed as a gap, never as verified.
+
+[runs]
+qnx = [
+  "docs/results/qnx-fault-suite-zero-pause-1.txt",
+  "docs/results/qnx-fault-suite-zero-pause-2.txt",
+  "docs/results/qnx-fault-suite-secpol-enforced-1.txt",
+]
+
+# ---------------------------------------------------------------- compressions
+
+[[req]]
+id = "R01"
+group = "Compressions"
+text = "Compress at 100 to 120 a minute."
+why = "AHA 2020 adult BLS guideline (Panchal et al.)."
+code = ["include/elv_limits.h:ELV_RATE_MIN_CPM", "include/elv_limits.h:ELV_RATE_MAX_CPM", "src/core/elv_core.c:c->period_ticks"]
+host = ["all"]
+checks = ["compression rate 100 to 120 per minute"]
+qnx = ["T2 compressions"]
+
+[[req]]
+id = "R02"
+group = "Compressions"
+text = "Compress 5 to 6 cm deep, and never deeper than 6 cm plus 1 mm."
+why = "AHA 2020: at least 5 cm, no more than 6 cm."
+code = ["include/elv_limits.h:ELV_DEPTH_MIN_M", "include/elv_limits.h:ELV_DEPTH_MAX_M", "src/core/elv_core.c:static double compress_target"]
+host = ["all", "transport_imu_comp", "transport_controller_stalls"]
+checks = ["true chest depth <= 6.1 cm", "depth in 5-6 cm on >= 90% of strokes"]
+qnx = ["T5 CPU storm", "T7 transport"]
+
+[[req]]
+id = "R03"
+group = "Compressions"
+text = "Release every stroke to full recoil on a still patient."
+why = "AHA 2020: allow full chest recoil; leaning reduces blood return."
+code = ["include/elv_limits.h:ELV_RECOIL_M", "src/plant/elv_plant.c:A stroke ends at full recoil"]
+host = ["all"]
+checks = ["every stroke released to full recoil"]
+limit = "Judged only without vehicle motion. In the transport scenarios the chest model counts 190 to 216 of 218 strokes, and the test cannot tell a stroke that missed recoil against a moving chest from one too shallow to count. Reported on every run, not yet a requirement there."
+
+[[req]]
+id = "R04"
+group = "Compressions"
+text = "Stop pushing at 600 N, and never let the force on the chest pass 650 N, even when software is late."
+why = "Rib and organ injury from mechanical CPR rises with force; a stiff chest must not be forced to depth."
+code = ["include/elv_limits.h:ELV_FORCE_LIMIT_N", "include/elv_limits.h:ELV_FORCE_ABS_N", "src/core/elv_inv.c:I2: force and depth ceilings"]
+host = ["all", "stiff_chest", "stiff_chest_controller_stalls"]
+checks = ["force <= 650 N", "force ceiling engaged", "force under the 650 N hard limit despite stalls"]
+qnx = ["T6 stiff chest"]
+
+[[req]]
+id = "R05"
+group = "Compressions"
+text = "Keep the chest compression fraction at or above 80%."
+why = "AHA 2020 recommends a compression fraction of at least 60%, ideally 80%."
+code = ["include/elv_limits.h:ELV_CCF_MIN", "src/core/elv_core.c:double elv_core_ccf"]
+host = ["vf_shock_rosc", "vf_shock_rosc_30_2", "advisor_hang_30s"]
+checks = ["CCF >= 90%", "CCF >= 80%", "compressions continue"]
+qnx = ["T10 chest-compression fraction"]
+
+# ----------------------------------------------------------------------- shock
+
+[[req]]
+id = "R06"
+group = "Shock"
+text = "Charge the defibrillator while compressing, so charging never adds to the pause."
+why = "Charging takes 5 to 8 s; pre-shock pauses predict survival (Cheskes et al. 2011)."
+code = ["include/elv_limits.h:ELV_PRECHARGE_LEAD_TICKS"]
+host = ["vf_shock_rosc", "vf_preauthorised_shock"]
+checks = ["total hands-off < 3 s", "delivered on pre-authorisation"]
+qnx = ["T10 shock"]
+
+[[req]]
+id = "R07"
+group = "Shock"
+text = "Close the shock line only with the piston parked at recoil, a shockable decision the controller trusts, the crew's press and a full charger."
+why = "A shock during a stroke, or without a decision and a press, can hurt the patient or the crew."
+code = ["src/core/elv_inv.c:I1: shock line closed only when every gate is satisfied", "src/core/elv_core.c:static void open_window"]
+host = ["all", "vf_crew_never_presses"]
+checks = ["0 invariant violations", "no shock with the cup off recoil", "no shock without a press"]
+qnx = ["T10 shock"]
+
+[[req]]
+id = "R08"
+group = "Shock"
+text = "Keep the hands-off window for a shock under 3 s in total, and the machine's own part under 1.5 s."
+why = "Every 5 s of pre-shock pause lowers survival (Cheskes et al. 2011)."
+code = ["include/elv_limits.h:ELV_SHOCK_WIN_TARGET_TICKS", "include/elv_limits.h:ELV_SHOCK_WIN_STRETCH_TICKS", "src/core/elv_inv.c:I3: shock window must close inside the target"]
+host = ["vf_shock_rosc", "vf_slow_press_1800ms", "vf_crew_never_presses"]
+checks = ["total hands-off < 3 s", "machine time < 1.5 s", "each window <= 3 s"]
+qnx = ["T10 shock"]
+
+[[req]]
+id = "R09"
+group = "Shock"
+text = "Read the rhythm through the compressions; when it is surely shockable, shock without the 0.8 s look."
+why = "The machine knows its own stroke phase, so it can cancel its own artifact (docs/ZERO-PAUSE.md)."
+code = ["src/core/elv_cancel.c:elv_cancel", "src/core/elv_core.c:static void zp_feed", "src/core/elv_core.c:static int8_t zp_decide"]
+host = ["vf_preauth_read_through_cpr"]
+checks = ["rhythm read as sure shockable through compressions", "machine hands-off under 0.1 s"]
+qnx = ["T10 shock"]
+
+[[req]]
+id = "R10"
+group = "Shock"
+text = "When the reading is surely not shockable, make no pause at all; when it is not sure, take the 0.8 s look."
+why = "A pause that cannot change the decision only costs blood flow; an unsure reading must not be trusted."
+code = ["include/elv_rhythm_model.h:SURE_NOT", "include/elv_limits.h:ELV_CONFIRM_TICKS"]
+host = ["asystole_no_shock", "vf_preauth_always_look"]
+checks = ["at least one 2-minute check needed no pause at all", "the 0.8 s look happens"]
+qnx = ["T12 rhythm read through compressions"]
+
+[[req]]
+id = "R11"
+group = "Shock"
+text = "Never shock a rhythm that is not shockable."
+why = "Asystole and PEA are not treated with a shock."
+code = ["src/core/elv_core.c:bool elv_trusted_shockable"]
+host = ["asystole_no_shock", "pea_no_shock", "true_rosc_advisor_denies"]
+checks = ["no shock"]
+qnx = ["T12 rhythm read through compressions"]
+
+[[req]]
+id = "R12"
+group = "Shock"
+text = "Count the crew's time apart from the machine's time in every pause."
+why = "A pause the crew causes must not be hidden inside the machine's numbers, or the reverse."
+code = ["src/core/elv_core.h:max_human_ticks"]
+host = ["vf_shock_rosc", "vf_slow_press_1800ms", "vf_preauthorised_shock"]
+checks = ["human time reported separately (scripted 300 ms)", "human time 1.8 s, reported separately", "human time 0"]
+
+[[req]]
+id = "R13"
+group = "Shock"
+text = "If the crew does not press, resume compressions within 3 s, offer the shock again up to 3 times, then dump the charge."
+why = "A window that waits forever for a press turns into a long pause."
+code = ["include/elv_limits.h:ELV_MAX_RETRIES", "include/elv_limits.h:ELV_SHOCK_WIN_ABORT_TICKS"]
+host = ["vf_crew_never_presses"]
+checks = ["re-offered 3 times", "each window <= 3 s", "no shock without a press"]
+
+# -------------------------------------------------------- ventilation and ROSC
+
+[[req]]
+id = "R14"
+group = "Ventilation and return of circulation"
+text = "Give breaths, and never start one on a downstroke."
+why = "A breath into a chest being compressed is wasted and raises airway pressure."
+code = ["include/elv_limits.h:ELV_VENT_CONT_PERIOD_TICKS", "src/core/elv_inv.c:breath onset not on downstroke"]
+host = ["all", "vf_shock_rosc_30_2"]
+checks = ["0 invariant violations", "breaths delivered"]
+
+[[req]]
+id = "R15"
+group = "Ventilation and return of circulation"
+text = "On a trusted sign of return of circulation (an EtCO2 jump or a pulse), park the piston within one compression cycle."
+why = "Compressing a beating heart is harmful; a sudden EtCO2 rise is a recognised sign of circulation returning."
+code = ["src/core/elv_core.c:static bool trusted_rosc", "src/core/elv_inv.c:I4: after trusted ROSC"]
+host = ["vf_shock_rosc", "true_rosc_advisor_denies"]
+checks = ["parked within one compression cycle of trusted ROSC", "stopped on trusted ROSC"]
+qnx = ["T10 trusted ROSC"]
+
+[[req]]
+id = "R16"
+group = "Ventilation and return of circulation"
+text = "Never stop compressions on the classifier's word alone."
+why = "A false claim of circulation from software would stop CPR on a patient who needs it."
+code = ["src/core/elv_core.c:static void take_advisor"]
+host = ["advisor_malicious"]
+checks = ["false ROSC claim did not stop compressions"]
+qnx = ["T11 malicious advisor"]
+
+# ---------------------------------------------------------- the AI classifier
+
+[[req]]
+id = "R17"
+group = "The AI classifier"
+text = "The classifier cannot reach the piston, the shock line, the crew controls or the hardware; the kernel refuses it."
+why = "Software that only advises must not be able to act, whatever it is made to do."
+code = ["src/qnx/elv_advice_gate.c:advice_core", "qnx/secpol/elvrek.pol:elv_advisor_t"]
+qnx = ["T3 advisor attack"]
+evidence = [{ file = "docs/results/qnx-secpol-attack-ab.txt", match = "attack: 7 of 7 forbidden actions refused" }]
+limit = "Kept as root under its policy type in a test mode, it can still open the hardware's shared memory (5 of 7 refused). Designed to drop root, it gets 7 of 7."
+
+[[req]]
+id = "R18"
+group = "The AI classifier"
+text = "Ignore the classifier's demands; at most it can delay one pre-charge at a time."
+why = "Advice may help timing but must never decide."
+code = ["src/core/elv_core.c:static bool advisor_vetoes_precharge"]
+host = ["advisor_malicious"]
+checks = ["demands recorded and ignored", "advisor delays at most one boundary at a time", "shock still delivered by the 2nd boundary"]
+qnx = ["T11 malicious advisor"]
+
+[[req]]
+id = "R19"
+group = "The AI classifier"
+text = "Keep compressing when the classifier dies or hangs, and restart it."
+why = "A crash in optional software must not interrupt CPR."
+code = ["src/qnx/elv_super.c:restart", "src/core/elv_core.c:static bool advisor_fresh"]
+host = ["advisor_dead", "advisor_hang_30s"]
+checks = ["shock delivered without the advisor", "shock delivered after advisor hang", "compressions continue"]
+qnx = ["T4 advisor killed"]
+
+# ----------------------------------------------------------------- faults
+
+[[req]]
+id = "R20"
+group = "Faults"
+text = "When the sensors go silent, retract to full recoil at a controlled speed and hold."
+why = "Pushing blind is unsafe; stopping at the bottom of a stroke leaves the chest compressed."
+code = ["include/elv_limits.h:ELV_SENSOR_STALE_TICKS", "src/core/elv_inv.c:I8: fault -> setpoint 0 at controlled speed"]
+host = ["sensor_dropout"]
+checks = ["fault SENSOR_STALE", "piston at recoil"]
+qnx = ["T8 sensor dropout"]
+
+[[req]]
+id = "R21"
+group = "Faults"
+text = "On an emergency stop mid-stroke, retract to full recoil and hold."
+why = "Same as R20: never stop with the chest compressed."
+code = ["src/core/elv_core.c:void elv_core_force_fault"]
+host = ["estop_mid_stroke"]
+checks = ["fault ESTOP", "piston at recoil"]
+
+[[req]]
+id = "R22"
+group = "Faults"
+text = "If the safety process dies, the hardware retracts on its own, and nothing restarts the safety process behind the crew's back."
+why = "The last line of defence must not depend on the software it protects against."
+code = ["src/qnx/elv_plant_main.c:hw->hw_watchdog_trips++", "src/qnx/elv_super.c:safety_down"]
+qnx = ["T9 safety process killed"]
+
+[[req]]
+id = "R23"
+group = "Faults"
+text = "An independent monitor checks the safety rules on every tick and forces a retract on any violation."
+why = "The control logic is not trusted to check itself."
+code = ["src/core/elv_inv.c:bool elv_inv_check", "src/qnx/elvrekd.c:elv_core_force_fault(&g_core, ELV_FAULT_INVARIANT)"]
+host = ["all"]
+checks = ["0 invariant violations"]
+qnx = ["T2 compressions", "T11 malicious advisor"]
+
+# ---------------------------------------------------------------- timing
+
+[[req]]
+id = "R24"
+group = "Timing"
+text = "Run the control loop every 1 ms at a priority above every other Elvrek process."
+why = "Force control on a chest needs a fixed, short period."
+code = ["include/elv_limits.h:ELV_TICK_HZ", "src/qnx/elvrekd.c:timer_create(CLOCK_MONOTONIC"]
+qnx = ["T1 control loop ticking"]
+evidence = [{ file = "docs/results/qnx-trace-quiet.txt", match = "ticks whose work ran past 1 ms: 0 of" }]
+limit = "Measured on QEMU. No worst-case bound is claimed until the trace is repeated on hardware (docs/TIMING.md)."
+
+[[req]]
+id = "R25"
+group = "Timing"
+text = "Busy threads just below the control priority cannot stop correct compressions."
+why = "Other work on the same device must not degrade CPR."
+code = ["src/qnx/elv_fault.c:cpu-storm"]
+qnx = ["T5 CPU storm"]
+evidence = [{ file = "docs/results/qnx-trace-storm.txt", match = "ticks whose work ran past 1 ms: 0 of" }]
+
+[[req]]
+id = "R26"
+group = "Timing"
+text = "After a late wake, replay the missed ticks so depth and force stay right."
+why = "A virtual machine or a busy board can delay a tick; the patient must not feel it."
+code = ["src/qnx/elvrekd.c:Catch up"]
+host = ["transport_controller_stalls", "stiff_chest_controller_stalls"]
+checks = ["depth in 5-6 cm on >= 90% of strokes despite stalls", "force under the 650 N hard limit despite stalls"]
+
+# ------------------------------------------------------ transport and clock
+
+[[req]]
+id = "R27"
+group = "Transport and the resuscitation clock"
+text = "In a moving vehicle, keep depth in range on at least 90% of strokes."
+why = "Manual CPR in a moving ambulance is poor and unsafe for crews."
+code = ["src/core/elv_core.c:transport_comp"]
+host = ["transport_imu_comp", "transport_comp_strap_mismatch"]
+checks = ["depth in 5-6 cm on >= 90% of strokes", "compensation beats no compensation by >= 10 points", "depth in range >= 80% with a 15% model mismatch"]
+qnx = ["T7 transport"]
+
+[[req]]
+id = "R28"
+group = "Transport and the resuscitation clock"
+text = "Check the rhythm every 2 minutes and prompt epinephrine after the second shock and again on schedule."
+why = "AHA 2020 adult ALS cardiac arrest algorithm."
+code = ["include/elv_limits.h:ELV_CYCLE_TICKS", "include/elv_limits.h:ELV_EPI_INTERVAL_TICKS"]
+host = ["refractory_vf_acls_clock"]
+checks = [">= 4 shocks in 10 min", "epinephrine prompted after 2nd shock and again"]
+
+# ------------------------------------------------------- console and boot
+
+[[req]]
+id = "R29"
+group = "Console and boot"
+text = "The crew console only reads the safety process's status, and what it draws on QNX Screen is checkable."
+why = "A display must never be a path to the actuators."
+code = ["src/qnx/elv_console.c:open(ELV_DEV_STATUS, O_RDONLY)"]
+evidence = [{ file = "docs/results/qnx-console-run.txt", match = ": 0 of 2949120 channel values differ", min = 11 }]
+
+[[req]]
+id = "R30"
+group = "Console and boot"
+text = "Start compressing from the boot image, within 2 s of the kernel starting."
+why = "Every second of boot is a second without blood flow."
+code = ["qnx/instant-on/ifs_start.custom:elvrekd -e", "src/qnx/elvrekd.c:g_boot_comp_ms = mono_ms()"]
+evidence = [{ file = "docs/results/qnx-instant-on-ab.txt", match = "controller_process=\\d+ control_loop=\\d+ status_seen=\\d+ start=\\d+ first_compression=1\\d\\d\\d state=COMPRESS", min = 5 }]
+limit = "Emulator times, on the kernel's clock. Real boards add firmware time before the kernel."
