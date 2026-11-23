@@ -1,0 +1,6 @@
+# Elvrek, conventional start for comparison: the same three programs, started
+# at the end of the normal boot like any application.
+echo "ELVREK MARK post startup reached"
+/proc/boot/elv-plant -e -r vf &
+/proc/boot/elvrekd -e &
+/proc/boot/elv-ctl boot &

@@ -119,6 +119,10 @@ typedef struct {
     uint32_t zp_checks, zp_skipped, zp_sure_shock, zp_unsure;
     uint32_t next_check_ticks, window_ticks;   /* for the crew console */
     float    zp_mean;
+    /* boot milestones, ms on CLOCK_MONOTONIC (which starts when the kernel
+       starts): process started, control loop running, START taken, first
+       full compression. 0 until reached. */
+    uint32_t boot_proc_ms, boot_ready_ms, boot_start_ms, boot_comp_ms;
     double   depth_cmd_m, force_n, pos_m, etco2;
     int      epi_prompt;
     uint32_t epi_prompts, epi_given;

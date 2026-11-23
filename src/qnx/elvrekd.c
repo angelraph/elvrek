@@ -71,6 +71,13 @@ static elv_seq_t    g_st_seq;
 static elv_status_t g_status;
 
 static int g_verbose;
+static uint32_t g_boot_proc_ms, g_boot_ready_ms, g_boot_start_ms, g_boot_comp_ms;
+static uint32_t mono_ms(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint32_t)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
+}
 static int g_emulator;      /* -e: wider sensor timeout for virtual machines */
 static slog2_buffer_t g_log;
 
@@ -100,7 +107,8 @@ static int format_status(char *buf, size_t len)
         "inv=%u missed=%llu late=%llu overrun=%llu adv_age=%llu adv_msgs=%u "
         "adv_rejected=%u adv_ignored=%u adv_skips=%u shock_line=%d vent=%d charge=%d "
         "ready=%d transport=%d mode_30_2=%d force_limits=%u emulator=%d "
-        "zp_checks=%u zp_skipped=%u zp_sure=%u zp_unsure=%u zp_score=%.2f next_check=%u in_window=%u\n",
+        "zp_checks=%u zp_skipped=%u zp_sure=%u zp_unsure=%u zp_score=%.2f next_check=%u in_window=%u "
+        "boot_proc_ms=%u boot_ready_ms=%u boot_start_ms=%u boot_comp_ms=%u\n",
         (unsigned long long)s.tick, elv_state_name((elv_state_t)s.state), s.sw_phase,
         elv_fault_name((elv_fault_t)s.fault), s.ccf, s.shocks, s.windows,
         s.max_window, s.last_window, s.last_machine, s.max_machine, s.last_human, s.max_human,
@@ -111,7 +119,8 @@ static int format_status(char *buf, size_t len)
         s.adv_msgs, s.adv_rejected, s.adv_ignored, s.adv_skips, s.shock_line, s.vent_on,
         s.charge_on, s.charger_ready, s.transport_comp, s.mode_30_2, s.force_limit_events,
         g_emulator, s.zp_checks, s.zp_skipped, s.zp_sure_shock, s.zp_unsure, s.zp_mean,
-        s.next_check_ticks, s.window_ticks);
+        s.next_check_ticks, s.window_ticks,
+        s.boot_proc_ms, s.boot_ready_ms, s.boot_start_ms, s.boot_comp_ms);
 }
 
 static int io_read(resmgr_context_t *ctp, io_read_t *msg, RESMGR_OCB_T *ocb)
@@ -273,6 +282,10 @@ static void publish_status(const elv_sensors_t *s, const elv_actuators_t *a,
     g_status.transport_comp = c->transport_comp;
     g_status.mode_30_2 = c->mode_30_2;
     g_status.force_limit_events = c->m.force_limit_events;
+    g_status.boot_proc_ms = g_boot_proc_ms;
+    g_status.boot_ready_ms = g_boot_ready_ms;
+    g_status.boot_start_ms = g_boot_start_ms;
+    g_status.boot_comp_ms = g_boot_comp_ms;
     elv_seq_wend(&g_st_seq);
 }
 
@@ -321,6 +334,7 @@ static void control_loop(void)
     elv_sensors_t s;
     memset(&s, 0, sizeof(s));
 
+    g_boot_ready_ms = mono_ms();
     LOG(SLOG2_INFO, "elvrekd: control loop running at %d Hz, priority %d",
         ELV_TICK_HZ, ELV_PRIO_CTRL);
 
@@ -422,6 +436,10 @@ static void control_loop(void)
         elv_seq_wend(&g_hw->aseq);
         atomic_store(&g_hw->act_tick, g_core.tick);
 
+        /* boot milestones: a clock read, no I/O, so they cost the loop nothing */
+        if (!g_boot_start_ms && g_core.state == ELV_ST_COMPRESS) g_boot_start_ms = mono_ms();
+        if (!g_boot_comp_ms && g_core.m.compressions) g_boot_comp_ms = mono_ms();
+
         if (ClockCycles() - now > period_cyc) overrun++;
         publish_status(&s, &act, missed, late, overrun);
     }
@@ -430,6 +448,7 @@ static void control_loop(void)
 /* main */
 int main(int argc, char **argv)
 {
+    g_boot_proc_ms = mono_ms();
     int opt;
     while ((opt = getopt(argc, argv, "ve")) != -1) {
         if (opt == 'v') g_verbose = 1;

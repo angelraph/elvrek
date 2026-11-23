@@ -1,0 +1,5 @@
+# Elvrek instant-on: the hardware stand-in, the safety process and elv-ctl
+# live in the boot image itself, so they need no disk to start.
+[perms=0755] elv-plant=${ELV_BIN}/elv-plant
+[perms=0755] elvrekd=${ELV_BIN}/elvrekd
+[perms=0755] elv-ctl=${ELV_BIN}/elv-ctl

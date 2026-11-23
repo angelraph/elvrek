@@ -29,6 +29,7 @@ Built for the **QNX Global Hackathon**, Robotics and Medical category.
 | **AI fence** | An enforced QNX security policy: the classifier's only door is a separate advice gate. 7 of 7 forbidden actions refused; kept as root under its type, the kernel still refuses every path to the piston and shock line ([A/B](docs/results/qnx-secpol-attack-ab.txt)) |
 | **Hard limits** | The controller stops pushing at 600 N and 650 N is never crossed. Depth 5 to 6 cm, full recoil every stroke |
 | **Kernel trace** | QNX `tracelogger`: control work per tick median 27 to 37 µs, 0 ticks past 1 ms; under a priority 59 CPU storm the controller preempts it within 42 µs ([docs/TIMING.md](docs/TIMING.md)) |
+| **Instant on** | The safety process starts from the QNX boot image, before disks or network: first full compression 1.39 s after the kernel starts, against 3.67 s when started after the normal boot (median of 5 boots each) ([docs/INSTANT-ON.md](docs/INSTANT-ON.md)) |
 | **Crew console** | Drawn with QNX Screen on the target, read only, from the safety process's status. Every frame saved from Screen matches the host replay pixel for pixel; switching it on makes no difference to missed ticks that we can measure on this emulator ([docs/CONSOLE.md](docs/CONSOLE.md)) |
 | **Host tests** | **22 of 22** scenarios with 0 rule violations, run on every push by GitHub Actions |
 | **Real ECG** | 57 PhysioNet arrest records. Held out: VF found 75.0%, normal sinus left alone 97.7%. Still short of clinical goals, and we say so |
@@ -222,6 +223,7 @@ These rules live in `src/core/elv_core.c` and are checked again, independently, 
 | 22 Nov 2026 | Security policy recorded with secpolgenerate, tightened and enforced; advice gate process; 12 of 12 with the policy enforced; A/B attack test |
 | 21 to 22 Nov 2026 | Reading the rhythm through the compressions: piston-referenced artifact canceller, rhythm model trained on CUDB, spread over control ticks; a lost charge dump found and fixed; 12 of 12 on QNX twice, with 3 ticks of hands-off for the shock |
 | 22 Nov 2026 | Kernel trace timing proof with tracelogger. Crew console on QNX Screen; its first real run showed the depth, rate and rounding fixes it needed, and every saved Screen frame now matches the host replay |
+| 23 Nov 2026 | Instant on: the safety process starts from the boot image and compresses 2.3 s earlier than a normal start, five boots of each |
 
 ## Quickstart
 
@@ -272,6 +274,7 @@ web/            the website, deployed on Vercel
 | [QNX.md](QNX.md) | Exactly how and where QNX 8.0 is used, file by file |
 | [SAFETY.md](SAFETY.md) | The safety rules, the monitor, and what the controller will never do |
 | [RESULTS.md](RESULTS.md) | Every run on QNX, what failed and what it taught us |
+| [docs/INSTANT-ON.md](docs/INSTANT-ON.md) | Compressing from the boot image, before the rest of QNX has booted, and the A/B against a normal start |
 | [docs/CONSOLE.md](docs/CONSOLE.md) | The crew console on QNX Screen, and how its pictures are checked against the target |
 | [docs/TIMING.md](docs/TIMING.md) | Timing from a QNX kernel trace, and what a virtual machine cannot prove |
 | [video/README.md](video/README.md) | How the demo film was made |

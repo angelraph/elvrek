@@ -1,0 +1,8 @@
+    # Elvrek instant-on: start compressing before disks, network or login.
+    # elv-plant stands in for the motor driver and sensors (physics model).
+    # elv-ctl boot presses START as soon as the safety process answers, then
+    # prints the boot milestones once the first compression is done.
+    display_msg "ELVREK MARK boot script reached"
+    elv-plant -e -r vf &
+    elvrekd -e &
+    elv-ctl boot &
