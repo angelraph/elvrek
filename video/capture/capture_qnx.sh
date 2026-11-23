@@ -32,5 +32,13 @@ sed -i 's/\r$//' build/demo_capture.sh
 ssh $OPT "root@$IP" "mkdir -p /data/elvrek/bin"
 scp $OPT build/qnx-x86_64/* "root@$IP:/data/elvrek/bin/" > /dev/null
 scp $OPT build/demo_capture.sh "root@$IP:/data/elvrek/" > /dev/null
-ssh -tt $OPT "root@$IP" "EMU=1 sh /data/elvrek/demo_capture.sh" 2>&1 | stamp > "$OUT/demo.tsv"
+# same keep-awake as the fault suite runs (SPIN=1): two idle threads at priority 1,
+# below every Elvrek process, so the virtual CPUs are not parked between ticks
+ssh $OPT "root@$IP" "slay -f elv-spin 2>/dev/null; sleep 2; rm -f /tmp/elv-spin; cp /data/elvrek/bin/elv-fault /tmp/elv-spin; nohup /tmp/elv-spin cpu-storm 2 3600 1 >/dev/null 2>&1 < /dev/null &"
+# run detached on the target and fetch the log: a long ssh -tt session can stall its
+# output on this guest even though the run itself completes
+ssh $OPT "root@$IP" "rm -f /tmp/demo.log; EMU=1 nohup sh /data/elvrek/demo_capture.sh > /tmp/demo.log 2>&1 < /dev/null &"
+for i in $(seq 1 300); do sleep 3; ssh $OPT "root@$IP" "grep -q @@end /tmp/demo.log" && break; done
+ssh $OPT "root@$IP" "cat /tmp/demo.log" | stamp > "$OUT/demo.tsv"
+ssh $OPT "root@$IP" "slay -f elv-spin" 2>/dev/null || true
 echo "captured $(wc -l < "$OUT/demo.tsv") lines, boot $(wc -l < "$OUT/boot.tsv") lines"

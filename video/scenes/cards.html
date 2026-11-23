@@ -1,0 +1,118 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#07080a;color:#e9ecef;font-family:Inter,sans-serif}
+.bg{position:absolute;inset:0;background:
+  radial-gradient(900px 600px at 78% 30%,rgba(225,29,46,.13),transparent 70%),
+  radial-gradient(800px 700px at 10% 90%,rgba(60,90,160,.10),transparent 70%)}
+.grid{position:absolute;inset:0;opacity:.07;background-image:linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px);background-size:64px 64px}
+.badge{position:absolute;right:64px;top:118px}
+.pill{font:600 15px/1 Inter;letter-spacing:.04em;padding:11px 16px;border-radius:999px;border:1px solid rgba(225,29,46,.6);background:rgba(255,255,255,.04);color:#fff}
+.pill i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#e11d2e;margin-right:9px;box-shadow:0 0 10px #e11d2e}
+.mode{display:none;position:absolute;left:64px;right:64px;top:210px;bottom:80px}
+h1{font:700 64px/1.05 'Barlow Condensed',sans-serif;color:#fff;letter-spacing:.01em}
+h1 em{font-style:normal;color:#e11d2e}
+.sub{margin-top:12px;font:500 24px/1.35 Inter;color:#9aa2ad}
+.foot{position:absolute;left:0;right:0;bottom:0;font:500 18px/1.4 Inter;color:#6f7884}
+.foot code{font:500 17px 'JetBrains Mono',monospace;color:#9aa2ad}
+.lanes{margin-top:64px;display:flex;flex-direction:column;gap:40px}
+.lane .name{font:600 26px/1 Inter;color:#fff;margin-bottom:16px;display:flex;justify-content:space-between}
+.lane .name span{color:#8b93a0;font-weight:500;font-size:21px}
+.track{position:relative;height:74px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:12px;background:linear-gradient(90deg,rgba(225,29,46,.25),rgba(225,29,46,.6))}
+.fill.grey{background:linear-gradient(90deg,rgba(150,160,175,.18),rgba(150,160,175,.42))}
+.mark{position:absolute;top:-8px;bottom:-8px;width:4px;margin-left:-2px;background:#5ee08a;box-shadow:0 0 16px #5ee08a;opacity:0}
+.mark b{position:absolute;top:8px;left:18px;font:700 52px/1 'Barlow Condensed',sans-serif;color:#5ee08a;white-space:nowrap}
+.axis{position:relative;height:30px;margin-top:-18px}
+.axis span{position:absolute;transform:translateX(-50%);white-space:nowrap;font:500 17px 'JetBrains Mono',monospace;color:#6f7884}
+.clock{position:absolute;right:0;top:0;text-align:right}
+.clock .v{font:700 92px/1 'Barlow Condensed',sans-serif;color:#fff}
+.clock .l{font:600 15px/1 'Barlow Condensed',sans-serif;letter-spacing:.2em;color:#8b93a0}
+.bars{margin-top:70px;display:flex;flex-direction:column;gap:40px}
+.bar .name{font:600 26px/1 Inter;color:#fff;margin-bottom:14px}
+.bar .name span{color:#8b93a0;font-weight:500;font-size:20px;margin-left:12px}
+.bar .row{display:flex;align-items:center;gap:26px}
+.bar .tr{flex:1;height:64px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);overflow:hidden}
+.bar .f{height:100%;width:0;border-radius:12px;background:linear-gradient(90deg,rgba(150,160,175,.25),rgba(150,160,175,.55))}
+.bar.us .f{background:linear-gradient(90deg,#e11d2e,#ff5b6b);box-shadow:0 0 24px rgba(225,29,46,.6)}
+.bar .n{width:230px;font:700 72px/1 'Barlow Condensed',sans-serif;color:#fff;opacity:0}
+.bar .n small{font-size:32px;color:#8b93a0;margin-left:6px}
+.bar.us .n{color:#ff5b6b}
+.cards{margin-top:60px;display:flex;gap:30px}
+.card{flex:1;padding:40px 38px;border-radius:18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);opacity:0;min-height:450px}
+.card .big{font:700 150px/1 'Barlow Condensed',sans-serif;color:#fff}
+.card .big small{font-size:64px;color:#8b93a0}
+.card .t{margin-top:18px;font:600 30px/1.25 Inter;color:#fff}
+.card .d{margin-top:16px;font:400 21px/1.45 Inter;color:#9aa2ad}
+.card .tick{margin-top:22px;font:600 17px/1.3 'JetBrains Mono',monospace;color:#5ee08a}
+</style></head>
+<body>
+<div class="bg"></div><div class="grid"></div>
+<div class="badge"><span class="pill" id="pill"><i></i></span></div>
+
+<div class="mode" id="instant">
+  <h1>Compressing from the <em>boot image</em></h1>
+  <div class="sub">Time from the QNX kernel starting to the first full compression. Median of 5 boots of each image.</div>
+  <div class="clock"><div class="v" id="clk">0.00 s</div><div class="l">KERNEL CLOCK</div></div>
+  <div class="lanes">
+    <div class="lane"><div class="name">Elvrek in the IFS, started by the first boot script <span>before disks, network and SSH</span></div>
+      <div class="track"><div class="fill" id="fa"></div><div class="mark" id="ma"><b>1.39 s</b></div></div></div>
+    <div class="lane"><div class="name">Same programs, started at the end of a normal boot <span>the usual way</span></div>
+      <div class="track"><div class="fill grey" id="fb"></div><div class="mark" id="mb" style="background:#cfd4da;box-shadow:none"><b style="color:#cfd4da">3.67 s</b></div></div></div>
+    <div class="axis" id="axis"></div>
+  </div>
+  <div class="foot">QNX 8.0 in QEMU, same binaries and options in both images. Raw boots: <code>docs/results/qnx-instant-on-ab.txt</code></div>
+</div>
+
+<div class="mode" id="workflow">
+  <h1>The pause before a shock: <em>same arrest, three ways</em></h1>
+  <div class="sub">Hands-off time before the first shock, with the rhythm analysis taking 5 s.</div>
+  <div class="bars">
+    <div class="bar" id="w1"><div class="name">CPR device plus a separate AED<span>crew pauses, the AED analyses, then charges</span></div><div class="row"><div class="tr"><div class="f"></div></div><div class="n">12.3<small>s</small></div></div></div>
+    <div class="bar" id="w2"><div class="name">The same, crew charges early<span>the best a conventional crew can do</span></div><div class="row"><div class="tr"><div class="f"></div></div><div class="n">5.3<small>s</small></div></div></div>
+    <div class="bar us" id="w3"><div class="name">Elvrek, one clock<span>reads through compressions, charges while pushing</span></div><div class="row"><div class="tr"><div class="f"></div></div><div class="n">0.3<small>s</small></div></div></div>
+  </div>
+  <div class="foot">Host test with the same physics model, ECG, rhythm algorithm and charger in all three. Crew reacts in 1 s, presses in 0.3 s, charging takes 7 s. <code>tests/host/workflow_ab.c</code></div>
+</div>
+
+<div class="mode" id="proof">
+  <h1>Every claim is <em>checked</em></h1>
+  <div class="sub">The raw output of every run, including the failures, is in the repository.</div>
+  <div class="cards">
+    <div class="card" id="p1"><div class="big">12<small>/12</small></div><div class="t">fault cases pass on QNX 8.0</div>
+      <div class="d">Malicious classifier, crashes, CPU storm, stiff chest, transport, sensor loss, killing the safety process, a full shock. Also with the security policy enforced.</div><div class="tick">tests/fault_suite.sh</div></div>
+    <div class="card" id="p2"><div class="big">0</div><div class="t">ticks of work past 1 ms in the kernel trace</div>
+      <div class="d">Median work per tick 27 to 37 µs. Back on the CPU within 42 µs of a storm just below its priority. No worst case claimed from a virtual machine.</div><div class="tick">qnx/trace-run.sh, tools/tracecheck.py</div></div>
+    <div class="card" id="p3"><div class="big">31<small>/31</small></div><div class="t">requirements traced to code, tests and QNX runs</div>
+      <div class="d">A script checks every link on every build, and CI fails if the matrix goes stale.</div><div class="tick">REQUIREMENTS.md, make trace</div></div>
+  </div>
+  <div class="foot">All on QNX 8.0 in QEMU. Results: <code>docs/results</code>, <code>docs/TIMING.md</code>, <code>REQUIREMENTS.md</code></div>
+</div>
+
+<script>
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)), ease=x=>1-Math.pow(1-clamp(x,0,1),3), io=x=>{x=clamp(x,0,1);return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2};
+const $=id=>document.getElementById(id);
+const PILL={instant:'Measured on QNX 8.0 in QEMU', workflow:'Measured on the host, same code as the target', proof:'From the repository, checked in CI'};
+const fadeIn=(el,t,t0,d=0.7,dy=24)=>{const p=ease((t-t0)/d); el.style.opacity=p; el.style.transform=`translateY(${(1-p)*dy}px)`; return p;};
+window.__cards={ mode:'', T:{}, init(m,T){ this.mode=m; this.T=T; $(m).style.display='block'; $('pill').insertAdjacentText('beforeend',PILL[m]);
+   if(m==='instant'){ for(let s=0;s<=4;s++){ const e=document.createElement('span'); e.style.left=(s/4*100)+'%'; e.textContent=s+' s'; $('axis').appendChild(e);} } },
+ render(t){ const T=this.T, m=this.mode;
+  fadeIn($(m).querySelector('h1'),t,0.1); fadeIn($(m).querySelector('.sub'),t,0.4); fadeIn($(m).querySelector('.foot'),t,1.0,0.8,0);
+  if(m==='instant'){
+    const c=Math.max(0,(t-T.run)/T.span*4.0);
+    $('clk').textContent=Math.min(c,4).toFixed(2)+' s';
+    const W=v=>(clamp(v,0,4)/4*100)+'%';
+    $('fa').style.width=W(Math.min(c,1.39)); $('fb').style.width=W(Math.min(c,3.67));
+    $('ma').style.left=W(1.39); $('mb').style.left=W(3.67);
+    $('ma').style.opacity=c>=1.39?ease((c-1.39)/0.3):0; $('mb').style.opacity=c>=3.67?ease((c-3.67)/0.3):0;
+  } else if(m==='workflow'){
+    const grow=(id,t0,frac)=>{const p=io((t-t0)/1.1); const b=$(id); b.querySelector('.f').style.width=(p*frac*100)+'%';
+      b.querySelector('.n').style.opacity=ease((t-t0-0.6)/0.5); b.style.opacity=0.35+0.65*ease((t-t0+0.4)/0.5);};
+    grow('w1',T.a,12.3/13); grow('w2',T.b,5.3/13); grow('w3',T.c,Math.max(0.3/13,0.012));
+  } else {
+    fadeIn($('p1'),t,T.a); fadeIn($('p2'),t,T.b); fadeIn($('p3'),t,T.c);
+  }
+ } };
+</script></body></html>

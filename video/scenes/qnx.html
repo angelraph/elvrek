@@ -92,7 +92,7 @@ window.__qnx = { D:null, scene:null,
       const t0=4.4; const cmds=D.bootDemo;
       cmds.forEach(c=>{ const tt=t0+c.t; if (c.l.startsWith('$ ')) { if (t>=tt-0.6) out.push('$ '+typed(c.l.slice(2), (t-tt+0.6)/0.6)); } else if (t>=tt) out.push(c.l); });
       show(out, t>3.3 && t<4.4);
-      const procs=[['elv-plant',62,'hardware stand-in'],['elvrekd',60,'safety process'],['elv-super',10,'supervisor'],['elv-advisor',10,'AI classifier, unprivileged']];
+      const procs=[['elv-plant',62,'hardware stand-in'],['elvrekd',60,'safety process'],['elv-super',10,'supervisor'],['elv-advice-gate',10,"the classifier's only door"],['elv-advisor',10,'AI classifier, unprivileged']];
       document.getElementById('procs').innerHTML = procs.map((p,i)=>{ const a=clamp((t-(t0+4.2)-i*0.35)/0.6,0,1);
         return `<div class="proc" style="opacity:${a};transform:translateX(${(1-ease(a))*30}px)"><span class="n">${p[0]}</span><span class="barw"><div style="width:${ease(a)*p[1]/64*100}%"></div></span><span class="p">${p[1]}</span><span class="note">${p[2]}</span></div>` }).join('');
     }
@@ -125,7 +125,7 @@ window.__qnx = { D:null, scene:null,
         const pts=S.filter(r=>!r.crew && r.tick<=tick).map(r=>[r.tick, parseFloat(short(r.l).m.etco2)]);
         g.strokeStyle='rgba(255,255,255,.08)'; for(let y=20;y<120;y+=30){g.beginPath();g.moveTo(0,y);g.lineTo(628,y);g.stroke();}
         g.lineWidth=3; g.strokeStyle='#7db4ff'; g.beginPath();
-        pts.forEach((p,i)=>{ const x=p[0]/165000*628, y=115-p[1]/45*110; i?g.lineTo(x,y):g.moveTo(x,y) }); g.stroke();
+        pts.forEach((p,i)=>{ const x=p[0]/(S[S.length-1].tick||165000)*628, y=115-p[1]/45*110; i?g.lineTo(x,y):g.moveTo(x,y) }); g.stroke();
       }
       const fl=document.getElementById('flash'); const ts=D.shockT; fl.style.opacity = t>ts && t<ts+0.9 ? (1-(t-ts)/0.9)*0.9 : 0;
     }
@@ -134,7 +134,7 @@ window.__qnx = { D:null, scene:null,
       const L=D.wd, out=[]; let killed=false, after=false;
       for (const r of L){ if (r.t>t) break; out.push(r.l); if (/slay/.test(r.l)) killed=true; if (/WATCHDOG/.test(r.l)) after=r.t; }
       show(out,false);
-      const d0=43.3; let d=d0; if (after!==false) d=d0*(1-clamp((t-after)/0.35,0,1)); if (t<L[1].t) d=0;
+      const d0=D.wdDepth||40; let d=d0; if (after!==false) d=d0*(1-clamp((t-after)/0.35,0,1)); if (t<L[1].t) d=0;
       document.getElementById('dep').innerHTML=d.toFixed(1)+'<small>mm</small>';
       document.getElementById('depb').style.width=(d/60*100)+'%';
       const sp2=document.getElementById('sp'); sp2.textContent= killed && after!==false ? 'DOWN' : 'RUNNING'; sp2.className='state '+(killed&&after!==false?'st-DOWN':'st-COMPRESS');

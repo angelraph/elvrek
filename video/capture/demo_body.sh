@@ -8,6 +8,7 @@ line() { echo "$S" | tr ' ' '\n' | awk -F= '{a[$1]=$2} END {
 
 echo "@@scene boot"
 echo "$ uname -a"; uname -a
+echo "VM keep-awake: two idle threads at priority 1, below every Elvrek process"
 up "-r vf -c" ""
 echo "$ ls /dev/elvrek"; ls /dev/elvrek
 echo "$ pidin (name, thread, priority)"
@@ -26,9 +27,10 @@ while :; do
     S=$($B/elv-ctl status)
     line
     v() { echo "$S" | tr ' ' '\n' | grep "^$1=" | cut -d= -f2; }
-    if [ $pressed = 0 ] && { [ "$(v charge)" = 1 ] || [ "$(v ready)" = 1 ]; }; then
-        $B/elv-ctl shock; pressed=1
-        echo "crew: SHOCK pressed while charging (pre-authorised)"
+    if [ "$(v shocks)" = 0 ] && { [ "$(v charge)" = 1 ] || [ "$(v ready)" = 1 ]; }; then
+        $B/elv-ctl shock
+        [ $pressed = 0 ] && echo "crew: SHOCK pressed while charging (pre-authorised)"
+        pressed=1
     fi
     if [ "$(v state)" = SHOCK_WINDOW ] && [ "$(v sw)" = 2 ] && [ "$(v shocks)" = 0 ]; then
         $B/elv-ctl shock; echo "crew: SHOCK pressed"

@@ -1,25 +1,25 @@
-1795141406.560798212	
-1795141406.563940881	non UEFI or UEFI+CSM boot
-1795141406.567925985	ACPI table not found (0x4746434d)
-1795141406.615521481	overriding mask for controller 2, vector_base 0
-1795141407.403828810	---> Starting slogger2
-1795141407.418954322	---> Starting PCI Services
-1795141407.852228191	---> Starting fsevmgr
-1795141407.860733708	# ---> Starting devb
-1795141408.254443448	---> Mounting file systems
-1795141408.261222544	Pa---> Mounting file systems
-1795141408.266454230	th=0 - Intel 82371SB
-1795141408.272434375	 target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
-1795141408.276503295	Path=1 - Intel 82371SB
-1795141408.284997636	 target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
-1795141408.378160874	---> Starting Networking
-1795141409.600858510	ifconfig: WARNING: setting interface address without mask is deprecated,
-1795141409.606536000	default mask may not be correct.
-1795141409.632336104	---> Starting sshd
-1795141409.689133354	---> Starting misc
-1795141409.735982933	
-1795141409.739332452	To exit QEMU, type <ctrl>a x
-1795141409.745161421	
-1795141409.755766826	[?7hProcess count:24
-1795141409.758941701	Startup complete
-1795141409.768580013	QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+1795397621.918316303	
+1795397621.925160167	non UEFI or UEFI+CSM boot
+1795397621.933114057	ACPI table not found (0x4746434d)
+1795397622.026653414	overriding mask for controller 2, vector_base 0
+1795397622.302477533	---> Starting slogger2
+1795397622.338218397	---> Starting PCI Services
+1795397623.322244760	---> Starting fsevmgr
+1795397623.343129226	# ---> Starting devb
+1795397623.909996671	---> Mounting file systems
+1795397623.916196372	Path=0 - Intel 82371SB
+1795397623.934329318	 target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+---> Mounting file systems
+1795397623.939954574	
+1795397623.946038215	Path=1 - Intel 82371SB
+1795397623.951742694	 target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
+1795397624.094819164	---> Starting Networking
+1795397625.630480057	ifconfig: WARNING: setting interface address without mask is deprecated,
+1795397625.640517346	default mask may not be correct.
+1795397625.722805050	---> Starting sshd
+1795397625.879028596	---> Starting misc
+1795397626.000173075	
+1795397626.006811356	To exit QEMU, type <ctrl>a x
+1795397626.011507488	
+1795397626.038194989	[?7hProcess count:24
+1795397626.046842708	Startup complete
+1795397626.061151994	QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64

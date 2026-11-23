@@ -8,13 +8,13 @@ HERE = pathlib.Path(__file__).parent
 B = HERE / "build"
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 SR = 48000
-ORDER = ["intro", "home", "system", "technology", "boot", "attack", "shock", "watchdog",
-         "evidence", "simulator", "more", "outro"]
+ORDER = ["intro", "home", "technology", "boot", "attack", "shock", "console", "watchdog",
+         "instant", "workflow", "proof", "outro"]
 # transition INTO each scene (from the previous one)
-XF = {"home": ("fade", 0.8), "system": ("smoothleft", 0.6), "technology": ("smoothleft", 0.6),
+XF = {"home": ("fade", 0.8), "technology": ("smoothleft", 0.6),
       "boot": ("fadeblack", 0.9), "attack": ("fade", 0.5), "shock": ("fade", 0.5),
-      "watchdog": ("fade", 0.5), "evidence": ("fadeblack", 0.9), "simulator": ("smoothleft", 0.6),
-      "more": ("smoothup", 0.6), "outro": ("fadeblack", 1.0)}
+      "console": ("fade", 0.6), "watchdog": ("fade", 0.6), "instant": ("fadeblack", 0.8),
+      "workflow": ("smoothleft", 0.6), "proof": ("smoothleft", 0.6), "outro": ("fadeblack", 1.0)}
 LEAD = {"intro": 1.6, "outro": 0.8}
 META = json.loads((B / "scenes.json").read_text())
 TIM = {s["id"]: s for s in json.loads((B / "voice" / "timings.json").read_text())}
@@ -180,11 +180,12 @@ def main():
                     "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-c:a", "copy", "-movflags", "+faststart",
                     "elvrek-demo-captions.mp4"], check=True, cwd=B)
     cfg = json.loads((HERE / "script.json").read_text(encoding="utf-8"))
-    names = {"intro": "Intro", "home": "Landing page", "system": "The system", "technology": "Why QNX",
+    names = {"intro": "Intro", "home": "Landing page", "technology": "Why QNX",
              "boot": "On the QNX target: boot", "attack": "On the QNX target: the classifier attacks",
-             "shock": "On the QNX target: shock and return of circulation",
-             "watchdog": "On the QNX target: safety process killed", "evidence": "Evidence",
-             "simulator": "Recorded run", "more": "FAQ and mobile", "outro": "Closing"}
+             "shock": "On the QNX target: shock read through the compressions",
+             "console": "Crew console on QNX Screen",
+             "watchdog": "On the QNX target: safety process killed", "instant": "Instant on",
+             "workflow": "One clock against two", "proof": "The evidence", "outro": "Closing"}
     md = ["# Elvrek demo video: transcript", ""]
     for sc in cfg["scenes"]:
         a = vstart[sc["id"]]

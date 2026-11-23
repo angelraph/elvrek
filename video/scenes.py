@@ -48,14 +48,14 @@ TOURS = {
     ("scroll", {"sel": ".stats"}, 2.0), ("hold", 3.0),
     ("scroll", {"text": "Compress. Breathe."}, 2.0), ("hold", 2.2),
     ("move", {"sel": ".nav .drop > button"}, 1.0), ("hold_fixed", 0.6),
-    ("move", {"sel": ".nav a[href='/system']"}, 0.6), ("click", {"sel": ".nav a[href='/system']", "nav": True}, 0.5)]),
+    ("move", {"sel": ".nav a[href='/technology']"}, 0.6), ("click", {"sel": ".nav a[href='/technology']", "nav": True}, 0.5)]),
  "system": ("02", "The system", "/system", [
     ("hold", 1.6), ("scroll", {"text": "The compression cycle"}, 2.0), ("hold", 2.0),
     ("scroll", {"text": "Charge while compressing"}, 2.0), ("hold", 3.6),
     ("scroll", {"text": "Machine time and human time"}, 2.0), ("hold", 2.0),
     ("move", {"sel": ".nav .drop > button"}, 0.9), ("hold_fixed", 0.6),
     ("move", {"sel": ".nav a[href='/technology']"}, 0.6), ("click", {"sel": ".nav a[href='/technology']", "nav": True}, 0.5)]),
- "technology": ("03", "Why QNX", "/technology", [
+ "technology": ("02", "Why QNX", "/technology", [
     ("hold", 1.5), ("scroll", {"text": "Small processes, clear jobs"}, 2.0), ("hold", 3.4),
     ("scroll", {"text": "The AI may suggest"}, 2.0), ("hold", 5.0),
     ("scroll", {"text": "Eight states, one owner"}, 2.0), ("hold", 3.5)]),
@@ -128,6 +128,9 @@ def tour(sid, out):
 
 
 # ---------------- QNX scenes ----------------
+def sec_lines(rows):
+    return [r["l"] for r in rows]
+
 def qnx_data():
     cap = HERE / "capture"
     boot = [l.rstrip("\n").split("\t", 1) for l in open(cap / "boot.tsv", encoding="utf-8")]
@@ -179,21 +182,26 @@ def qnx(sid, out):
     D = qnx_data()
     dur = dur_of(sid)
     if sid == "shock":
-        sh = D["shock"]
-        tch = next(r["tick"] for r in sh if "l" in r and " charge=1 " in " " + r["l"] + " ")
-        tpress = next(r["tick"] for r in sh if "crew" in r)
-        tw = next(r["tick"] for r in sh if "l" in r and "SHOCK_WINDOW" in r["l"])
-        tros = next(r["tick"] for r in sh if "l" in r and "ROSC_HOLD" in r["l"])
+        sh = [r for r in D["shock"] if "l" in r]
+        val = lambda r, k: (" " + r["l"] + " ").split(" " + k + "=")[1].split(" ")[0]
+        t0 = sh[0]["tick"]
+        tch = next(r["tick"] for r in sh if val(r, "charge") == "1")
+        i1 = next(i for i, r in enumerate(sh) if val(r, "shocks") == "1")
+        tshock = (sh[i1 - 1]["tick"] + sh[i1]["tick"]) // 2      # between the two samples around it
+        tros = next((r["tick"] for r in sh if val(r, "state") == "ROSC_HOLD"), None)
         tend = sh[-1]["tick"]
         L = LEAD
-        D["segs"] = [[0, 2034], [L + 1.7, tch - 2500], [L + 4.4, tpress + 1], [L + 5.4, tw - 150],
-                     [L + 8.8, tw + 1150], [L + 10.3, tw + 3500], [L + 14.2, tros + 300], [dur, tend]]
-        a, b = D["segs"][3], D["segs"][4]
-        tshock = 123473 - 280  # first sample after the shock reports it; shock fired just before
+        segs = [[0, t0], [L + 1.7, tch - 1500], [L + 7.6, tshock - 700], [L + 10.0, tshock + 300],
+                [L + 12.4, tshock + 3000]]
+        if tros:
+            segs += [[L + 15.6, tros + 400]]
+        segs += [[dur, max(tend, segs[-1][1] + 1)]]
+        D["segs"] = segs
+        a, b = segs[2], segs[3]
         D["shockT"] = a[0] + (tshock - a[1]) / (b[1] - a[1]) * (b[0] - a[0])
     if sid == "watchdog":
-        # line timings: voice says "kill" at about LEAD + 1.0 s
-        pass
+        tl = next(l for l in sec_lines(D["wd"]) if l.startswith("true_depth_mm="))
+        D["wdDepth"] = float(tl.split()[0].split("=")[1])
     html = (HERE / "scenes" / "qnx.html").read_text(encoding="utf-8")
     with sync_playwright() as pw:
         p = rec.Page(pw, html=html)
@@ -203,9 +211,75 @@ def qnx(sid, out):
         for f in range(n):
             tt = f / rec.FPS
             p.js("t => window.__qnx.render(t)", tt)
-            p.frame(enc, {"chip": chip_state(tt + (0 if sid == "boot" else 5), "04", "On the QNX target", 999)})
+            p.frame(enc, {"chip": chip_state(tt + (0 if sid == "boot" else 5), "03", "On the QNX target", 999)})
         n = enc.close(); p.close()
     return {"frames": n, "clicks": [], "shockT": D.get("shockT")}
+
+
+# ---------------- instant on, workflow, proof ----------------
+def cards(sid, out):
+    html = (HERE / "scenes" / "cards.html").read_text(encoding="utf-8")
+    s = [x["t"] for x in TIM[sid]["sentences"]]
+    L = LEAD; dur = dur_of(sid, 0.6)
+    if sid == "instant":
+        T = {"run": L + s[1], "span": 3.6}
+        chip = ("05", "Instant on")
+    elif sid == "workflow":
+        T = {"a": L + s[1] + 0.9, "b": L + s[1] + 3.0, "c": L + s[2]}
+        chip = ("06", "One clock against two")
+    else:
+        T = {"a": L + s[1], "b": L + s[2], "c": L + s[3]}
+        chip = ("07", "The evidence")
+    with sync_playwright() as pw:
+        p = rec.Page(pw, html=html)
+        p.js("([m, T]) => window.__cards.init(m, T)", [sid, T])
+        enc = rec.Encoder(out)
+        n = int(round(dur * rec.FPS))
+        for f in range(n):
+            tt = f / rec.FPS
+            p.js("t => window.__cards.render(t)", tt)
+            p.frame(enc, {"chip": chip_state(tt, chip[0], chip[1], dur)})
+        n = enc.close(); p.close()
+    return {"frames": n, "clicks": []}
+
+
+# ---------------- crew console: the replayed target log ----------------
+CONSOLE_HTML = (HERE / "scenes" / "console.html")
+
+
+def console(sid, out):
+    import subprocess, imageio_ffmpeg
+    dur = dur_of(sid, 0.4)
+    bgs = []
+    with sync_playwright() as pw:
+        p = rec.Page(pw, html=CONSOLE_HTML.read_text(encoding="utf-8"), fake_clock=False)
+        for i, speed in enumerate((False, True)):
+            if speed:
+                p.js("() => document.getElementById('sp').style.display='inline-block'")
+            p.js("s => window.__ov.render(s)", {"chip": {"k": "04", "t": "Crew console", "o": 1}})
+            f = BUILD / f"console_bg{i}.png"; p.pg.screenshot(path=str(f)); bgs.append(f)
+        p.close()
+    src = HERE / "capture" / "console.mp4"
+    # console log: charging starts at 120.0 s, ready at 127.2 s, shock delivered at 128.1 s
+    a0, a1 = 116.0, 121.6           # compressing, then charging begins, real time
+    b1 = 127.4                      # charging, sped up
+    sp = 3.0
+    c1 = b1 + (dur - (a1 - a0) - (b1 - a1) / sp) + 0.2
+    t_fast0 = a1 - a0; t_fast1 = t_fast0 + (b1 - a1) / sp
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+    fc = (f"[2:v]split=3[s1][s2][s3];"
+          f"[s1]trim={a0}:{a1},setpts=PTS-STARTPTS[v1];"
+          f"[s2]trim={a1}:{b1},setpts=(PTS-STARTPTS)/{sp}[v2];"
+          f"[s3]trim={b1}:{c1:.3f},setpts=PTS-STARTPTS[v3];"
+          f"[v1][v2][v3]concat=n=3:v=1:a=0,fps=30,scale=1398:838:flags=lanczos[con];"
+          f"[0:v][1:v]overlay=0:0:enable='between(t,{t_fast0:.3f},{t_fast1:.3f})'[bg];"
+          f"[bg][con]overlay=261:197:shortest=1,format=yuv420p[v]")
+    subprocess.run([ff, "-y", "-loglevel", "error",
+                    "-loop", "1", "-framerate", "30", "-t", f"{dur:.3f}", "-i", str(bgs[0]),
+                    "-loop", "1", "-framerate", "30", "-t", f"{dur:.3f}", "-i", str(bgs[1]), "-i", str(src),
+                    "-filter_complex", fc, "-map", "[v]", "-t", f"{dur:.3f}", "-c:v", "libx264", "-preset", "slow",
+                    "-crf", "15", "-r", "30", str(out)], check=True)
+    return {"frames": int(round(dur * 30)), "clicks": []}
 
 
 # ---------------- brand, intro and outro ----------------
@@ -264,6 +338,7 @@ def main():
     for sid in sys.argv[1:]:
         out = BUILD / "scenes" / f"{sid}.mp4"
         fn = brand if sid in ("intro", "outro") else qnx if sid in ("boot", "attack", "shock", "watchdog") \
+            else cards if sid in ("instant", "workflow", "proof") else console if sid == "console" \
             else more if sid == "more" else tour
         r = fn(sid, out)
         print(sid, r, flush=True)
