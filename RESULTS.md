@@ -4,6 +4,8 @@ Every run of the fault suite on QNX 8.0 is published in [`docs/results/`](docs/r
 
 All runs: QNX 8.0, x86_64, QEMU with KVM on two virtual CPUs, inside WSL2 on a Windows laptop, every program built with qcc. Unless marked "strict", runs use the stack's labelled emulator mode (sensor timeout 50 ms and hardware watchdog 100 ms, instead of 5 ms and 20 ms).
 
+Timing of QNX itself (tick delivery, missed ticks, wake-ups, boot times) is withheld from these files and this page, following the organisers' guidance on licence section 4.6(i) (28 Nov 2026). Each redacted file says so at the top, and [`tools/redact_timing.py`](tools/redact_timing.py) shows exactly what was withheld. PASS and FAIL results are unchanged.
+
 ## The runs, in order
 
 | # | File | Result | What happened | What changed |
@@ -15,7 +17,7 @@ All runs: QNX 8.0, x86_64, QEMU with KVM on two virtual CPUs, inside WSL2 on a W
 | 5 | [`earlier/qnx-fault-suite-run3-t10-fail.txt`](docs/results/earlier/qnx-fault-suite-run3-t10-fail.txt) | 10 of 11 | Safe hold after the shock, fault SENSOR_STALE | Sensor silence is now counted only over time the controller was awake to see it |
 | 6 | [`earlier/qnx-fault-suite-run4-t11-fail.txt`](docs/results/earlier/qnx-fault-suite-run4-t11-fail.txt) | 10 of 11 | No shock in the malicious advisor case | The test crew pressed once, from a status read a second old. It now presses whenever the device asks, like a real crew |
 | 7 | [`qnx-fault-suite-all-pass-2.txt`](docs/results/qnx-fault-suite-all-pass-2.txt) | **11 of 11** | | |
-| 8 | [`earlier/qnx-fault-suite-run6-t5-missed-ticks.txt`](docs/results/earlier/qnx-fault-suite-run6-t5-missed-ticks.txt) | 10 of 11 | T5 missed ticks: 2,263 with the storm against 1,091 without, while compressions kept their full rate | See "the T5 rule" below |
+| 8 | [`earlier/qnx-fault-suite-run6-t5-missed-ticks.txt`](docs/results/earlier/qnx-fault-suite-run6-t5-missed-ticks.txt) | 10 of 11 | T5 was judged on missed ticks, which on a virtual machine measure the host; compressions kept their full rate | See "the T5 rule" below |
 | 9 | [`qnx-fault-suite-all-pass-3.txt`](docs/results/qnx-fault-suite-all-pass-3.txt) | **11 of 11** | Final code | |
 | 10 | [`qnx-fault-suite-all-pass-4.txt`](docs/results/qnx-fault-suite-all-pass-4.txt) | **11 of 11** | Final code, second run in a row | |
 | 11 | [`qnx-fault-suite-strict-timing-1.txt`](docs/results/qnx-fault-suite-strict-timing-1.txt) | 5 of 11, strict | Real hardware timings in a nested VM: every failure is SENSOR_STALE | See "strict timing" below |
@@ -24,14 +26,14 @@ All runs: QNX 8.0, x86_64, QEMU with KVM on two virtual CPUs, inside WSL2 on a W
 
 Before run 1, the very first target runs also forced two fixes that are now part of the design: a force limit inside the motor driver (a paused controller had let a stiff chest reach 823 N), and catch-up ticks that replay missed time with buffered motion samples.
 
-**A correction.** One early run counted only about 850 ticks a second, and we first credited a call that asked QNX for a 0.5 ms system tick. While writing the codelab we tested that call on its own: on QNX 8.0 in QEMU the clock period is a fixed 1 ms and `ClockPeriod` refuses to change it (ENOTSUP). The call never took effect, so the slow run was most likely the virtual machine. Every run since counts 960 to 1,013 ticks a second on the default 1 ms tick. The controller now reads and logs the clock period instead.
+**A correction.** One early run counted far fewer ticks than it should, and we first credited a call that asked QNX for a 0.5 ms system tick. While writing the codelab we tested that call on its own: on QNX 8.0 in QEMU the clock period is a fixed 1 ms and `ClockPeriod` refuses to change it (ENOTSUP). The call never took effect, so the slow run was most likely the virtual machine. The controller now reads and logs the clock period instead.
 
 ## Reading the rhythm through the compressions
 
 | # | File | Result | What happened |
 |---|---|---|---|
-| 14 | [`earlier/qnx-fault-suite-run13-zp-vm-freeze.txt`](docs/results/earlier/qnx-fault-suite-run13-zp-vm-freeze.txt) | 9 of 12 | First full runs of the new design. The guest had run for over 15 hours and dozens of suites, and missed up to 10% of ticks; T11 tripped the sensor timeout. A fresh guest fixed it. Along the way: per-second scoring was too heavy for one tick and is now spread one spectral bin per tick, and a one-tick charge dump lost on replayed ticks is now re-asserted every tick |
-| 15 | [`earlier/qnx-fault-suite-run15-host-slept.txt`](docs/results/earlier/qnx-fault-suite-run15-host-slept.txt) | 10 of 12 | The laptop went to sleep in the middle of T10 (120,000 missed ticks). Not a valid run |
+| 14 | [`earlier/qnx-fault-suite-run13-zp-vm-freeze.txt`](docs/results/earlier/qnx-fault-suite-run13-zp-vm-freeze.txt) | 9 of 12 | First full runs of the new design. The guest had run for over 15 hours and dozens of suites; T11 tripped the sensor timeout. A fresh guest fixed it. Along the way: per-second scoring was too heavy for one tick and is now spread one spectral bin per tick, and a one-tick charge dump lost on replayed ticks is now re-asserted every tick |
+| 15 | [`earlier/qnx-fault-suite-run15-host-slept.txt`](docs/results/earlier/qnx-fault-suite-run15-host-slept.txt) | 10 of 12 | The laptop went to sleep in the middle of T10. Not a valid run |
 | 16 | [`qnx-fault-suite-zero-pause-1.txt`](docs/results/qnx-fault-suite-zero-pause-1.txt) | **12 of 12** | T10 shock with 3 ticks of hands-off; T12 no pause at all |
 | 17 | [`qnx-fault-suite-zero-pause-2.txt`](docs/results/qnx-fault-suite-zero-pause-2.txt) | **12 of 12** | Second run in a row, same results |
 
@@ -54,13 +56,13 @@ The fix measures speed and stiffness only when a new hardware sample arrives, ov
 
 ## The T5 rule
 
-T5 runs eight busy threads just below the control priority for ten seconds. It used to pass only if the controller missed no more ticks with the storm than without it. On a nested virtual machine that number measures the host, not QNX: across runs the idle baseline alone ranged from about 800 to 1,400 missed ticks per ten seconds, and one run missed more ticks with the storm while the next missed fewer. T5 now judges what the chest gets during the storm: compressions on rate, every stroke 5 to 6 cm, no rule broken, no fault. It still prints the missed ticks. This is the one rule we changed, and we say so here, in the README and on the website.
+T5 runs eight busy threads just below the control priority for ten seconds. It used to pass only if the controller missed no more ticks with the storm than without it. On a nested virtual machine that number measures the host, not QNX: one run missed more ticks with the storm while the next missed fewer. T5 now judges what the chest gets during the storm: compressions on rate, every stroke 5 to 6 cm, no rule broken, no fault. This is the one rule we changed, and we say so here, in the README and on the website.
 
 ## Strict timing
 
 At the timings a real board will use (5 ms sensor timeout, 20 ms watchdog), QEMU inside WSL2 is a virtual machine inside a virtual machine. Its virtual CPUs are Windows threads and can be parked for longer than 5 ms, so the controller sometimes sees the hardware go silent. Each time, it did exactly what it should: it called the sensors silent and retracted to safety.
 
-Keeping the virtual CPUs busy with two threads at the lowest priority (they cannot affect anything else, because QNX preempts them instantly) took the strict result from 5 of 11 to 9 of 11, including the full shock and return of circulation. Transport and the malicious advisor case still trip the 5 ms timeout. Only real hardware can settle these numbers.
+Keeping the virtual CPUs busy with two threads at the lowest priority (they run below every Elvrek process) took the strict result from 5 of 11 to 9 of 11, including the full shock and return of circulation. Transport and the malicious advisor case still trip the 5 ms timeout. Only real hardware can settle these numbers.
 
 ## Rhythm check on real ECG
 

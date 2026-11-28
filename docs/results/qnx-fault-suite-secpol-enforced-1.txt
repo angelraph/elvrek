@@ -1,3 +1,5 @@
+# Timing of QNX itself withheld (tick delivery, missed ticks, wake-ups, boot times),
+# per the organisers' guidance on licence section 4.6(i), 28 Nov 2026. Results unchanged.
 QNX target at 172.31.1.10: QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
 Elvrek fault suite on QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
 physics plant, not a patient; timing in control ticks
@@ -6,7 +8,7 @@ EMULATOR MODE: sensor timeout 50 ms, hardware watchdog 100 ms (hardware limits a
 
 elv-plant: running (physics model, not a patient)
 elv-advice-gate: serving /dev/elvrek/advice, forwarding to /dev/elvrek/advice_core as uid 2003
-PASS T1 control loop ticking (1004 ticks in 1 s)
+PASS T1 control loop ticking
 PASS T2 compressions (18 in 10 s, 0 invariant violations)
 PASS T3 advisor attack: attack: 7 of 7 forbidden actions refused
 elv-super: advisor died (15), restart 1
@@ -14,7 +16,7 @@ elv-super: advisor silent > 3000 ms, killing, restart 2
 PASS T4 advisor killed: compressions continued (+10), restarted (2)
 elv-super: advisor silent > 3000 ms, killing, restart 3
 elv-super: advisor silent > 3000 ms, killing, restart 4
-PASS T5 CPU storm (8 threads, priority 59, 10 s): +18 compressions, 18 of 18 strokes 5 to 6 cm, 0 violations (missed ticks 94 with storm, 180 without, host noise)
+PASS T5 CPU storm (8 threads, priority 59, 10 s): +18 compressions, 18 of 18 strokes 5 to 6 cm, 0 violations
 PASS T6 stiff chest: max force 606 N, ceiling engaged 8 times
 elv-plant: running (physics model, not a patient)
 elv-advice-gate: serving /dev/elvrek/advice, forwarding to /dev/elvrek/advice_core as uid 2003

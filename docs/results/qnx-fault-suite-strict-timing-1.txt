@@ -1,10 +1,12 @@
+# Timing of QNX itself withheld (tick delivery, missed ticks, wake-ups, boot times),
+# per the organisers' guidance on licence section 4.6(i), 28 Nov 2026. Results unchanged.
 Booting the QNX image in QEMU (KVM, 2 CPUs, 1 GB)...
 QNX target at 172.31.1.10: QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
 Elvrek fault suite on QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
 physics plant, not a patient; timing in control ticks
 
 elv-plant: running (physics model, not a patient)
-PASS T1 control loop ticking (958 ticks in 1 s)
+PASS T1 control loop ticking
 FAIL T2 compressions: c=0 inv=0
 PASS T3 advisor attack: attack: 7 of 7 forbidden actions refused
 elv-super: advisor died (15), restart 1
@@ -13,7 +15,7 @@ FAIL T4 advisor killed: dc=0 restarts=2
 elv-super: advisor silent > 3000 ms, killing, restart 3
 elv-super: advisor silent > 3000 ms, killing, restart 4
 elv-plant: HW WATCHDOG: safety process silent, retracting
-FAIL T5 CPU storm: compressions +0, in range 0 of 0, inv 0 to 0, state SAFE_HOLD fault SENSOR_STALE, missed 4124 vs 284
+FAIL T5 CPU storm: compressions +0, in range 0 of 0, inv 0 to 0, state SAFE_HOLD fault SENSOR_STALE
 FAIL T6 stiff chest: max force 0, limits 0
 elv-plant: running (physics model, not a patient)
 elv-plant: HW WATCHDOG: safety process silent, retracting
@@ -31,6 +33,6 @@ PASS T10 trusted ROSC (EtCO2): parked, ventilating
 PASS T10 chest-compression fraction 0.9946
 elv-plant: running (physics model, not a patient)
 elv-plant: HW WATCHDOG: safety process silent, retracting
-FAIL T11 malicious advisor: ignored 273 shocks 0 windows 0 retries 0 inv 0 state SAFE_HOLD fault SENSOR_STALE missed 10922
+FAIL T11 malicious advisor: ignored 273 shocks 0 windows 0 retries 0 inv 0 state SAFE_HOLD fault SENSOR_STALE
 
 FAIL: 6 case(s)

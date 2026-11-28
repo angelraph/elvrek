@@ -43,14 +43,7 @@ QNX 8.0 in QEMU, emulator mode, two idle keep-awake threads at priority 1 (as in
 
 ## Does the console disturb the 1 ms loop?
 
-Same guest, 60 s of compressions each, alternating ([`tests/console_ab.sh`](../tests/console_ab.sh), output in [`docs/results/qnx-console-ab.txt`](results/qnx-console-ab.txt)):
-
-| Console | Missed ticks, run 1 | Missed ticks, run 2 |
-|---|---|---|
-| off | 8,415 | 2,410 |
-| on, drawing at 10 Hz | 2,684 | 3,274 |
-
-Missed ticks on this machine come from the host parking virtual CPUs (see [TIMING.md](TIMING.md)), and they swing between runs more than the console could move them. On this emulator there is no effect we can see. The real check is a kernel trace on hardware, with the console running.
+By design it cannot command anything: it only opens the status device to read, and it runs at priority 8, far below the 1 ms loop at 60. In every recorded run with the console drawing, the controller compressed on rate, delivered the shock and parked on return of circulation with no fault and no rule broken. We also compared the loop's tick timing with the console on and off; that timing measures QNX on this emulator rather than our code, so it is not published (the organisers' guidance on licence section 4.6(i), 28 Nov 2026). The real check is a kernel trace on hardware, with the console running.
 
 ## Run it
 

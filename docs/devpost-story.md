@@ -15,7 +15,7 @@ Elvrek is the safety controller for a chest compression robot. One QNX process w
 * It holds depth on a moving ambulance by letting the motor driver correct for chest motion.
 * A trusted sign of returning circulation, like a jump in carbon dioxide, parks the piston within one compression.
 * The AI rhythm classifier can only suggest. An enforced QNX security policy gives it one door, a small advice gate, and the kernel refuses it the piston and the shock line. If it crashes or lies, compressions carry on.
-* It starts pushing before the rest of the system has booted. The safety process lives in the QNX boot image and starts from the first boot script, so the first full compression comes about 1.4 s after the kernel starts, against 3.7 s for the same programs started at the end of a normal boot.
+* It starts pushing before the rest of the system has booted. The safety process lives in the QNX boot image and starts from the first boot script, so in every test boot the first full compression was done before any disk was mounted, while the same programs started at the end of a normal boot could only begin after it.
 * The crew sees it all on a console drawn with QNX Screen: rate, depth and force, the countdown to the next rhythm check and what the reading through the compressions says, the charger, carbon dioxide and its trend. The console is read only and cannot touch the piston.
 * If the safety process itself dies, the motor driver's own watchdog lifts the cup to full recoil. Nothing restarts the controller behind your back.
 
@@ -37,7 +37,7 @@ I checked the rhythm logic on real arrest ECG from PhysioNet. I tuned it on one 
 
 The first runs on QNX did not all pass, and that turned out to be the best part. Each failure led to a real fix rather than a looser test.
 
-* One early run counted only about 850 ticks a second, and I first thought asking QNX for a 0.5 ms system tick fixed it. Later I tested that call on its own: on QNX 8.0 in QEMU the tick is a fixed 1 ms and the call is refused. The slow run was the virtual machine, and every run since counts about 1,000 ticks a second. Now the controller reads the tick instead of assuming it.
+* One early run counted far fewer ticks than it should, and I first thought asking QNX for a 0.5 ms system tick fixed it. Later I tested that call on its own: on QNX 8.0 in QEMU the tick is a fixed 1 ms and the call is refused. The slow run was the virtual machine. Now the controller reads the tick instead of assuming it, and checks the return of every call that changes the system.
 * A paused controller let a stiff chest reach 823 N. Now the motor driver has its own force limit, so the hard limit holds even when software is late.
 * After a pause, the controller replayed missed ticks with the newest sample. The whole movement during the pause looked like it happened in one millisecond, the force guard tripped early and strokes came up short. Speed is now measured over real hardware sample time, and two host tests stall the controller on purpose so this cannot come back.
 * At real hardware timings the virtual machine itself was the limit. QEMU runs inside WSL2, which is itself a virtual machine on Windows, and it can freeze for longer than 5 ms. I report those runs as they are.
@@ -46,8 +46,8 @@ The first runs on QNX did not all pass, and that turned out to be the best part.
 
 * 12 of 12 fault cases pass on QNX 8.0, two full runs in a row, with the rhythm read through the compressions. The earlier design passed 11 of 11 three runs in a row. They cover a malicious classifier, crashes, a CPU storm just below the control priority, a stiff chest, transport, sensor loss, killing the safety process, and a full shock with return of circulation.
 * 7 of 7 forbidden actions by the classifier are refused by the operating system, and all 12 fault cases still pass with the security policy enforced. Even kept as root under its type, the classifier is refused every path to the piston and the shock line.
-* Kernel traces on QNX: median work per tick of 27 to 37 microseconds, no tick of work past 1 ms, and when a storm thread held a CPU the controller was running again within 42 microseconds. The virtual machine has rare long tails, so I do not claim a worst case from it.
-* Instant on, five boots of each image: first full compression a median 1.39 s after the kernel starts, against 3.67 s for a normal start.
+* Kernel traces on QNX, of our own code: median work per tick of 27 to 37 microseconds, and no tick in which our control work ran past 1 ms, quiet or under a CPU storm. Timing of QNX itself is not published, following the hackathon organisers' guidance on licence section 4.6(i), 28 Nov 2026.
+* Instant on, five boots of each image: in every one the first compression was done before any disk was mounted; with a normal start, only after the whole system had booted.
 * With the analysis taking 5 s, the hands-off time before a shock is 0.3 s with one clock, 12.3 s with a CPR device and a separate AED, and 5.3 s when that crew charges early.
 * The crew console on QNX matched the host replay of the same log on 11 of 11 frames.
 * 31 of 31 requirements traced to code, tests and QNX results, checked in CI.

@@ -1,303 +1,304 @@
+# Timing of QNX itself withheld (tick delivery, missed ticks, wake-ups, boot times),
+# per the organisers' guidance on licence section 4.6(i), 28 Nov 2026. Results unchanged.
 # Elvrek instant-on A/B on QNX 8.0 (QEMU with KVM, 2 vCPUs, emulator mode -e, no security policy)
 # instant: elv-plant, elvrekd and elv-ctl boot started at the top of the IFS boot script
 # conventional: the same three programs started from the post startup script, after the normal boot
-# Times: first column is seconds since QEMU was launched on the host (power on).
-# kernel_ms values are CLOCK_MONOTONIC in the guest, which starts with the QNX kernel.
+# Shown: the order of events in each boot; the boot milestones are withheld.
 # Run: qnx/instant-on/build.sh, build-conventional.sh, then boot-time.sh per image, alternating.
 
 ######## instant boot 1
-    0.302  non UEFI or UEFI+CSM boot
-    0.307  ACPI table not found (0x4746434d)
-    0.352  overriding mask for controller 2, vector_base 0
-    1.142  ELVREK MARK boot script reached
-    1.151  elv-plant: running (physics model, not a patient)
-    1.155  slog2_api: cannot connect to s---> Starting slogger2
-    1.160  logger2 server...errno=No such file or directory
-    1.170  ---> Starting PCI Services
-    1.603  ---> Starting fsevmgr
-    1.610  # ---> Starting devb
-    1.725  ELVREK BOOT kernel_ms: controller_process=794 control_loop=808 status_seen=810 start=811 first_compression=1370 state=COMPRESS
-    1.987  ---> Mounting file systems
-    1.990  Path=0 - Intel 82371SB---> Mounting file systems
-    1.995   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
-    1.996  Path=1 - Intel 82371SB
-    2.001   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
-    2.103  ---> Starting Networking
-    3.255  ifconfig: WARNING: setting interface address without mask is deprecated,
-    3.259  default mask may not be correct.
-    3.289  ---> Starting sshd
-    3.346  ---> Starting misc
-    3.406  To exit QEMU, type <ctrl>a x
-    3.428  [?7hProcess count:26
-    3.432  Startup complete
-    3.441  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
-    3.759  qemu-system-x86_64: terminating on signal 15 from pid 64229 (bash)
-boot 1: ssh_answered_host_ms=3604
-boot 1: status_after_ssh: tick=2602 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=4 breaths=0 depth_cmd_mm=53.0 force_n=164 pos_mm=28.5 etco2=7.1 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=50 late=106 overrun=1 adv_age=2602 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=117400 in_window=0 boot_proc_ms=794 boot_ready_ms=808 boot_start_ms=811 boot_comp_ms=1370
+  non UEFI or UEFI+CSM boot
+  ACPI table not found (0x4746434d)
+  overriding mask for controller 2, vector_base 0
+  ELVREK MARK boot script reached
+  elv-plant: running (physics model, not a patient)
+  slog2_api: cannot connect to s---> Starting slogger2
+  logger2 server...errno=No such file or directory
+  ---> Starting PCI Services
+  ---> Starting fsevmgr
+  # ---> Starting devb
+  ELVREK BOOT kernel_ms: controller_process=- control_loop=- status_seen=- start=- first_compression=- state=COMPRESS
+  ---> Mounting file systems
+  Path=0 - Intel 82371SB---> Mounting file systems
+   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
+  Path=1 - Intel 82371SB
+   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
+  ---> Starting Networking
+  ifconfig: WARNING: setting interface address without mask is deprecated,
+  default mask may not be correct.
+  ---> Starting sshd
+  ---> Starting misc
+  To exit QEMU, type <ctrl>a x
+  [?7hProcess count:26
+  Startup complete
+  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+  qemu-system-x86_64: terminating on signal 15 from pid 64229 (bash)
+boot 1: ssh_answered_host_ms=-
+boot 1: status_after_ssh: tick=2602 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=4 breaths=0 depth_cmd_mm=53.0 force_n=164 pos_mm=28.5 etco2=7.1 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=2602 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=117400 in_window=0 boot_proc_ms=- boot_ready_ms=- boot_start_ms=- boot_comp_ms=-
 
 ######## conventional boot 1
-    0.300  non UEFI or UEFI+CSM boot
-    0.305  ACPI table not found (0x4746434d)
-    0.347  overriding mask for controller 2, vector_base 0
-    1.148  ---> Starting slogger2
-    1.160  ---> Starting PCI Services
-    1.580  ---> Starting fsevmgr
-    1.587  # ---> Starting devb
-    1.978  ---> Mounting file systems
-    1.985  Path=0 - Intel 82371SB
-    1.988   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+---> Mounting file systems
-    1.990  Path=1 - Intel 82371SB
-    1.995   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
-    2.108  ---> Starting Networking
-    3.307  ifconfig: WARNING: setting interface address without mask is deprecated,
-    3.312  default mask may not be correct.
-    3.339  ---> Starting sshd
-    3.401  ---> Starting misc
-    3.425  ELVREK MARK post startup reached
-    3.442  elv-plant: running (physics model, not a patient)
-    3.466  To exit QEMU, type <ctrl>a x
-    3.485  [?7hProcess count:30
-    3.489  Startup complete
-    3.498  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
-    4.010  ELVREK BOOT kernel_ms: controller_process=3071 control_loop=3078 status_seen=3079 start=3080 first_compression=3630 state=COMPRESS
-    4.207  qemu-system-x86_64: terminating on signal 15 from pid 64284 (bash)
-boot 1: ssh_answered_host_ms=3621
-boot 1: status_after_ssh: tick=733 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=1 breaths=0 depth_cmd_mm=53.0 force_n=326 pos_mm=36.1 etco2=6.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=10 late=11 overrun=0 adv_age=733 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=119268 in_window=0 boot_proc_ms=3071 boot_ready_ms=3078 boot_start_ms=3080 boot_comp_ms=3630
+  non UEFI or UEFI+CSM boot
+  ACPI table not found (0x4746434d)
+  overriding mask for controller 2, vector_base 0
+  ---> Starting slogger2
+  ---> Starting PCI Services
+  ---> Starting fsevmgr
+  # ---> Starting devb
+  ---> Mounting file systems
+  Path=0 - Intel 82371SB
+   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+---> Mounting file systems
+  Path=1 - Intel 82371SB
+   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
+  ---> Starting Networking
+  ifconfig: WARNING: setting interface address without mask is deprecated,
+  default mask may not be correct.
+  ---> Starting sshd
+  ---> Starting misc
+  ELVREK MARK post startup reached
+  elv-plant: running (physics model, not a patient)
+  To exit QEMU, type <ctrl>a x
+  [?7hProcess count:30
+  Startup complete
+  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+  ELVREK BOOT kernel_ms: controller_process=- control_loop=- status_seen=- start=- first_compression=- state=COMPRESS
+  qemu-system-x86_64: terminating on signal 15 from pid 64284 (bash)
+boot 1: ssh_answered_host_ms=-
+boot 1: status_after_ssh: tick=733 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=1 breaths=0 depth_cmd_mm=53.0 force_n=326 pos_mm=36.1 etco2=6.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=733 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=119268 in_window=0 boot_proc_ms=- boot_ready_ms=- boot_start_ms=- boot_comp_ms=-
 
 ######## instant boot 2
-    0.263  non UEFI or UEFI+CSM boot
-    0.268  ACPI table not found (0x4746434d)
-    0.302  overriding mask for controller 2, vector_base 0
-    1.125  ELVREK MARK boot script reached
-    1.135  elv-plant: running (physics model, not a patient)
-    1.138  slog2_api: cann---> Starting slogger2
-    1.143  ot connect to slogger2 server...errno=No such file or directory
-    1.151  ---> Starting PCI Services
-    1.575  ---> Starting fse# ---> Starting devb
-    1.710  ELVREK BOOT kernel_ms: controller_process=829 control_loop=843 status_seen=842 start=845 first_compression=1394 state=COMPRESS
-    1.972  ---> Mounting file systems
-    1.974  Path=0 - Intel 82371SB
-    1.980   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+---> Mounting file systems
-    1.983  Path=1 - Intel 82371SB
-    1.987   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
-    2.093  ---> Starting Networking
-    3.299  ifconfig: WARNING: setting interface address without mask is deprecated,
-    3.304  default mask may not be correct.
-    3.327  ---> Starting sshd
-    3.381  ---> Starting misc
-    3.428  To exit QEMU, type <ctrl>a x
-    3.449  [?7hProcess count:28
-    3.451  Startup complete
-    3.458  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
-    3.827  qemu-system-x86_64: terminating on signal 15 from pid 64349 (bash)
-boot 1: ssh_answered_host_ms=3630
-boot 1: status_after_ssh: tick=2625 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=4 breaths=0 depth_cmd_mm=53.0 force_n=101 pos_mm=21.9 etco2=7.1 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=34 late=64 overrun=0 adv_age=2625 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=117376 in_window=0 boot_proc_ms=829 boot_ready_ms=843 boot_start_ms=845 boot_comp_ms=1394
+  non UEFI or UEFI+CSM boot
+  ACPI table not found (0x4746434d)
+  overriding mask for controller 2, vector_base 0
+  ELVREK MARK boot script reached
+  elv-plant: running (physics model, not a patient)
+  slog2_api: cann---> Starting slogger2
+  ot connect to slogger2 server...errno=No such file or directory
+  ---> Starting PCI Services
+  ---> Starting fse# ---> Starting devb
+  ELVREK BOOT kernel_ms: controller_process=- control_loop=- status_seen=- start=- first_compression=- state=COMPRESS
+  ---> Mounting file systems
+  Path=0 - Intel 82371SB
+   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+---> Mounting file systems
+  Path=1 - Intel 82371SB
+   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
+  ---> Starting Networking
+  ifconfig: WARNING: setting interface address without mask is deprecated,
+  default mask may not be correct.
+  ---> Starting sshd
+  ---> Starting misc
+  To exit QEMU, type <ctrl>a x
+  [?7hProcess count:28
+  Startup complete
+  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+  qemu-system-x86_64: terminating on signal 15 from pid 64349 (bash)
+boot 1: ssh_answered_host_ms=-
+boot 1: status_after_ssh: tick=2625 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=4 breaths=0 depth_cmd_mm=53.0 force_n=101 pos_mm=21.9 etco2=7.1 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=2625 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=117376 in_window=0 boot_proc_ms=- boot_ready_ms=- boot_start_ms=- boot_comp_ms=-
 
 ######## conventional boot 2
-    0.283  non UEFI or UEFI+CSM boot
-    0.288  ACPI table not found (0x4746434d)
-    0.334  overriding mask for controller 2, vector_base 0
-    1.134  ---> Starting slogger2
-    1.146  ---> Starting PCI Services
-    1.562  ---> Starting fsevmgr
-    1.569  # ---> Starting devb
-    1.959  ---> Mounting file systems
-    1.961  Path=0 - Intel 82371SB
-    1.963  ---> Mounting file systems
-    1.969   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
-    1.971  Path=1 - Intel 82371SB
-    1.975   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
-    2.080  ---> Starting Networking
-    3.270  ifconfig: WARNING: setting interface address without mask is deprecated,
-    3.275  default mask may not be correct.
-    3.303  ---> Starting sshd
-    3.355  ---> Starting misc
-    3.376  ELVREK MARK post startup reached
-    3.389  elv-plant: running (physics model, not a patient)
-    3.423  To exit QEMU, type <ctrl>a x
-    3.444  [?7hProcess count:29
-    3.447  Startup complete
-    3.456  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
-    3.978  ELVREK BOOT kernel_ms: controller_process=3047 control_loop=3052 status_seen=3052 start=3054 first_compression=3614 state=COMPRESS
-    4.234  qemu-system-x86_64: terminating on signal 15 from pid 64410 (bash)
-boot 1: ssh_answered_host_ms=3622
-boot 1: status_after_ssh: tick=809 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=1 breaths=0 depth_cmd_mm=53.0 force_n=522 pos_mm=51.3 etco2=6.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=36 late=27 overrun=0 adv_age=809 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=119192 in_window=0 boot_proc_ms=3047 boot_ready_ms=3052 boot_start_ms=3054 boot_comp_ms=3614
+  non UEFI or UEFI+CSM boot
+  ACPI table not found (0x4746434d)
+  overriding mask for controller 2, vector_base 0
+  ---> Starting slogger2
+  ---> Starting PCI Services
+  ---> Starting fsevmgr
+  # ---> Starting devb
+  ---> Mounting file systems
+  Path=0 - Intel 82371SB
+  ---> Mounting file systems
+   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
+  Path=1 - Intel 82371SB
+   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
+  ---> Starting Networking
+  ifconfig: WARNING: setting interface address without mask is deprecated,
+  default mask may not be correct.
+  ---> Starting sshd
+  ---> Starting misc
+  ELVREK MARK post startup reached
+  elv-plant: running (physics model, not a patient)
+  To exit QEMU, type <ctrl>a x
+  [?7hProcess count:29
+  Startup complete
+  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+  ELVREK BOOT kernel_ms: controller_process=- control_loop=- status_seen=- start=- first_compression=- state=COMPRESS
+  qemu-system-x86_64: terminating on signal 15 from pid 64410 (bash)
+boot 1: ssh_answered_host_ms=-
+boot 1: status_after_ssh: tick=809 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=1 breaths=0 depth_cmd_mm=53.0 force_n=522 pos_mm=51.3 etco2=6.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=809 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=119192 in_window=0 boot_proc_ms=- boot_ready_ms=- boot_start_ms=- boot_comp_ms=-
 
 ######## instant boot 3
-    0.222  non UEFI or UEFI+CSM boot
-    0.226  ACPI table not found (0x4746434d)
-    0.267  overriding mask for controller 2, vector_base 0
-    1.088  ELVREK MARK boot script reached
-    1.097  elv-plant: running (physics model, not a patient)
-    1.103  slog2_api: cannot connect to slogger---> Starting slogger2
-    1.108  2 server...errno=No such file or directory
-    1.119  ---> Starting PCI Services
-    1.539  ---> Starting fsevmgr
-    1.547  # ---> Starting devb
-    1.667  ELVREK BOOT kernel_ms: controller_process=829 control_loop=840 status_seen=842 start=843 first_compression=1389 state=COMPRESS
-    1.984  ---> Mounting file systems
-    1.989  ---> Mounting file systems
-    1.993  Path=0 - Intel 82371SB
-    2.002   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
-    2.009  Path=1 - Intel 82371SB
-    2.011   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
-    2.145  ---> Starting Networking
-    3.341  ifconfig: WARNING: setting interface address without mask is deprecated,
-    3.346  default mask may not be correct.
-    3.374  ---> Starting sshd
-    3.430  ---> Starting misc
-    3.490  To exit QEMU, type <ctrl>a x
-    3.508  [?7hProcess count:28
-    3.511  Startup complete
-    3.520  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
-    3.885  qemu-system-x86_64: terminating on signal 15 from pid 64473 (bash)
-boot 1: ssh_answered_host_ms=3688
-boot 1: status_after_ssh: tick=2709 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=4 breaths=0 depth_cmd_mm=53.0 force_n=0 pos_mm=2.7 etco2=7.1 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=72 late=95 overrun=0 adv_age=2709 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=117293 in_window=0 boot_proc_ms=829 boot_ready_ms=840 boot_start_ms=843 boot_comp_ms=1389
+  non UEFI or UEFI+CSM boot
+  ACPI table not found (0x4746434d)
+  overriding mask for controller 2, vector_base 0
+  ELVREK MARK boot script reached
+  elv-plant: running (physics model, not a patient)
+  slog2_api: cannot connect to slogger---> Starting slogger2
+  2 server...errno=No such file or directory
+  ---> Starting PCI Services
+  ---> Starting fsevmgr
+  # ---> Starting devb
+  ELVREK BOOT kernel_ms: controller_process=- control_loop=- status_seen=- start=- first_compression=- state=COMPRESS
+  ---> Mounting file systems
+  ---> Mounting file systems
+  Path=0 - Intel 82371SB
+   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
+  Path=1 - Intel 82371SB
+   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
+  ---> Starting Networking
+  ifconfig: WARNING: setting interface address without mask is deprecated,
+  default mask may not be correct.
+  ---> Starting sshd
+  ---> Starting misc
+  To exit QEMU, type <ctrl>a x
+  [?7hProcess count:28
+  Startup complete
+  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+  qemu-system-x86_64: terminating on signal 15 from pid 64473 (bash)
+boot 1: ssh_answered_host_ms=-
+boot 1: status_after_ssh: tick=2709 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=4 breaths=0 depth_cmd_mm=53.0 force_n=0 pos_mm=2.7 etco2=7.1 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=2709 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=117293 in_window=0 boot_proc_ms=- boot_ready_ms=- boot_start_ms=- boot_comp_ms=-
 
 ######## conventional boot 3
-    0.224  non UEFI or UEFI+CSM boot
-    0.229  ACPI table not found (0x4746434d)
-    0.270  overriding mask for controller 2, vector_base 0
-    1.094  ---> Starting slogger2
-    1.107  ---> Starting PCI Services
-    1.528  ---> Starting fsevmgr
-    1.534  # ---> Starting devb
-    1.931  ---> Mounting file systems
-    1.933  Path=0 - Intel 82371SB
-    1.937   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
-    1.940  Path=1 - Intel 82371SB---> Mounting file systems
-    1.946   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
-    2.054  ---> Starting Networking
-    3.249  ifconfig: WARNING: setting interface address without mask is deprecated,
-    3.253  default mask may not be correct.
-    3.278  ---> Starting sshd
-    3.340  ---> Starting misc
-    3.361  ELVREK MARK post startup reached
-    3.375  elv-plant: running (physics model, not a patient)
-    3.407  To exit QEMU, type <ctrl>a x
-    3.427  [?7hProcess count:28
-    3.431  Startup complete
-    3.441  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
-    3.956  ELVREK BOOT kernel_ms: controller_process=3105 control_loop=3107 status_seen=3108 start=3109 first_compression=3665 state=COMPRESS
-    4.210  qemu-system-x86_64: terminating on signal 15 from pid 64529 (bash)
-boot 1: ssh_answered_host_ms=3596
-boot 1: status_after_ssh: tick=804 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=1 breaths=0 depth_cmd_mm=53.0 force_n=517 pos_mm=50.7 etco2=6.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=10 late=27 overrun=0 adv_age=804 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=119197 in_window=0 boot_proc_ms=3105 boot_ready_ms=3107 boot_start_ms=3109 boot_comp_ms=3665
+  non UEFI or UEFI+CSM boot
+  ACPI table not found (0x4746434d)
+  overriding mask for controller 2, vector_base 0
+  ---> Starting slogger2
+  ---> Starting PCI Services
+  ---> Starting fsevmgr
+  # ---> Starting devb
+  ---> Mounting file systems
+  Path=0 - Intel 82371SB
+   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
+  Path=1 - Intel 82371SB---> Mounting file systems
+   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
+  ---> Starting Networking
+  ifconfig: WARNING: setting interface address without mask is deprecated,
+  default mask may not be correct.
+  ---> Starting sshd
+  ---> Starting misc
+  ELVREK MARK post startup reached
+  elv-plant: running (physics model, not a patient)
+  To exit QEMU, type <ctrl>a x
+  [?7hProcess count:28
+  Startup complete
+  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+  ELVREK BOOT kernel_ms: controller_process=- control_loop=- status_seen=- start=- first_compression=- state=COMPRESS
+  qemu-system-x86_64: terminating on signal 15 from pid 64529 (bash)
+boot 1: ssh_answered_host_ms=-
+boot 1: status_after_ssh: tick=804 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=1 breaths=0 depth_cmd_mm=53.0 force_n=517 pos_mm=50.7 etco2=6.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=804 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=119197 in_window=0 boot_proc_ms=- boot_ready_ms=- boot_start_ms=- boot_comp_ms=-
 
 ######## instant boot 4
-    0.258  non UEFI or UEFI+CSM boot
-    0.263  ACPI table not found (0x4746434d)
-    0.308  overriding mask for controller 2, vector_base 0
-    1.085  ELVREK MARK boot script reached
-    1.112  elv-plant: running (physics model, not a patient)
-    1.129  slog2_api: cannot connect to slogger2 se---> Starting slogger2
-    1.136  rver...errno=No such file or directory
-    1.138  ---> Starting PCI Services
-    1.680  ---> Starting fsevmgr# ELVREK BOOT kernel_ms: controller_process=786 control_loop=800 status_seen=803 start=804 first_compression=1361 state=COMPRESS
-    1.683  ---> Starting devb
-    2.073  ---> Mounting file systems
-    2.079  Pat---> Mounting file systems
-    2.081  h=0 - Intel 82371SB
-    2.086   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
-    2.089  Path=1 - Intel 82371SB
-    2.094   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
-    2.276  ---> Starting Networking
-    3.864  ifconfig: WARNING: setting interface address without mask is deprecated,
-    3.868  default mask may not be correct.
-    3.895  ---> Starting sshd
-    3.953  ---> Starting misc
-    4.018  To exit QEMU, type <ctrl>a x
-    4.037  [?7hProcess count:27
-    4.041  Startup complete
-    4.051  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
-    4.387  qemu-system-x86_64: terminating on signal 15 from pid 64600 (bash)
-boot 1: ssh_answered_host_ms=4173
-boot 1: status_after_ssh: tick=3181 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=5 breaths=0 depth_cmd_mm=53.0 force_n=80 pos_mm=18.8 etco2=7.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=96 late=162 overrun=4 adv_age=3181 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=116822 in_window=0 boot_proc_ms=786 boot_ready_ms=800 boot_start_ms=804 boot_comp_ms=1361
+  non UEFI or UEFI+CSM boot
+  ACPI table not found (0x4746434d)
+  overriding mask for controller 2, vector_base 0
+  ELVREK MARK boot script reached
+  elv-plant: running (physics model, not a patient)
+  slog2_api: cannot connect to slogger2 se---> Starting slogger2
+  rver...errno=No such file or directory
+  ---> Starting PCI Services
+  ---> Starting fsevmgr# ELVREK BOOT kernel_ms: controller_process=- control_loop=- status_seen=- start=- first_compression=- state=COMPRESS
+  ---> Starting devb
+  ---> Mounting file systems
+  Pat---> Mounting file systems
+  h=0 - Intel 82371SB
+   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
+  Path=1 - Intel 82371SB
+   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
+  ---> Starting Networking
+  ifconfig: WARNING: setting interface address without mask is deprecated,
+  default mask may not be correct.
+  ---> Starting sshd
+  ---> Starting misc
+  To exit QEMU, type <ctrl>a x
+  [?7hProcess count:27
+  Startup complete
+  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+  qemu-system-x86_64: terminating on signal 15 from pid 64600 (bash)
+boot 1: ssh_answered_host_ms=-
+boot 1: status_after_ssh: tick=3181 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=5 breaths=0 depth_cmd_mm=53.0 force_n=80 pos_mm=18.8 etco2=7.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=3181 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=116822 in_window=0 boot_proc_ms=- boot_ready_ms=- boot_start_ms=- boot_comp_ms=-
 
 ######## conventional boot 4
-    0.317  non UEFI or UEFI+CSM boot
-    0.322  ACPI table not found (0x4746434d)
-    0.358  overriding mask for controller 2, vector_base 0
-    1.185  ---> Starting slogger2
-    1.197  ---> Starting PCI Services
-    1.614  ---> Starting fsevmgr
-    1.621  # ---> Starting devb
-    2.009  ---> Mounting file systems
-    2.012  Path=0 - Intel 82371SB
-    2.018   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+---> Mounting file systems
-    2.023  Path=1 - Intel 82371SB
-    2.024   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
-    2.128  ---> Starting Networking
-    3.329  ifconfig: WARNING: setting interface address without mask is deprecated,
-    3.333  default mask may not be correct.
-    3.372  ---> Starting sshd
-    3.470  ---> Starting misc
-    3.524  ELVREK MARK post startup reached
-    3.548  elv-plant: running (physics model, not a patient)
-    3.601  To exit QEMU, type <ctrl>a x
-    3.632  [?7hProcess count:29
-    3.634  Startup complete
-    3.643  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
-    4.131  ELVREK BOOT kernel_ms: controller_process=3182 control_loop=3191 status_seen=3195 start=3196 first_compression=3753 state=COMPRESS
-    4.341  qemu-system-x86_64: terminating on signal 15 from pid 64654 (bash)
-boot 1: ssh_answered_host_ms=3725
-boot 1: status_after_ssh: tick=761 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=1 breaths=0 depth_cmd_mm=53.0 force_n=408 pos_mm=42.6 etco2=6.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=22 late=32 overrun=0 adv_age=761 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=119243 in_window=0 boot_proc_ms=3182 boot_ready_ms=3191 boot_start_ms=3196 boot_comp_ms=3753
+  non UEFI or UEFI+CSM boot
+  ACPI table not found (0x4746434d)
+  overriding mask for controller 2, vector_base 0
+  ---> Starting slogger2
+  ---> Starting PCI Services
+  ---> Starting fsevmgr
+  # ---> Starting devb
+  ---> Mounting file systems
+  Path=0 - Intel 82371SB
+   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+---> Mounting file systems
+  Path=1 - Intel 82371SB
+   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
+  ---> Starting Networking
+  ifconfig: WARNING: setting interface address without mask is deprecated,
+  default mask may not be correct.
+  ---> Starting sshd
+  ---> Starting misc
+  ELVREK MARK post startup reached
+  elv-plant: running (physics model, not a patient)
+  To exit QEMU, type <ctrl>a x
+  [?7hProcess count:29
+  Startup complete
+  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+  ELVREK BOOT kernel_ms: controller_process=- control_loop=- status_seen=- start=- first_compression=- state=COMPRESS
+  qemu-system-x86_64: terminating on signal 15 from pid 64654 (bash)
+boot 1: ssh_answered_host_ms=-
+boot 1: status_after_ssh: tick=761 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=1 breaths=0 depth_cmd_mm=53.0 force_n=408 pos_mm=42.6 etco2=6.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=761 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=119243 in_window=0 boot_proc_ms=- boot_ready_ms=- boot_start_ms=- boot_comp_ms=-
 
 ######## instant boot 5
-    0.247  non UEFI or UEFI+CSM boot
-    0.251  ACPI table not found (0x4746434d)
-    0.293  overriding mask for controller 2, vector_base 0
-    1.125  ELVREK MARK boot script reached
-    1.139  elv-plant: running (physics model, not a patient)
-    1.142  slog2_api: cannot---> Starting slogger2
-    1.148   connect to slogger2 server...errno=No such file or directory
-    1.158  ---> Starting PCI Services
-    1.610  ---> Starting fs
-    1.617  # ---> Starting devb
-    1.716  ELVREK BOOT kernel_ms: controller_process=841 control_loop=856 status_seen=857 start=858 first_compression=1406 state=COMPRESS
-    2.019  ---> Mounting file systems
-    2.025  Path---> Mounting file systems
-    2.027  =0 - Intel 82371SB
-    2.034   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
-    2.036  Path=1 - Intel 82371SB
-    2.041   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
-    2.174  ---> Starting Networking
-    3.380  ifconfig: WARNING: setting interface address without mask is deprecated,
-    3.385  default mask may not be correct.
-    3.411  ---> Starting sshd
-    3.473  ---> Starting misc
-    3.522  To exit QEMU, type <ctrl>a x
-    3.540  [?7hProcess count:26
-    3.543  Startup complete
-    3.551  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
-    4.663  qemu-system-x86_64: terminating on signal 15 from pid 64721 (bash)
-boot 1: ssh_answered_host_ms=4498
-boot 1: status_after_ssh: tick=3386 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=6 breaths=0 depth_cmd_mm=53.0 force_n=135 pos_mm=15.0 etco2=7.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=97 late=184 overrun=0 adv_age=3386 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=116615 in_window=0 boot_proc_ms=841 boot_ready_ms=856 boot_start_ms=858 boot_comp_ms=1406
+  non UEFI or UEFI+CSM boot
+  ACPI table not found (0x4746434d)
+  overriding mask for controller 2, vector_base 0
+  ELVREK MARK boot script reached
+  elv-plant: running (physics model, not a patient)
+  slog2_api: cannot---> Starting slogger2
+   connect to slogger2 server...errno=No such file or directory
+  ---> Starting PCI Services
+  ---> Starting fs
+  # ---> Starting devb
+  ELVREK BOOT kernel_ms: controller_process=- control_loop=- status_seen=- start=- first_compression=- state=COMPRESS
+  ---> Mounting file systems
+  Path---> Mounting file systems
+  =0 - Intel 82371SB
+   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
+  Path=1 - Intel 82371SB
+   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+
+  ---> Starting Networking
+  ifconfig: WARNING: setting interface address without mask is deprecated,
+  default mask may not be correct.
+  ---> Starting sshd
+  ---> Starting misc
+  To exit QEMU, type <ctrl>a x
+  [?7hProcess count:26
+  Startup complete
+  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+  qemu-system-x86_64: terminating on signal 15 from pid 64721 (bash)
+boot 1: ssh_answered_host_ms=-
+boot 1: status_after_ssh: tick=3386 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=6 breaths=0 depth_cmd_mm=53.0 force_n=135 pos_mm=15.0 etco2=7.3 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=3386 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=116615 in_window=0 boot_proc_ms=- boot_ready_ms=- boot_start_ms=- boot_comp_ms=-
 
 ######## conventional boot 5
-    0.225  non UEFI or UEFI+CSM boot
-    0.231  ACPI table not found (0x4746434d)
-    0.281  overriding mask for controller 2, vector_base 0
-    1.098  ---> Starting slogger2
-    1.114  ---> Starting PCI Services
-    1.572  ---> Starting fsevmgr
-    1.580  # ---> Starting devb
-    2.004  ---> Mounting file systems
-    2.007  Path=0 - Intel 82371SB
-    2.014   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
-    2.018  Path=1 - Intel 82371SB
-    2.023   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+---> Mounting file systems
-    2.194  ---> Starting Networking
-    3.432  ifconfig: WARNING: setting interface address without mask is deprecated,
-    3.438  default mask may not be correct.
-    3.470  ---> Starting sshd
-    3.526  ---> Starting misc
-    3.548  ELVREK MARK post startup reached
-    3.558  elv-plant: running (physics model, not a patient)
-    3.583  To exit QEMU, type <ctrl>a x
-    3.599  [?7hProcess count:27
-    3.602  Startup complete
-    3.610  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
-    4.124  ELVREK BOOT kernel_ms: controller_process=3276 control_loop=3278 status_seen=3279 start=3280 first_compression=3828 state=COMPRESS
-    4.651  qemu-system-x86_64: terminating on signal 15 from pid 64780 (bash)
-boot 1: ssh_answered_host_ms=4487
-boot 1: status_after_ssh: tick=1064 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=1 breaths=0 depth_cmd_mm=53.0 force_n=2 pos_mm=3.9 etco2=6.5 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=14 late=20 overrun=0 adv_age=1064 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=118937 in_window=0 boot_proc_ms=3276 boot_ready_ms=3278 boot_start_ms=3280 boot_comp_ms=3828
+  non UEFI or UEFI+CSM boot
+  ACPI table not found (0x4746434d)
+  overriding mask for controller 2, vector_base 0
+  ---> Starting slogger2
+  ---> Starting PCI Services
+  ---> Starting fsevmgr
+  # ---> Starting devb
+  ---> Mounting file systems
+  Path=0 - Intel 82371SB
+   target=0 lun=0     Direct-Access(0) -          QEMU HARDDISK    Rev: 2.5+
+  Path=1 - Intel 82371SB
+   target=0 lun=0            CD-ROM(5) - QEMU     QEMU DVD-ROM     Rev: 2.5+---> Mounting file systems
+  ---> Starting Networking
+  ifconfig: WARNING: setting interface address without mask is deprecated,
+  default mask may not be correct.
+  ---> Starting sshd
+  ---> Starting misc
+  ELVREK MARK post startup reached
+  elv-plant: running (physics model, not a patient)
+  To exit QEMU, type <ctrl>a x
+  [?7hProcess count:27
+  Startup complete
+  QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
+  ELVREK BOOT kernel_ms: controller_process=- control_loop=- status_seen=- start=- first_compression=- state=COMPRESS
+  qemu-system-x86_64: terminating on signal 15 from pid 64780 (bash)
+boot 1: ssh_answered_host_ms=-
+boot 1: status_after_ssh: tick=1064 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=1 breaths=0 depth_cmd_mm=53.0 force_n=2 pos_mm=3.9 etco2=6.5 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=1064 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=0 zp_skipped=0 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=118937 in_window=0 boot_proc_ms=- boot_ready_ms=- boot_start_ms=- boot_comp_ms=-

@@ -1,3 +1,5 @@
+# Timing of QNX itself withheld (tick delivery, missed ticks, wake-ups, boot times),
+# per the organisers' guidance on licence section 4.6(i), 28 Nov 2026. Results unchanged.
 # Elvrek crew console run on QNX 8.0 (QEMU, emulator mode, two idle keep-awake threads at priority 1)
 # tests/console_run.sh on the target, then the host replay check: build/console_replay log.txt -c frame-NNNNN.ppm N
 # Reads without a status line are the seconds between runs, while the stack restarts.
@@ -5,11 +7,11 @@
 run A: VF, shock, return of circulation
 elv-plant: running (physics model, not a patient)
 elv-advice-gate: serving /dev/elvrek/advice, forwarding to /dev/elvrek/advice_core as uid 2003
-A: tick=161795 state=ROSC_HOLD sw=3 fault=NONE ccf=1.0000 shocks=1 windows=1 max_window=3 last_window=3 machine=3 max_machine=3 human=0 max_human=0 retries=0 preauth=1 compressions=272 breaths=26 depth_cmd_mm=53.0 force_n=0 pos_mm=0.0 etco2=39.6 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=12166 late=4612 overrun=10 adv_age=431 adv_msgs=158 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=1 zp_skipped=0 zp_sure=1 zp_unsure=0 zp_score=0.99 next_check=81596 in_window=0
+A: tick=161795 state=ROSC_HOLD sw=3 fault=NONE ccf=1.0000 shocks=1 windows=1 max_window=3 last_window=3 machine=3 max_machine=3 human=0 max_human=0 retries=0 preauth=1 compressions=272 breaths=26 depth_cmd_mm=53.0 force_n=0 pos_mm=0.0 etco2=39.6 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=431 adv_msgs=158 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=1 zp_skipped=0 zp_sure=1 zp_unsure=0 zp_score=0.99 next_check=81596 in_window=0
 run B: sinus rhythm, rhythm read through compressions
 elv-plant: running (physics model, not a patient)
 elv-advice-gate: serving /dev/elvrek/advice, forwarding to /dev/elvrek/advice_core as uid 2003
-B: tick=132102 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=238 breaths=21 depth_cmd_mm=53.0 force_n=253 pos_mm=36.8 etco2=12.6 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=3981 late=2254 overrun=6 adv_age=132102 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=1 zp_skipped=1 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=109897 in_window=0
+B: tick=132102 state=COMPRESS sw=0 fault=NONE ccf=1.0000 shocks=0 windows=0 max_window=0 last_window=0 machine=0 max_machine=0 human=0 max_human=0 retries=0 preauth=0 compressions=238 breaths=21 depth_cmd_mm=53.0 force_n=253 pos_mm=36.8 etco2=12.6 epi_prompt=0 epi_prompts=0 epi_given=0 inv=0 missed=- late=- overrun=- adv_age=132102 adv_msgs=0 adv_rejected=0 adv_ignored=0 adv_skips=0 shock_line=0 vent=0 charge=0 ready=0 transport=0 mode_30_2=0 force_limits=0 emulator=1 zp_checks=1 zp_skipped=1 zp_sure=0 zp_unsure=0 zp_score=0.00 next_check=109897 in_window=0
 elv-console: 1280x768 on QNX Screen, saving frames to /data/con
 elv-console: 3052 frames drawn, 11 saved, 91 reads without a status line
 13

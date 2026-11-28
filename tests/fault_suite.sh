@@ -93,8 +93,8 @@ for d in status advice operator piston shock; do
     [ -e /dev/elvrek/$d ] || bad "T1 device /dev/elvrek/$d" missing
 done
 t1=$(st tick); sleep 1; t2=$(st tick)
-[ $((t2 - t1)) -ge 900 ] && ok "T1 control loop ticking ($((t2 - t1)) ticks in 1 s)" \
-                          || bad "T1 control loop" "only $((t2 - t1)) ticks in 1 s"
+[ $((t2 - t1)) -ge 900 ] && ok "T1 control loop ticking" \
+                          || bad "T1 control loop" "too few ticks in 1 s"
 
 # T2 compressions: 100 to 120 a minute is 16.7 to 20 in 10 s, so at least 16
 $B/elv-ctl start; sleep 10
@@ -119,15 +119,14 @@ r=$(sup restarts)
 # T5 CPU storm below the control priority
 # The claim: busy threads just below the control priority cannot stop the
 # controller doing its job. Judged on what the chest gets: compressions on
-# rate, every stroke 5 to 6 cm, no rule broken, no fault. Missed ticks are
-# reported but not judged: on a virtual machine they measure the host (the
-# idle baseline alone has ranged from about 800 to 1400 per 10 s here).
-m0=$(st missed); sleep 10; m1=$(st missed)
+# rate, every stroke 5 to 6 cm, no rule broken, no fault. Tick timing is
+# not judged or printed: on a virtual machine it measures the host, and the
+# timing of QNX itself is not published (licence section 4.6(i)).
 c1=$(st compressions); i1=$(st inv); s1=$(truth strokes); r1=$(truth in_range)
 $B/elv-fault cpu-storm 8 10 59 >/dev/null
-m2=$(st missed); c2=$(st compressions); i2=$(st inv); s2=$(truth strokes); r2=$(truth in_range)
-base=$((m1 - m0)); storm=$((m2 - m1)); dc=$((c2 - c1)); ds=$((s2 - s1)); dr=$((r2 - r1))
-[ $dc -ge 17 ] && [ "$i2" = "$i1" ] && [ $ds -ge 1 ] && [ $dr -eq $ds ] &&   [ "$(st state)" = COMPRESS ] && [ "$(st fault)" = NONE ] &&     ok "T5 CPU storm (8 threads, priority 59, 10 s): +$dc compressions, $dr of $ds strokes 5 to 6 cm, 0 violations (missed ticks $storm with storm, $base without, host noise)" ||     bad "T5 CPU storm" "compressions +$dc, in range $dr of $ds, inv $i1 to $i2, state $(st state) fault $(st fault), missed $storm vs $base"
+c2=$(st compressions); i2=$(st inv); s2=$(truth strokes); r2=$(truth in_range)
+base=0; storm=0; dc=$((c2 - c1)); ds=$((s2 - s1)); dr=$((r2 - r1))
+[ $dc -ge 17 ] && [ "$i2" = "$i1" ] && [ $ds -ge 1 ] && [ $dr -eq $ds ] &&   [ "$(st state)" = COMPRESS ] && [ "$(st fault)" = NONE ] &&     ok "T5 CPU storm (8 threads, priority 59, 10 s): +$dc compressions, $dr of $ds strokes 5 to 6 cm, 0 violations" ||     bad "T5 CPU storm" "compressions +$dc, in range $dr of $ds, inv $i1 to $i2, state $(st state) fault $(st fault)"
 
 # T6 stiff chest: force ceiling
 $B/elv-fault stiff; sleep 10
@@ -169,9 +168,9 @@ wait_ticks_for 160000 state ROSC_HOLD
 sh=$(st shocks); w=$(st max_window); so=$(truth shocks_off_recoil)
 [ "$sh" = 1 ] && [ "$w" -lt 3000 ] && [ "$so" = 0 ] && \
     ok "T10 shock: 1 shock, hands-off window $w ticks (machine $(st max_machine)), 0 shocks off recoil, rhythm read through compressions: sure $(st zp_sure) unsure $(st zp_unsure)" || \
-    bad "T10 shock" "shocks $sh window $w off_recoil $so fault $(st fault) missed $(st missed)"
+    bad "T10 shock" "shocks $sh window $w off_recoil $so fault $(st fault)"
 wait_state state ROSC_HOLD 30 && ok "T10 trusted ROSC (EtCO2): parked, ventilating" \
-                              || bad "T10 ROSC" "state $(st state) fault $(st fault) missed $(st missed) inv $(st inv)"
+                              || bad "T10 ROSC" "state $(st state) fault $(st fault) inv $(st inv)"
 ccf=$(st ccf)
 ge "$ccf" 0.90 && ok "T10 chest-compression fraction $ccf" || bad "T10 CCF" "$ccf"
 
@@ -203,7 +202,7 @@ sleep 2
 ig=$(st adv_ignored); sh=$(st shocks); inv=$(st inv)
 [ "$ig" -ge 100 ] && [ "$sh" -ge 1 ] && [ "$inv" = 0 ] && [ "$(st state)" = COMPRESS ] && \
     ok "T11 malicious advisor: $ig demands ignored, shock still delivered, 0 violations" || \
-    bad "T11 malicious advisor" "ignored $ig shocks $sh windows $(st windows) retries $(st retries) inv $inv state $(st state) fault $(st fault) missed $(st missed)"
+    bad "T11 malicious advisor" "ignored $ig shocks $sh windows $(st windows) retries $(st retries) inv $inv state $(st state) fault $(st fault)"
 fi
 
 down

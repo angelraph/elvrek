@@ -1,10 +1,12 @@
+# Timing of QNX itself withheld (tick delivery, missed ticks, wake-ups, boot times),
+# per the organisers' guidance on licence section 4.6(i), 28 Nov 2026. Results unchanged.
 QNX target at 172.31.1.10: QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
 Elvrek fault suite on QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
 physics plant, not a patient; timing in control ticks
 EMULATOR MODE: sensor timeout 50 ms, hardware watchdog 100 ms (hardware limits are 5 ms and 20 ms)
 
 elv-plant: running (physics model, not a patient)
-PASS T1 control loop ticking (961 ticks in 1 s)
+PASS T1 control loop ticking
 PASS T2 compressions (17 in 10 s, 0 invariant violations)
 PASS T3 advisor attack: attack: 7 of 7 forbidden actions refused
 elv-super: advisor died (15), restart 1
@@ -12,7 +14,7 @@ elv-super: advisor silent > 3000 ms, killing, restart 2
 PASS T4 advisor killed: compressions continued (+10), restarted (2)
 elv-super: advisor silent > 3000 ms, killing, restart 3
 elv-super: advisor silent > 3000 ms, killing, restart 4
-PASS T5 CPU storm (8 threads, priority 59, 10 s): missed ticks 263 with storm vs 1075 without, +19 compressions
+PASS T5 CPU storm (8 threads, priority 59, 10 s): +19 compressions
 PASS T6 stiff chest: max force 604 N, ceiling engaged 8 times
 elv-plant: running (physics model, not a patient)
 recent stroke peaks (mm): 51.5 53.0 51.2 52.6 52.4 52.5 51.6 52.4 52.2 53.3 51.7 53.5 52.2 52.5 52.7 52.9
@@ -29,6 +31,6 @@ PASS T10 shock: 1 shock, hands-off window 809 ticks, 0 shocks off recoil
 PASS T10 trusted ROSC (EtCO2): parked, ventilating
 PASS T10 chest-compression fraction 0.9946
 elv-plant: running (physics model, not a patient)
-FAIL T11 malicious advisor: ignored 289 shocks 0 inv 0 state COMPRESS fault NONE missed 29459
+FAIL T11 malicious advisor: ignored 289 shocks 0 inv 0 state COMPRESS fault NONE
 
 FAIL: 1 case(s)

@@ -64,7 +64,7 @@ A draft policy in the QNX 8.0 policy language gives each process its own type, a
 
 ## Kernel tracing: `qnx/trace-run.sh`, `tools/tracecheck.py`
 
-`tracelogger` records every scheduling event while the stack runs, quiet and under a CPU storm; `traceprinter` turns it into text and `tools/tracecheck.py` measures the control thread's pulse gaps, wake-ups, work per tick and preemption by the storm. Results and limits in [docs/TIMING.md](docs/TIMING.md).
+`tracelogger` records every scheduling event while the stack runs, quiet and under a CPU storm; `traceprinter` turns it into text and `tools/tracecheck.py` measures the work our own threads do in each tick. Timing of QNX itself is not published, following the organisers' guidance on licence section 4.6(i) (28 Nov 2026). Results and limits in [docs/TIMING.md](docs/TIMING.md).
 
 ## On-target tests: `tests/fault_suite.sh`
 

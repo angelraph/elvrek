@@ -257,7 +257,7 @@ text = "Run the control loop every 1 ms at a priority above every other Elvrek p
 why = "Force control on a chest needs a fixed, short period."
 code = ["include/elv_limits.h:ELV_TICK_HZ", "src/qnx/elvrekd.c:timer_create(CLOCK_MONOTONIC"]
 qnx = ["T1 control loop ticking"]
-evidence = [{ file = "docs/results/qnx-trace-quiet.txt", match = "ticks whose work ran past 1 ms: 0 of" }]
+evidence = [{ file = "docs/results/qnx-trace-quiet.txt", match = "ticks in which our control work ran past 1 ms: 0" }]
 limit = "Measured on QEMU. No worst-case bound is claimed until the trace is repeated on hardware (docs/TIMING.md)."
 
 [[req]]
@@ -267,7 +267,7 @@ text = "Busy threads just below the control priority cannot stop correct compres
 why = "Other work on the same device must not degrade CPR."
 code = ["src/qnx/elv_fault.c:cpu-storm"]
 qnx = ["T5 CPU storm"]
-evidence = [{ file = "docs/results/qnx-trace-storm.txt", match = "ticks whose work ran past 1 ms: 0 of" }]
+evidence = [{ file = "docs/results/qnx-trace-storm.txt", match = "ticks in which our control work ran past 1 ms: 0" }]
 
 [[req]]
 id = "R26"
@@ -312,11 +312,11 @@ evidence = [{ file = "docs/results/qnx-console-run.txt", match = ": 0 of 2949120
 [[req]]
 id = "R30"
 group = "Console and boot"
-text = "Start compressing from the boot image, within 2 s of the kernel starting."
+text = "Start compressing from the boot image, before the disks are mounted."
 why = "Every second of boot is a second without blood flow."
 code = ["qnx/instant-on/ifs_start.custom:elvrekd -e", "src/qnx/elvrekd.c:g_boot_comp_ms = mono_ms()"]
-evidence = [{ file = "docs/results/qnx-instant-on-ab.txt", match = "controller_process=\\d+ control_loop=\\d+ status_seen=\\d+ start=\\d+ first_compression=1\\d\\d\\d state=COMPRESS", min = 5 }]
-limit = "Emulator times, on the kernel's clock. Real boards add firmware time before the kernel."
+evidence = [{ file = "docs/results/qnx-instant-on-ab.txt", match = '(?s)######## instant boot \d\n(?:(?!########).)*?ELVREK BOOT(?:(?!########).)*?Mounting file systems', min = 5 }]
+limit = "Order of events in an emulator; boot times are not published (licence section 4.6(i)). Real boards add firmware time before the kernel."
 
 # ------------------------------------------------------------ the workflow
 

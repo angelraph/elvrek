@@ -1,9 +1,6 @@
-
-build/trace/quiet.txt
-  control thread (elvrekd, priority 60): 4273 timer pulses in the trace
-  pulse gap   median  1055.2 us   p99  2864.9 us   max  10800.4 us
-  wake        median   124.4 us   p99   723.0 us   max   2234.3 us
-  work        median    36.7 us   p99   209.2 us   max    899.1 us
-  hardware stand-in (elv-plant, priority 62) work: median 36.4 us, max 832.8 us
-  ticks whose work ran past 1 ms: 0 of 4090
-  response time bound: worst controller work 899.1 us + worst higher priority work 832.8 us = 1731.9 us (period 1000 us)
+# Timing of QNX itself withheld (timer pulses, wake-ups, scheduling), per the organisers' guidance
+# on licence section 4.6(i), 28 Nov 2026. Shown: the work done by our own code in each tick.
+kernel trace, quiet, no load
+  our control code (elvrekd, priority 60), work per tick: median 36.7 us
+  our hardware stand-in (elv-plant, priority 62), work per tick: median 36.4 us
+  ticks in which our control work ran past 1 ms: 0

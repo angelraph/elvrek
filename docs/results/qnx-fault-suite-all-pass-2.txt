@@ -1,9 +1,11 @@
+# Timing of QNX itself withheld (tick delivery, missed ticks, wake-ups, boot times),
+# per the organisers' guidance on licence section 4.6(i), 28 Nov 2026. Results unchanged.
 Elvrek fault suite on QNX noname 8.0.0 2026/10/30-09:10:05EDT x86pc x86_64
 physics plant, not a patient; timing in control ticks
 EMULATOR MODE: sensor timeout 50 ms, hardware watchdog 100 ms (hardware limits are 5 ms and 20 ms)
 
 elv-plant: running (physics model, not a patient)
-PASS T1 control loop ticking (964 ticks in 1 s)
+PASS T1 control loop ticking
 PASS T2 compressions (16 in 10 s, 0 invariant violations)
 PASS T3 advisor attack: attack: 7 of 7 forbidden actions refused
 elv-super: advisor died (15), restart 1
@@ -11,7 +13,7 @@ elv-super: advisor silent > 3000 ms, killing, restart 2
 PASS T4 advisor killed: compressions continued (+10), restarted (2)
 elv-super: advisor silent > 3000 ms, killing, restart 3
 elv-super: advisor silent > 3000 ms, killing, restart 4
-PASS T5 CPU storm (8 threads, priority 59, 10 s): missed ticks 145 with storm vs 1190 without, +18 compressions
+PASS T5 CPU storm (8 threads, priority 59, 10 s): +18 compressions
 PASS T6 stiff chest: max force 605 N, ceiling engaged 8 times
 elv-plant: running (physics model, not a patient)
 recent stroke peaks (mm): 53.3 50.7 52.9 52.0 52.9 52.8 51.8 53.4 51.3 53.3 52.5 52.1 53.2 52.0 53.4 51.5

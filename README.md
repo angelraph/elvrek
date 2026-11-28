@@ -28,11 +28,11 @@ Built for the **QNX Global Hackathon**, Robotics and Medical category.
 | **Shock window** | 4 ticks of machine time on QNX when the rhythm was read through the compressions; 803 ticks (park, 0.8 s look, discharge) when it was not sure. The crew's time is counted separately |
 | **AI fence** | An enforced QNX security policy: the classifier's only door is a separate advice gate. 7 of 7 forbidden actions refused; kept as root under its type, the kernel still refuses every path to the piston and shock line ([A/B](docs/results/qnx-secpol-attack-ab.txt)) |
 | **Hard limits** | The controller stops pushing at 600 N and 650 N is never crossed. Depth 5 to 6 cm, full recoil every stroke |
-| **Kernel trace** | QNX `tracelogger`: control work per tick median 27 to 37 µs, 0 ticks past 1 ms; under a priority 59 CPU storm the controller preempts it within 42 µs ([docs/TIMING.md](docs/TIMING.md)) |
+| **Kernel trace** | QNX `tracelogger` on our own code: control work per tick median 27 to 37 µs, and no tick in which our work ran past 1 ms, quiet or under a priority 59 CPU storm ([docs/TIMING.md](docs/TIMING.md)) |
 | **One clock vs two** | The same arrest on the same code: pre-shock pause 0.3 s (the crew's press) against 12.3 s for a mechanical CPR device plus a separate AED, and 5.3 s even when that crew pre-charges (5 s AED analysis). 10 minutes of refractory VF: 1.2 s hands-off against 53.2 s and 25.2 s ([docs/WORKFLOW-AB.md](docs/WORKFLOW-AB.md)) |
 | **Requirements** | **30 of 30** safety requirements traced to code, host tests in their own words, QNX runs and result files. The matrix is generated and every link checked in CI ([REQUIREMENTS.md](REQUIREMENTS.md)) |
-| **Instant on** | The safety process starts from the QNX boot image, before disks or network: first full compression 1.39 s after the kernel starts, against 3.67 s when started after the normal boot (median of 5 boots each) ([docs/INSTANT-ON.md](docs/INSTANT-ON.md)) |
-| **Crew console** | Drawn with QNX Screen on the target, read only, from the safety process's status. Every frame saved from Screen matches the host replay pixel for pixel; switching it on makes no difference to missed ticks that we can measure on this emulator ([docs/CONSOLE.md](docs/CONSOLE.md)) |
+| **Instant on** | The safety process starts from the QNX boot image, before disks or network: in every test boot the first compression was done before any disk was mounted, against only after the whole boot when started like an ordinary application (5 boots each) ([docs/INSTANT-ON.md](docs/INSTANT-ON.md)) |
+| **Crew console** | Drawn with QNX Screen on the target, read only, from the safety process's status. Every frame saved from Screen matches the host replay pixel for pixel ([docs/CONSOLE.md](docs/CONSOLE.md)) |
 | **Host tests** | **22 of 22** scenarios with 0 rule violations, every one also checking rate, depth, force and full recoil, run on every push by GitHub Actions |
 | **Real ECG** | 57 PhysioNet arrest records. Held out: VF found 75.0%, normal sinus left alone 97.7%. Still short of clinical goals, and we say so |
 | **Website** | 12 pages: landing, system, technology, evidence, recorded run, FAQ and more, on desktop and phone |
@@ -80,7 +80,7 @@ The whole stack, built with qcc, running on QNX 8.0 in QEMU. Two full runs in a 
 
 | Case | What it does | Result |
 |---|---|---|
-| T1 Control loop | Counts ticks in one second | 960 to 1,013 ticks a second on the default 1 ms tick |
+| T1 Control loop | Checks the 1 ms loop is running | Running in every run |
 | T2 Compressions | Ten seconds of compressions | 16 to 17, 0 rule violations |
 | T3 Advisor attack | The classifier tries 7 forbidden actions | **7 of 7 refused by QNX** |
 | T4 Advisor killed | Kill the classifier mid compression | Compressions continue, the supervisor restarts it |
@@ -295,7 +295,7 @@ web/            the website, deployed on Vercel
 * **Rhythm check.** On held-out real ECG it does not yet meet clinical goals (VF above 90%, sinus above 99%, asystole above 95%), so the 0.8 s step is a careful timed pause, not a diagnosis.
 * **Timing in a virtual machine.** The 11 of 11 runs use the labelled emulator mode. At real hardware timings, a nested VM passes 9 of 11.
 * **Security policy.** Enforced on the QNX image. A classifier that somehow stayed root under its type could still open the hardware shared memory, which this policy does not govern; the real classifier drops root first, which closes it ([details](qnx/secpol/README.md)).
-* **Performance results.** Timing is reported in control ticks and PASS or FAIL, not microseconds, while the QNX Everywhere licence question about publishing performance results is open.
+* **Performance results.** Following the organisers' guidance on licence section 4.6(i) (28 Nov 2026), timing of QNX itself (tick delivery, missed ticks, scheduling, boot times) is not published, here or in the raw logs, where those values are withheld by [`tools/redact_timing.py`](tools/redact_timing.py). We report pass or fail, counts from our own tests, and the work done by our own code.
 
 ## Data and licence
 

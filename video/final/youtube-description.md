@@ -15,7 +15,7 @@ What you see in this video, all recorded from QNX 8.0 running in QEMU:
 * A shockable rhythm: the charger fills while the piston keeps working, the controller reads the rhythm through its own compressions, and the shock goes through with a few milliseconds of hands-off time.
 * The crew console, drawn with QNX Screen. It only reads.
 * We kill the safety process mid stroke. The motor driver's own watchdog lifts the cup, and nothing restarts the controller behind your back.
-* Instant on: compressing 1.39 s after the kernel starts, from the boot image itself.
+* Instant on: compressing from the boot image itself, before the disks are even mounted.
 * The same arrest run the usual way, a CPR device plus a separate AED: 12.3 s of hands-off before the shock, against 0.3 s with Elvrek.
 * 12 of 12 fault cases on QNX, a kernel trace with no tick of work past 1 ms, and 31 of 31 requirements traced to code and tests.
 
