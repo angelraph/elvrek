@@ -29,9 +29,9 @@ Chapters
 1:06 A shock read through the compressions
 1:24 Crew console, then killing the safety process
 1:43 Instant on from the boot image
-1:54 Same arrest, the usual way
-2:10 The evidence
-2:25 What's next
+1:53 Same arrest, the usual way
+2:09 The evidence
+2:24 What's next
 
 Code and every raw result: https://github.com/angelraph/elvrek
 Website: https://elvrek.vercel.app

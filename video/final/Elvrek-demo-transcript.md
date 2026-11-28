@@ -34,16 +34,16 @@ Now we kill the safety process in the middle of a stroke. The driver's own watch
 
 **1:44  Instant on**
 
-Elvrek also starts from the boot image itself. The first compression is done 1.4 seconds after the kernel starts, before the disks or the network are up.
+Elvrek also starts from the boot image itself. Its first compression is done before the disks are even mounted, while the rest of the system is still booting.
 
-**1:55  One clock against two**
+**1:54  One clock against two**
 
 We ran the same arrest the usual way too, a CPR device plus a separate AED. The pause before the shock was twelve seconds, and five even when the crew pre-charges. With Elvrek it was three tenths of a second, the crew's own press.
 
-**2:11  The evidence**
+**2:10  The evidence**
 
 Every claim is checked. Twelve of twelve fault cases pass on QNX. A kernel trace finds no tick whose work ran past one millisecond. And thirty one safety requirements are traced to code and tests, automatically.
 
-**2:25  Closing**
+**2:24  Closing**
 
 Elvrek is open source, and it is not a medical device. Next stop, a Raspberry Pi 5 and a training manikin. Save lives, smarter.

@@ -222,7 +222,7 @@ def cards(sid, out):
     s = [x["t"] for x in TIM[sid]["sentences"]]
     L = LEAD; dur = dur_of(sid, 0.6)
     if sid == "instant":
-        T = {"run": L + s[1], "span": 3.6}
+        T = {"run": L + s[1] - 0.6, "step": 0.62}
         chip = ("05", "Instant on")
     elif sid == "workflow":
         T = {"a": L + s[1] + 0.9, "b": L + s[1] + 3.0, "c": L + s[2]}

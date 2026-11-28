@@ -36,7 +36,7 @@
   },
   {
    "id": "instant",
-   "text": "Elvrek also starts from the boot image itself. The first compression is done 1.4 seconds after the kernel starts, before the disks or the network are up."
+   "text": "Elvrek also starts from the boot image itself. Its first compression is done before the disks are even mounted, while the rest of the system is still booting."
   },
   {
    "id": "workflow",
